@@ -50,7 +50,7 @@ export function GrafikPitch({ acuan, kontur, nadaMeleset }: Props) {
     const nada = acuan[m.urutan - 1];
     return {
       x: nada ? nada.waktu + nada.durasi / 2 : m.waktu,
-      y: m.midiAcuan + m.selisihCent / 100,
+      y: m.midiAcuan + (m.selisihCent ?? 0) / 100,
     };
   });
 
@@ -74,7 +74,7 @@ export function GrafikPitch({ acuan, kontur, nadaMeleset }: Props) {
         spanGaps: false,
       },
       {
-        label: "Nyanyian Anda",
+        label: "Nyanyian Anda (diselaraskan)",
         data: titikNyanyian,
         borderColor: WARNA_NYANYIAN,
         backgroundColor: WARNA_NYANYIAN,
@@ -132,6 +132,7 @@ export function GrafikPitch({ acuan, kontur, nadaMeleset }: Props) {
             if (item.datasetIndex === 0) return `Acuan: ${namaNada(y)}`;
             if (item.datasetIndex === 2) {
               const m = nadaMeleset[item.dataIndex];
+              if (m.selisihCent === null) return `Nada ke-${m.urutan}: tidak terdeteksi`;
               return `Meleset: nada ke-${m.urutan}, ${m.selisihCent > 0 ? "+" : "−"}${Math.abs(Math.round(m.selisihCent))} cent`;
             }
             return `Anda: ${formatCent(y)}`;
@@ -152,11 +153,16 @@ export function GrafikPitch({ acuan, kontur, nadaMeleset }: Props) {
         min: minY,
         max: maxY,
         title: { display: true, text: "Nada", color: WARNA_TEKS },
+        // Garis grid tiap semiton; label hanya untuk nada natural (C, D, E, …).
         ticks: {
           color: WARNA_TEKS,
           stepSize: 1,
-          autoSkip: true,
-          callback: (v) => (Number.isInteger(v) ? namaNada(Number(v)) : ""),
+          autoSkip: false,
+          callback: (v) => {
+            if (!Number.isInteger(v)) return "";
+            const nama = namaNada(Number(v));
+            return nama.includes("#") ? "" : nama;
+          },
         },
         grid: { color: WARNA_GRID },
         border: { display: false },

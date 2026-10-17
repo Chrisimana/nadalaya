@@ -8,7 +8,7 @@ Acuan dokumen: [SRS](docs/SRS_11241022.pdf) dan [SDD](docs/SDD%20_11241022.pdf) 
 
 ## Status proyek
 
-**Langkah 2 – Supabase tersambung.** Autentikasi, basis data, Storage MIDI, hak akses, kuota, sesi analisis, riwayat, dan profil sudah memakai Supabase. Yang belum dikerjakan: mesin analisis CREPE + DTW, uji coba Premium, pembayaran Midtrans, dan fitur admin.
+**Langkah 3 – alur latihan berfungsi penuh.** Autentikasi, basis data, Storage MIDI, hak akses, kuota, dan profil memakai Supabase. Analisis nada (CREPE + DTW) berjalan di browser, lalu skor dan riwayat disimpan. Yang belum dikerjakan: uji coba Premium, pembayaran Midtrans, dan fitur admin.
 
 Proyek ini tidak memakai data dummy. Fungsi `lib/api/` yang back-end-nya belum dibuat (admin, uji coba, pembelian) masih melempar `BelumTersambungError` dan ditandai `// TODO`.
 
@@ -20,12 +20,14 @@ Proyek ini tidak memakai data dummy. Fungsi `lib/api/` yang back-end-nya belum d
 | Bahasa & gaya | TypeScript, Tailwind CSS 4 |
 | Basis data & autentikasi | Supabase (PostgreSQL, Auth, Storage, Row Level Security) via `@supabase/ssr` |
 | Berkas MIDI | `@tonejs/midi` |
+| Deteksi pitch | CREPE tiny (TensorFlow.js, backend WebGL), model lokal di `public/models/crepe/` |
+| Pengujian | Vitest |
 | Notasi balok | VexFlow 5 (font Bravura dibundel) |
 | Pemutaran acuan | Tone.js |
 | Perekaman | Web Audio API + MediaRecorder |
 | Grafik | Chart.js + react-chartjs-2 |
 | Ikon | lucide-react |
-| Tahap berikutnya | CREPE (TensorFlow.js), Midtrans Snap, Docker |
+| Tahap berikutnya | Midtrans Snap, Docker |
 
 ## Cara menjalankan
 
@@ -44,6 +46,7 @@ Buka <http://localhost:3000>. Sebelum itu, selesaikan [Setup Supabase](#setup-su
 | `npm run build` | Build produksi |
 | `npm run start` | Menjalankan hasil build |
 | `npm run lint` | Pemeriksaan ESLint |
+| `npm test` | Uji analisis nada tanpa mikrofon (Vitest) |
 | `npm run buat-midi` | Membuat 5 berkas MIDI contoh di `scripts/midi/` |
 
 ## Setup Supabase
@@ -108,7 +111,8 @@ Tanpa perubahan ini, tautan bawaan tetap didukung, tetapi tautan atur ulang kata
 1. Buka <http://localhost:3000/daftar>, daftar dengan email aktif, lalu buka tautan verifikasi di email.
 2. Masuk di <http://localhost:3000/masuk>. Pengguna diarahkan ke `/dashboard`, admin ke `/admin`.
 3. `/materi` menampilkan 5 materi. Tiga materi premium bergembok untuk akun Gratis.
-4. Buka materi gratis: notasi dan acuan dimuat dari berkas MIDI (signed URL), perekam suara berfungsi.
+4. Buka materi gratis: notasi dan acuan dimuat dari berkas MIDI (signed URL). Putar acuan, rekam nyanyian (maksimal 60 detik), lalu tekan **Analisis**.
+5. Skor, grafik nada, dan nada meleset tampil. Hasil tersimpan sebagai riwayat dan kuota Gratis berkurang satu. Dashboard menampilkan skor terbaru.
 
 **Mencoba fitur Premium** (riwayat dan progres) sebelum uji coba dan pembayaran tersedia: ubah paket akun lewat SQL Editor.
 
@@ -124,7 +128,37 @@ Kembalikan ke Gratis dengan `set status_paket = 'gratis', tanggal_berakhir = nul
 
 **Status Pembayaran** (perlu masuk) dapat dilihat lewat parameter alamat, misalnya <http://localhost:3000/langganan/status?order_id=NDL-001&status=berhasil> (`berhasil`, `tertunda`, `gagal`, `kedaluwarsa`).
 
-> Tombol **Analisis** saat ini memeriksa kuota dan mencatat sesi di server, lalu berhenti dengan pesan "model gagal dimuat" karena mesin CREPE belum dipasang. Sesi tersebut ditandai batal sehingga kuota tidak berkurang.
+## Analisis nada
+
+Seluruh analisis berjalan di browser; rekaman tidak pernah diunggah (NFR-07). Server hanya menerima skor, ringkasan kontur (20 titik/detik), dan nada meleset.
+
+1. **Pra-proses** (`lib/audio/crepe.ts`): rekaman diubah menjadi mono 16 kHz dengan `OfflineAudioContext`, dipotong menjadi bingkai 1024 sampel dengan hop 10 ms, dan dinormalisasi per bingkai.
+2. **CREPE**: inferensi per batch 256 bingkai dengan progres di layar. Frekuensi dari rata-rata berbobot cents di sekitar argmax; bingkai dengan confidence < 0,5 dianggap tanpa suara.
+3. **Gagal** bila bingkai bersuara < 20%, rekaman < 2 detik, atau model gagal dimuat. Sesi dibatalkan dan kuota tidak berkurang.
+4. **Penyelarasan** (`lib/audio/dtw.ts`): kedua deret diturunkan ke 20 bingkai/detik, nyanyian digeser kelipatan 12 semiton terdekat (toleransi oktaf), lalu DTW dengan pita Sakoe-Chiba.
+5. **Skor** (`lib/audio/skor.ts`): median deviasi tiap nada acuan; nada meleset bila |deviasi| > 50 cent; skor nada 100 bila |deviasi| ≤ 20 cent, lalu turun linear hingga 0 pada 100 cent; skor akhir = rata-rata.
+
+**Kinerja (NFR-01).** Konsol browser mencetak waktu tiap tahap, dengan format `[analisis] rekaman … dtk · model … dtk · CREPE … dtk · DTW+skor … dtk · total … dtk`. Buka DevTools → Console setelah menekan Analisis untuk memeriksa target ≤ 15 detik.
+
+### Pengujian tanpa mikrofon
+
+`npm test` menjalankan dua berkas uji:
+
+| Berkas | Isi |
+|---|---|
+| `tests/analisis.test.ts` | Audio sinus sintetis dari `do-mayor.mid` → CREPE sungguhan (tfjs backend cpu) → DTW → skor |
+| `tests/dtw-skor.test.ts` | Fungsi murni DTW, toleransi oktaf, skor, dan notasi dengan deret nada sintetis |
+
+Hasil uji CREPE (target NFR-03):
+
+| Skenario | Target | Hasil |
+|---|---|---|
+| Nada tepat | ≥ 80 | 100 |
+| Digeser 1 semiton | ≤ 50 | 22 |
+| Satu oktaf lebih rendah | ≥ 80 | 100 |
+| Hening | gagal "nada tidak terdeteksi" | lolos |
+
+Uji CREPE di Node memakai hop 50 ms karena backend cpu jauh lebih lambat daripada WebGL; prosesnya tetap sama. Seluruh uji selesai sekitar 1 menit.
 
 ## Perlindungan halaman dan API
 
@@ -170,12 +204,14 @@ lib/
 ├─ api/                      Lapisan data sisi klien: memanggil API route lewat klien.ts
 ├─ server/                   Khusus server: sesi login, status paket, kuota, akses, galat
 ├─ supabase/                 Klien Supabase: server.ts (cookie sesi), admin.ts (secret key)
-├─ audio/                    recorder, usePerekam, acuan (Tone.js), midi (@tonejs/midi),
-│                            analisis, useAnalisis, crepe.ts (stub)
+├─ audio/                    recorder, usePerekam, acuan (Tone.js), midi, notasi,
+│                            crepe, dtw, skor, analisis, useAnalisis
 ├─ types.ts  validasi.ts  waktu.ts  paket.ts  useMuat.ts  kontak.ts  utils.ts
 supabase/
 ├─ schema.sql                Tabel, enum, trigger, fungsi, RLS, bucket Storage
 └─ seed.sql                  5 materi latihan
+public/models/crepe/         Model CREPE tiny (ml5-data-and-models, lisensi MIT)
+tests/                       Uji Vitest analisis nada
 scripts/
 ├─ buat-midi.mjs             Pembuat berkas MIDI contoh
 └─ midi/                     Hasil: 5 berkas .mid
@@ -203,12 +239,12 @@ Keterangan status:
 | UC-07 | Menyaring Materi | FR-07 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Saring jenis dan tingkat pada data asli. Di luar 10 fitur target. |
 | UC-08 | Memilih Materi Latihan | FR-07, FR-08 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Data materi dan berkas MIDI (signed URL) dimuat setelah pemeriksaan akses. |
 | UC-09 | Memeriksa Hak Akses dan Kuota | FR-08, FR-09 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Di server: materi premium ditolak untuk Gratis, kuota 3 sesi selesai per hari (WIB), status paket efektif. |
-| UC-10 | Memutar Acuan MIDI dan Notasi | FR-10 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Berkas MIDI dari Storage dibaca `@tonejs/midi`, ditampilkan VexFlow dan diputar Tone.js. |
+| UC-10 | Memutar Acuan MIDI dan Notasi | FR-10 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Berkas MIDI dari Storage dibaca `@tonejs/midi` (nada dan tempo). Notasi VexFlow: kunci G, birama 4/4, kuantisasi not 1/1–1/8, beberapa baris responsif. Acuan Tone.js dengan tombol Putar dan Berhenti, berhenti otomatis saat merekam. |
 | UC-11 | Merekam Suara | FR-10, FR-11 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Izin mikrofon, indikator level, berhenti otomatis 60 detik, dengarkan dan rekam ulang. Rekaman tidak diunggah. |
-| UC-12 | Menganalisis Akurasi Nada | FR-09, FR-12, FR-13 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Cek ulang kuota, pencatatan sesi `dimulai`, dan pembatalan sesi sudah tersambung. Mesin CREPE + DTW belum dipasang. |
-| UC-13 | Menampilkan Skor dan Grafik Nada | FR-14, FR-15, FR-16 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Tampilan lengkap. Penyimpanan riwayat (`/api/sesi/[id]/hasil`) siap, menunggu hasil mesin analisis. |
-| UC-14 | Melihat Riwayat Latihan | FR-16 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | API tersambung (khusus Premium). Data riwayat baru ada setelah mesin analisis selesai. |
-| UC-15 | Melihat Grafik Progres | FR-17 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | API tersambung (khusus Premium). Grafik terisi setelah ada riwayat. |
+| UC-12 | Menganalisis Akurasi Nada | FR-09, FR-12, FR-13 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Cek ulang kuota dan sesi `dimulai` di server, lalu CREPE (TensorFlow.js) di browser dengan progres, toleransi oktaf, dan DTW. Kegagalan membatalkan sesi tanpa mengurangi kuota. |
+| UC-13 | Menampilkan Skor dan Grafik Nada | FR-14, FR-15, FR-16 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Skor 0–100 dengan keterangan, grafik nada acuan vs nyanyian (Chart.js), daftar nada meleset (arah dan cent). Riwayat disimpan; bila gagal, skor tetap tampil. Latih Lagi dan Kembali ke Daftar Materi. |
+| UC-14 | Melihat Riwayat Latihan | FR-16 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Khusus Premium dan Uji Coba: tabel riwayat dan detail dengan skor, grafik, dan nada meleset. |
+| UC-15 | Melihat Grafik Progres | FR-17 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Khusus Premium: grafik skor per jenis materi dari riwayat. |
 | UC-16 | Mengaktifkan Uji Coba Premium | FR-18 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Tombol tersedia, API belum dibuat. |
 | UC-17 | Membeli Paket Langganan | FR-19 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Status paket dari basis data; pembelian menunggu Midtrans. |
 | UC-18 | Memproses Pembayaran | FR-19, FR-20 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Halaman status berhasil, tertunda, gagal, kedaluwarsa. Pop-up Snap menunggu integrasi. |
@@ -222,7 +258,7 @@ Keterangan status:
 | UC-26 | Melihat Statistik Latihan | FR-22 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Filter rentang tanggal, kartu statistik, grafik per hari. |
 | UC-27 | Melihat Laporan Transaksi | FR-22 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Filter tanggal dan status, total pendapatan. |
 
-**Ringkasan:** 11 berfungsi, 15 tampilan selesai, 1 belum dikerjakan.
+**Ringkasan:** 15 berfungsi, 11 tampilan selesai, 1 belum dikerjakan.
 
 ## Kebutuhan non-fungsional yang sudah diperhatikan
 
@@ -235,9 +271,8 @@ Keterangan status:
 
 ## Rencana tahap berikutnya
 
-1. Mesin analisis: CREPE (TensorFlow.js) di `lib/audio/crepe.ts`, DTW, dan perhitungan skor.
-2. Uji coba Premium 7 hari (`uji_coba_digunakan`).
-3. Pembelian paket dan webhook Midtrans (verifikasi signature, perpanjangan `tanggal_berakhir`).
-4. API admin: kelola materi (unggah MIDI ke Storage), kelola pengguna, statistik, laporan transaksi.
-5. Jadwal harian `perbarui_paket_kedaluwarsa()` dengan pg_cron (opsional, ada di `schema.sql`).
-6. Dockerfile dan docker-compose (NFR-14).
+1. Uji coba Premium 7 hari (`uji_coba_digunakan`).
+2. Pembelian paket dan webhook Midtrans (verifikasi signature, perpanjangan `tanggal_berakhir`).
+3. API admin: kelola materi (unggah MIDI ke Storage), kelola pengguna, statistik, laporan transaksi.
+4. Jadwal harian `perbarui_paket_kedaluwarsa()` dengan pg_cron (opsional, ada di `schema.sql`).
+5. Dockerfile dan docker-compose (NFR-14).

@@ -56,6 +56,7 @@ export const POST = rute(async (req: Request, ctx: RouteContext<"/api/sesi/[id]/
     isi.nadaMeleset,
     ["urutan", "midiAcuan", "selisihCent", "waktu"] as const,
     MAKS_NADA,
+    ["selisihCent"],
   );
 
   const admin = klienAdmin();

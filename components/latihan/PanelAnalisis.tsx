@@ -23,7 +23,7 @@ const LABEL_TAHAP: Record<(typeof TAHAP_PROSES)[number], string> = {
 const KETERANGAN_TAHAP: Record<string, string> = {
   memeriksa_kuota: "Memeriksa sisa kuota analisis Anda…",
   memuat_model:
-    "Memuat model CREPE. Analisis pertama butuh waktu lebih lama karena model diunduh lalu disimpan di browser.",
+    "Memuat model CREPE (±2 MB). Analisis pertama butuh waktu lebih lama karena model diunduh lalu disimpan di browser.",
   menganalisis: "Mendeteksi nada nyanyian dan mencocokkannya dengan acuan…",
   menyimpan: "Menyimpan hasil ke riwayat latihan…",
 };
@@ -64,7 +64,13 @@ const PESAN_GAGAL: Record<
   },
 };
 
-function LangkahProses({ tahap }: { tahap: KeadaanAnalisis["tahap"] }) {
+function LangkahProses({
+  tahap,
+  progres,
+}: {
+  tahap: KeadaanAnalisis["tahap"];
+  progres?: number;
+}) {
   const indeksAktif =
     tahap === "menyimpan"
       ? TAHAP_PROSES.length
@@ -111,7 +117,25 @@ function LangkahProses({ tahap }: { tahap: KeadaanAnalisis["tahap"] }) {
           );
         })}
       </ol>
-      <p className="text-sm text-redup">{KETERANGAN_TAHAP[tahap]}</p>
+      {progres !== undefined && (
+        <div
+          role="progressbar"
+          aria-label="Progres analisis nada"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progres * 100)}
+          className="h-2 overflow-hidden rounded-full bg-nada-100"
+        >
+          <div
+            className="h-full rounded-full bg-nada-600 transition-[width] duration-200"
+            style={{ width: `${Math.round(progres * 100)}%` }}
+          />
+        </div>
+      )}
+      <p className="text-sm text-redup">
+        {KETERANGAN_TAHAP[tahap]}
+        {progres !== undefined && ` ${Math.round(progres * 100)}%`}
+      </p>
     </div>
   );
 }
@@ -206,5 +230,10 @@ export function PanelAnalisis({
 
   if (keadaan.tahap === "selesai") return <>{hasil}</>;
 
-  return <LangkahProses tahap={keadaan.tahap} />;
+  return (
+    <LangkahProses
+      tahap={keadaan.tahap}
+      progres={keadaan.tahap === "menganalisis" ? keadaan.progres : undefined}
+    />
+  );
 }

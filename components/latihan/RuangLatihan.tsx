@@ -13,7 +13,7 @@ import { PanelAcuan } from "./PanelAcuan";
 import { PanelAnalisis } from "./PanelAnalisis";
 import { PanelHasil } from "./hasil/PanelHasil";
 import { PerekamSuara } from "./PerekamSuara";
-import { bukaLatihan, pesanGalat } from "@/lib/api";
+import { bukaLatihan, getStatusPaketDanKuota, pesanGalat } from "@/lib/api";
 import {
   LABEL_JENIS,
   LABEL_TINGKAT,
@@ -29,18 +29,20 @@ type KeadaanLatihan =
   | { status: "siap"; akses: HasilCekAkses; materi: MateriLengkap };
 
 export function BagianLatihan({
+  id,
   nomor,
   judul,
   deskripsi,
   children,
 }: {
+  id?: string;
   nomor: number;
   judul: string;
   deskripsi?: string;
   children: ReactNode;
 }) {
   return (
-    <Card className="flex flex-col gap-5">
+    <Card id={id} className="flex scroll-mt-24 flex-col gap-5">
       <div className="flex items-start gap-3">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-nada-700 text-sm font-bold text-white">
           {nomor}
@@ -58,6 +60,14 @@ export function BagianLatihan({
 /** Halaman latihan: notasi & acuan, perekaman, analisis, dan hasil. */
 export function RuangLatihan({ materiId }: { materiId: string }) {
   const [keadaan, setKeadaan] = useState<KeadaanLatihan>({ status: "memuat" });
+  /** Sisa kuota terbaru setelah analisis selesai (menimpa hasil cek awal). */
+  const [kuotaTerbaru, setKuotaTerbaru] = useState<number | null | undefined>(undefined);
+
+  const segarkanKuota = useCallback(() => {
+    getStatusPaketDanKuota()
+      .then((p) => setKuotaTerbaru(p.sisaKuota))
+      .catch(() => {});
+  }, []);
 
   const muat = useCallback(() => {
     let aktif = true;
@@ -81,7 +91,8 @@ export function RuangLatihan({ materiId }: { materiId: string }) {
   const materi = keadaan.status === "siap" ? keadaan.materi : null;
   const akses = keadaan.status === "siap" ? keadaan.akses : null;
   const ditolak = akses && !akses.diizinkan ? akses : null;
-  const sisaKuota = akses?.diizinkan ? akses.sisaKuota : null;
+  const sisaKuota =
+    kuotaTerbaru !== undefined ? kuotaTerbaru : akses?.diizinkan ? akses.sisaKuota : null;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
@@ -152,12 +163,23 @@ export function RuangLatihan({ materiId }: { materiId: string }) {
         <KuotaHabis waktuReset={ditolak.waktuReset} />
       )}
 
-      {materi && akses?.diizinkan && <IsiLatihan materiId={materiId} materi={materi} />}
+      {materi && akses?.diizinkan && (
+        <IsiLatihan materiId={materiId} materi={materi} onSelesai={segarkanKuota} />
+      )}
     </div>
   );
 }
 
-function IsiLatihan({ materiId, materi }: { materiId: string; materi: MateriLengkap }) {
+function IsiLatihan({
+  materiId,
+  materi,
+  onSelesai,
+}: {
+  materiId: string;
+  materi: MateriLengkap;
+  /** Dipanggil setelah analisis selesai, untuk memperbarui sisa kuota. */
+  onSelesai: () => void;
+}) {
   const perekam = usePerekam();
   const sedangMerekam =
     perekam.status === "merekam" || perekam.status === "meminta_izin";
@@ -169,6 +191,17 @@ function IsiLatihan({ materiId, materi }: { materiId: string; materi: MateriLeng
   const sedangMenganalisis = !["siap", "gagal", "selesai"].includes(
     analisis.keadaan.tahap,
   );
+  const selesai = analisis.keadaan.tahap === "selesai";
+
+  useEffect(() => {
+    if (selesai) onSelesai();
+  }, [selesai, onSelesai]);
+
+  /** Latih Lagi: kosongkan rekaman dan kembali ke langkah rekam materi yang sama. */
+  function latihLagi() {
+    perekam.ulang();
+    document.getElementById("langkah-rekam")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   return (
     <>
@@ -185,6 +218,7 @@ function IsiLatihan({ materiId, materi }: { materiId: string; materi: MateriLeng
       </BagianLatihan>
 
       <BagianLatihan
+        id="langkah-rekam"
         nomor={2}
         judul="Rekam nyanyian"
         deskripsi="Nyanyikan materi tanpa acuan, maksimal 60 detik."
@@ -208,7 +242,7 @@ function IsiLatihan({ materiId, materi }: { materiId: string; materi: MateriLeng
               <PanelHasil
                 hasil={analisis.keadaan.hasil}
                 riwayatTersimpan={analisis.keadaan.riwayatTersimpan}
-                onLatihLagi={perekam.ulang}
+                onLatihLagi={latihLagi}
               />
             )
           }

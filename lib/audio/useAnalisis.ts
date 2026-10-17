@@ -24,7 +24,8 @@ export type AlasanGagal =
 
 export type KeadaanAnalisis =
   | { tahap: "siap" }
-  | { tahap: "memeriksa_kuota" | "memuat_model" | "menganalisis" | "menyimpan" }
+  | { tahap: "memeriksa_kuota" | "memuat_model" | "menyimpan" }
+  | { tahap: "menganalisis"; progres?: number }
   | { tahap: "gagal"; alasan: AlasanGagal; pesan?: string; waktuReset?: string }
   | { tahap: "selesai"; hasil: HasilAnalisis; riwayatTersimpan: boolean };
 
@@ -102,6 +103,7 @@ export function useAnalisis({
           rekaman: blob,
           acuan,
           onTahap: (tahap) => set({ tahap }),
+          onProgres: (progres) => set({ tahap: "menganalisis", progres }),
         });
       } catch (err) {
         if (err instanceof ModelGagalDimuatError) return gagal("model_gagal");

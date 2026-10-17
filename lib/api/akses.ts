@@ -1,4 +1,5 @@
-import { muatNadaMidi } from "@/lib/audio/midi";
+import { muatMidi } from "@/lib/audio/midi";
+import { tempoEfektif } from "@/lib/audio/notasi";
 import type { HasilCekAkses, Materi, MateriLengkap } from "@/lib/types";
 import { GalatApi } from "./galat";
 import { minta } from "./klien";
@@ -24,8 +25,11 @@ export async function bukaLatihan(materiId: string): Promise<DataLatihan> {
   }
 
   try {
-    const nada = await muatNadaMidi(hasil.midiUrl);
-    return { akses: hasil.akses, materi: { ...hasil.materi, nada } };
+    const { nada, tempo } = await muatMidi(hasil.midiUrl);
+    return {
+      akses: hasil.akses,
+      materi: { ...hasil.materi, nada, tempo: tempoEfektif(tempo, hasil.materi.tempo) },
+    };
   } catch {
     throw new GalatApi(
       "Berkas acuan nada gagal dimuat. Periksa koneksi internet, lalu muat ulang.",

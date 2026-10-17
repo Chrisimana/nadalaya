@@ -86,8 +86,8 @@ export type NadaMeleset = {
   /** Urutan nada pada acuan, dimulai dari 1. */
   urutan: number;
   midiAcuan: number;
-  /** Selisih rata-rata dalam cent; positif = terlalu tinggi. */
-  selisihCent: number;
+  /** Median selisih dalam cent; positif = terlalu tinggi, null = tidak terdeteksi. */
+  selisihCent: number | null;
   /** Waktu nada pada acuan (detik). */
   waktu: number;
 };
