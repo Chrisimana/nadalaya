@@ -50,11 +50,13 @@ describe("DTW dan toleransi oktaf", () => {
     expect(geserOktaf([61, 63], [60, 62])).toBe(0);
   });
 
-  it("DTW memetakan deret yang diregangkan ke deret aslinya", () => {
-    const jalur = dtw([1, 2, 3], [1, 1, 2, 2, 3, 3]);
-    expect(jalur[0]).toEqual([0, 0]);
-    expect(jalur.at(-1)).toEqual([2, 5]);
-    for (const [i, j] of jalur) expect([1, 2, 3][i]).toBe([1, 1, 2, 2, 3, 3][j]);
+  it("subsequence DTW memasang seluruh acuan ke sebagian nyanyian saja", () => {
+    const acuan = [1, 2, 3];
+    const nyanyian = [9, 9, 1, 1, 2, 2, 3, 3, 9, 9];
+    const jalur = dtw(acuan, nyanyian);
+    expect(jalur[0][0]).toBe(0);
+    expect(jalur.at(-1)![0]).toBe(2);
+    for (const [i, j] of jalur) expect(acuan[i]).toBe(nyanyian[j]);
   });
 
   it("deret acuan dan penurunan resolusi ke 20 bingkai/detik", () => {
@@ -76,6 +78,23 @@ describe("analisis kontur sintetis (do-mayor.mid)", () => {
 
   it("bergeser 1 semiton → ≤ 50", () => {
     expect(analisisKontur(konturSintetis(doMayor, { geser: 1 }), doMayor).skor).toBeLessThanOrEqual(50);
+  });
+
+  it("rekaman 49 detik dengan materi di awal lalu nyanyian lain → ≥ 80", () => {
+    const sisa = Array.from({ length: 39 / 0.5 }, (_, i) => ({
+      midi: 55 + ((i * 7) % 20),
+      waktu: 10.5 + i * 0.5,
+      durasi: 0.45,
+    }));
+    const kontur = konturSintetis([...doMayor, ...sisa.map((n) => ({ ...n, waktu: n.waktu - 0.5 }))]);
+    expect(analisisKontur(kontur, doMayor).skor).toBeGreaterThanOrEqual(80);
+  });
+
+  it("lonjakan oktaf singkat dikoreksi → ≥ 80", () => {
+    const kontur = konturSintetis(doMayor).map((t, i) =>
+      i >= 400 && i < 406 && t.midi !== null ? { ...t, midi: t.midi + 12 } : t,
+    );
+    expect(analisisKontur(kontur, doMayor).skor).toBeGreaterThanOrEqual(80);
   });
 
   it("dua oktaf lebih tinggi → ≥ 80", () => {

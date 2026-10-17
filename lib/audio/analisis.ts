@@ -5,12 +5,21 @@
 import type { HasilAnalisis, NadaAcuan, TitikPitch } from "@/lib/types";
 import { deteksiPitch, keMono16k, muatModelCrepe, NadaTidakTerdeteksiError } from "./crepe";
 import { selaraskan } from "./dtw";
+import { potongHening } from "./kontur";
 import { daftarMeleset, deviasiPerNada, konturSelaras, skorAkhir } from "./skor";
 
 export type TahapAnalisis = "memuat_model" | "menganalisis";
 
-/** Minimal 20% bingkai rekaman harus bersuara (FR-09, NFR-09). */
+/** Minimal 20% bingkai (setelah hening awal/akhir dipotong) harus bersuara (FR-09, NFR-09). */
 export const MIN_RASIO_BERSUARA = 0.2;
+/** Total bingkai bersuara minimal 30% dari durasi acuan. */
+const MIN_PORSI_DURASI_ACUAN = 0.3;
+
+/** Durasi acuan dari awal nada pertama hingga akhir nada terakhir (detik). */
+export function durasiAcuan(acuan: NadaAcuan[]) {
+  if (acuan.length === 0) return 0;
+  return Math.max(...acuan.map((n) => n.waktu + n.durasi)) - Math.min(...acuan.map((n) => n.waktu));
+}
 
 /**
  * Bagian murni analisis: dari kontur CREPE dan nada acuan menjadi skor,
@@ -18,8 +27,16 @@ export const MIN_RASIO_BERSUARA = 0.2;
  * bersuara terlalu sedikit.
  */
 export function analisisKontur(kontur: TitikPitch[], acuan: NadaAcuan[]): HasilAnalisis {
-  const bersuara = kontur.filter((t) => t.midi !== null).length;
-  if (kontur.length === 0 || bersuara / kontur.length < MIN_RASIO_BERSUARA) {
+  // Rasio dihitung setelah hening di awal dan akhir dipotong, agar rekaman
+  // panjang dengan jeda sebelum/sesudah bernyanyi tidak ditolak.
+  const inti = potongHening(kontur);
+  const bersuara = inti.filter((t) => t.midi !== null).length;
+  const jarak = kontur.length > 1 ? kontur[1].waktu - kontur[0].waktu : 0.01;
+  if (
+    inti.length === 0 ||
+    bersuara / inti.length < MIN_RASIO_BERSUARA ||
+    bersuara * jarak < MIN_PORSI_DURASI_ACUAN * durasiAcuan(acuan)
+  ) {
     throw new NadaTidakTerdeteksiError();
   }
 

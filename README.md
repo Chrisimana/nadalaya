@@ -134,9 +134,10 @@ Seluruh analisis berjalan di browser; rekaman tidak pernah diunggah (NFR-07). Se
 
 1. **Pra-proses** (`lib/audio/crepe.ts`): rekaman diubah menjadi mono 16 kHz dengan `OfflineAudioContext`, dipotong menjadi bingkai 1024 sampel dengan hop 10 ms, dan dinormalisasi per bingkai.
 2. **CREPE**: inferensi per batch 256 bingkai dengan progres di layar. Frekuensi dari rata-rata berbobot cents di sekitar argmax; bingkai dengan confidence < 0,5 dianggap tanpa suara.
-3. **Gagal** bila bingkai bersuara < 20%, rekaman < 2 detik, atau model gagal dimuat. Sesi dibatalkan dan kuota tidak berkurang.
-4. **Penyelarasan** (`lib/audio/dtw.ts`): kedua deret diturunkan ke 20 bingkai/detik, nyanyian digeser kelipatan 12 semiton terdekat (toleransi oktaf), lalu DTW dengan pita Sakoe-Chiba.
-5. **Skor** (`lib/audio/skor.ts`): median deviasi tiap nada acuan; nada meleset bila |deviasi| > 50 cent; skor nada 100 bila |deviasi| ≤ 20 cent, lalu turun linear hingga 0 pada 100 cent; skor akhir = rata-rata.
+3. **Gagal** bila rekaman < 2 detik, bingkai bersuara < 20% (dihitung setelah hening awal/akhir dipotong) atau totalnya < 30% durasi acuan, atau model gagal dimuat. Sesi dibatalkan dan kuota tidak berkurang.
+4. **Pembersihan kontur** (`lib/audio/kontur.ts`): hening di awal dan akhir dipotong, lonjakan oktaf sesaat dikoreksi ke oktaf tetangganya, lalu median filter.
+5. **Penyelarasan** (`lib/audio/dtw.ts`): kedua deret diturunkan ke 20 bingkai/detik, nyanyian digeser kelipatan 12 semiton terdekat (toleransi oktaf), lalu **subsequence DTW**: seluruh acuan harus terpasang, tetapi boleh cocok dengan sebagian rekaman saja, sehingga nyanyian di luar materi (misalnya rekaman 49 detik untuk materi 10 detik) tidak memengaruhi skor. Pita Sakoe-Chiba diukur dari titik awal jalur.
+6. **Skor** (`lib/audio/skor.ts`): median deviasi tiap nada acuan; nada meleset bila |deviasi| > 50 cent; skor nada 100 bila |deviasi| ≤ 20 cent, lalu turun linear hingga 0 pada 100 cent; skor akhir = rata-rata.
 
 **Kinerja (NFR-01).** Konsol browser mencetak waktu tiap tahap, dengan format `[analisis] rekaman … dtk · model … dtk · CREPE … dtk · DTW+skor … dtk · total … dtk`. Buka DevTools → Console setelah menekan Analisis untuk memeriksa target ≤ 15 detik.
 
@@ -156,9 +157,11 @@ Hasil uji CREPE (target NFR-03):
 | Nada tepat | ≥ 80 | 100 |
 | Digeser 1 semiton | ≤ 50 | 22 |
 | Satu oktaf lebih rendah | ≥ 80 | 100 |
+| Diapit hening dan nada acak di awal/akhir | ≥ 80 | 100 |
+| Lonjakan oktaf 0,1 detik di tengah nada | ≥ 80 | 100 |
 | Hening | gagal "nada tidak terdeteksi" | lolos |
 
-Uji CREPE di Node memakai hop 50 ms karena backend cpu jauh lebih lambat daripada WebGL; prosesnya tetap sama. Seluruh uji selesai sekitar 1 menit.
+Uji CREPE di Node memakai hop 50 ms karena backend cpu jauh lebih lambat daripada WebGL; prosesnya tetap sama. Seluruh uji selesai dalam beberapa menit.
 
 ## Perlindungan halaman dan API
 
@@ -205,7 +208,7 @@ lib/
 ├─ server/                   Khusus server: sesi login, status paket, kuota, akses, galat
 ├─ supabase/                 Klien Supabase: server.ts (cookie sesi), admin.ts (secret key)
 ├─ audio/                    recorder, usePerekam, acuan (Tone.js), midi, notasi,
-│                            crepe, dtw, skor, analisis, useAnalisis
+│                            crepe, kontur, dtw, skor, analisis, useAnalisis
 ├─ types.ts  validasi.ts  waktu.ts  paket.ts  useMuat.ts  kontak.ts  utils.ts
 supabase/
 ├─ schema.sql                Tabel, enum, trigger, fungsi, RLS, bucket Storage

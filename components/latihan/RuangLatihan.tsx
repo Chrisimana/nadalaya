@@ -20,6 +20,7 @@ import {
   type HasilCekAkses,
   type MateriLengkap,
 } from "@/lib/types";
+import { durasiAcuan } from "@/lib/audio/analisis";
 import { useAnalisis } from "@/lib/audio/useAnalisis";
 import { usePerekam } from "@/lib/audio/usePerekam";
 
@@ -192,6 +193,9 @@ function IsiLatihan({
     analisis.keadaan.tahap,
   );
   const selesai = analisis.keadaan.tahap === "selesai";
+  const durasi = durasiAcuan(materi.nada);
+  // Rekaman jauh lebih panjang dari materi tetap dianalisis (subsequence DTW).
+  const rekamanPanjang = !!perekam.hasil && durasi > 0 && perekam.hasil.durasi > 2 * durasi;
 
   useEffect(() => {
     if (selesai) onSelesai();
@@ -221,7 +225,7 @@ function IsiLatihan({
         id="langkah-rekam"
         nomor={2}
         judul="Rekam nyanyian"
-        deskripsi="Nyanyikan materi tanpa acuan, maksimal 60 detik."
+        deskripsi={`Durasi acuan ±${Math.max(1, Math.round(durasi))} detik. Nyanyikan materi satu kali tanpa acuan, lalu tekan Berhenti.`}
       >
         <PerekamSuara perekam={perekam} terkunci={sedangMenganalisis} />
       </BagianLatihan>
@@ -231,6 +235,13 @@ function IsiLatihan({
         judul="Analisis dan hasil"
         deskripsi="Sistem menilai akurasi nada dan menampilkan skor."
       >
+        {rekamanPanjang && (
+          <Alert varian="info" judul="Rekaman lebih panjang dari materi">
+            Rekaman Anda lebih dari dua kali durasi acuan. Analisis tetap
+            dijalankan, tetapi hanya bagian nyanyian yang cocok dengan materi
+            yang dinilai.
+          </Alert>
+        )}
         <PanelAnalisis
           rekaman={perekam.hasil}
           keadaan={analisis.keadaan}

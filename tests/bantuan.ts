@@ -32,23 +32,48 @@ export function nadaDariMidi(berkas: string): NadaAcuan[] {
   return bacaMidi(readFileSync(join(process.cwd(), "scripts", "midi", berkas))).nada;
 }
 
+/** Satu potongan nada sinus: nomor MIDI (pecahan boleh), mulai, durasi (detik). */
+export type Segmen = { midi: number; mulai: number; durasi: number };
+
+/** Audio sinus mono 16 kHz dari daftar segmen; di luar segmen hening. */
+export function sinusDariSegmen(segmen: Segmen[], totalDetik: number, amplitudo = 0.5): Float32Array {
+  const audio = new Float32Array(Math.ceil(totalDetik * LAJU_SAMPEL));
+  const fade = Math.round(0.01 * LAJU_SAMPEL);
+  for (const s of segmen) {
+    const f = midiKeHz(s.midi);
+    const awal = Math.round(s.mulai * LAJU_SAMPEL);
+    const panjang = Math.round(s.durasi * LAJU_SAMPEL);
+    for (let k = 0; k < panjang && awal + k < audio.length; k++) {
+      const selubung = Math.min(1, k / fade, (panjang - k) / fade);
+      audio[awal + k] += amplitudo * selubung * Math.sin((2 * Math.PI * f * k) / LAJU_SAMPEL);
+    }
+  }
+  return audio;
+}
+
+/** Segmen dari deret nada acuan, digeser `geser` semiton dan dimulai pada `mulai` detik. */
+export function segmenDariNada(nada: NadaAcuan[], geser = 0, mulai = 0): Segmen[] {
+  return nada.map((n) => ({ midi: n.midi + geser, mulai: mulai + n.waktu, durasi: n.durasi }));
+}
+
+export function durasiNada(nada: NadaAcuan[]) {
+  return Math.max(...nada.map((n) => n.waktu + n.durasi));
+}
+
 /**
  * Audio sinus mono 16 kHz dari deret nada, digeser `geser` semiton.
  * Diberi hening 0,5 detik di awal dan akhir seperti rekaman sungguhan.
  */
 export function sinusDariNada(nada: NadaAcuan[], geser = 0, amplitudo = 0.5): Float32Array {
   const hening = 0.5;
-  const akhir = Math.max(...nada.map((n) => n.waktu + n.durasi));
-  const audio = new Float32Array(Math.ceil((akhir + 2 * hening) * LAJU_SAMPEL));
-  const fade = Math.round(0.01 * LAJU_SAMPEL);
-  for (const n of nada) {
-    const f = midiKeHz(n.midi + geser);
-    const awal = Math.round((n.waktu + hening) * LAJU_SAMPEL);
-    const panjang = Math.round(n.durasi * LAJU_SAMPEL);
-    for (let k = 0; k < panjang; k++) {
-      const selubung = Math.min(1, k / fade, (panjang - k) / fade);
-      audio[awal + k] += amplitudo * selubung * Math.sin((2 * Math.PI * f * k) / LAJU_SAMPEL);
-    }
-  }
-  return audio;
+  return sinusDariSegmen(segmenDariNada(nada, geser, hening), durasiNada(nada) + 2 * hening, amplitudo);
+}
+
+/** Deret nada acak yang dapat diulang (LCG), nada MIDI 55–79, tiap nada 0,4 detik. */
+export function nadaAcak(jumlah: number, mulai: number, benih = 7): Segmen[] {
+  let x = benih;
+  return Array.from({ length: jumlah }, (_, i) => {
+    x = (x * 1103515245 + 12345) % 2147483648;
+    return { midi: 55 + (x % 25), mulai: mulai + i * 0.4, durasi: 0.38 };
+  });
 }
