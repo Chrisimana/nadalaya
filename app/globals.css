@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/*
+ * Token desain Nadalaya.
+ * nada     : indigo tua, warna utama (tombol, tautan, judul)
+ * kuningan : aksen hangat ala alat musik tiup logam
+ * krem     : latar halaman
+ * tinta    : warna teks
+ */
+@theme {
+  --color-nada-50: #f2f1fa;
+  --color-nada-100: #e4e2f5;
+  --color-nada-200: #c8c3ea;
+  --color-nada-300: #a59dda;
+  --color-nada-400: #7f75c4;
+  --color-nada-500: #5f54ae;
+  --color-nada-600: #4a3f96;
+  --color-nada-700: #2e2a6b;
+  --color-nada-800: #25225a;
+  --color-nada-900: #1b1942;
+  --color-nada-950: #110f2b;
+
+  --color-kuningan-50: #fdf7ec;
+  --color-kuningan-100: #faebcf;
+  --color-kuningan-200: #f4d49b;
+  --color-kuningan-300: #eebd67;
+  --color-kuningan-400: #e8a33d;
+  --color-kuningan-500: #d4872a;
+  --color-kuningan-600: #b06a21;
+  --color-kuningan-700: #8a511d;
+
+  --color-krem: #faf8f3;
+  --color-garis: #e7e3d8;
+  --color-tinta: #1f2333;
+  --color-redup: #5b6075;
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-krem);
+  color: var(--color-tinta);
+}
+
+/* Motif garis paranada (lima garis) untuk latar dekoratif */
+.latar-paranada {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 15px,
+    rgb(46 42 107 / 0.08) 15px,
+    rgb(46 42 107 / 0.08) 16px
+  );
+  background-size: 100% 96px;
+  background-repeat: repeat-x;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
