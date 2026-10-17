@@ -5,15 +5,26 @@ import type {
   Transaksi,
 } from "@/lib/types";
 import { BelumTersambungError } from "./galat";
+import { minta } from "./klien";
+
+export type StatusPaketDanKuota = InfoLangganan & {
+  /** null berarti tanpa batas (Premium / Uji Coba). */
+  sisaKuota: number | null;
+  /** ISO 8601, 00.00 WIB berikutnya. */
+  waktuReset: string;
+};
+
+/** Status paket efektif beserta sisa kuota analisis hari ini. */
+export async function getStatusPaketDanKuota(): Promise<StatusPaketDanKuota> {
+  return minta<StatusPaketDanKuota>("/api/paket");
+}
 
 /**
  * Status paket efektif pengguna yang sedang masuk. Server memperlakukan
  * paket yang melewati tanggal berakhir sebagai Gratis (SDD 3.2.4).
  */
 export async function getStatusPaket(): Promise<StatusPaket> {
-  // TODO: sambungkan ke Supabase (API route: getStatusEfektif(user)).
-  // Selama belum tersambung, nilai bawaan adalah paket Gratis.
-  return "gratis";
+  return (await getStatusPaketDanKuota()).statusPaket;
 }
 
 /** UC-16 Mengaktifkan Uji Coba Premium 7 hari, satu kali per akun (FR-18). */
@@ -24,9 +35,8 @@ export async function aktifkanUjiCoba(): Promise<{ tanggalBerakhir: string }> {
 
 /** Status paket, tanggal berakhir, dan riwayat uji coba untuk halaman Langganan. */
 export async function getInfoLangganan(): Promise<InfoLangganan> {
-  // TODO: sambungkan ke Supabase (tabel users: status_paket, tanggal_berakhir,
-  // uji_coba_digunakan). Nilai bawaan: paket Gratis yang belum pernah uji coba.
-  return { statusPaket: "gratis", tanggalBerakhir: null, ujiCobaDigunakan: false };
+  const { statusPaket, tanggalBerakhir, ujiCobaDigunakan } = await getStatusPaketDanKuota();
+  return { statusPaket, tanggalBerakhir, ujiCobaDigunakan };
 }
 
 /**

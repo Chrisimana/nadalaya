@@ -6,13 +6,49 @@ import { useState, type FormEvent } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { adalahBelumTersambung, login, pesanGalat } from "@/lib/api";
+import { adalahBelumTersambung, GalatApi, login, pesanGalat } from "@/lib/api";
 import { adaGalat, validasiMasuk, type GalatKolom } from "@/lib/validasi";
 
 type Kolom = "email" | "kataSandi";
 
+export type PemberitahuanMasuk = "verifikasi_berhasil" | "verifikasi_gagal" | "nonaktif" | null;
+
+const PEMBERITAHUAN: Record<
+  Exclude<PemberitahuanMasuk, null>,
+  { varian: "sukses" | "galat" | "peringatan"; judul: string; pesan: string }
+> = {
+  verifikasi_berhasil: {
+    varian: "sukses",
+    judul: "Email berhasil diverifikasi",
+    pesan: "Akun Anda sudah aktif. Silakan masuk.",
+  },
+  verifikasi_gagal: {
+    varian: "peringatan",
+    judul: "Tautan verifikasi tidak berlaku",
+    pesan: "Tautan sudah kedaluwarsa atau pernah dipakai. Coba masuk; jika diminta, kirim ulang email verifikasi.",
+  },
+  nonaktif: {
+    varian: "galat",
+    judul: "Tidak dapat masuk",
+    pesan: "Akun Anda telah dinonaktifkan.",
+  },
+};
+
+/** Hanya jalur internal halaman pengguna yang boleh menjadi tujuan setelah masuk. */
+function tujuanAman(lanjut: string | null | undefined) {
+  return lanjut && lanjut.startsWith("/") && !lanjut.startsWith("//") && !lanjut.startsWith("/admin")
+    ? lanjut
+    : "/dashboard";
+}
+
 /** UC-02 Masuk ke Sistem. */
-export function FormMasuk() {
+export function FormMasuk({
+  pemberitahuan = null,
+  lanjut,
+}: {
+  pemberitahuan?: PemberitahuanMasuk;
+  lanjut?: string | null;
+}) {
   const router = useRouter();
   const [data, setData] = useState({ email: "", kataSandi: "" });
   const [galat, setGalat] = useState<GalatKolom<Kolom>>({});
@@ -22,6 +58,8 @@ export function FormMasuk() {
     pesan: string;
     belumTersambung: boolean;
   } | null>(null);
+  const [belumVerifikasi, setBelumVerifikasi] = useState(false);
+  const info = pemberitahuan && !galatServer ? PEMBERITAHUAN[pemberitahuan] : null;
 
   function ubah(kolom: Kolom, nilai: string) {
     const baru = { ...data, [kolom]: nilai };
@@ -33,6 +71,7 @@ export function FormMasuk() {
     e.preventDefault();
     setSudahDikirim(true);
     setGalatServer(null);
+    setBelumVerifikasi(false);
 
     const hasil = validasiMasuk(data);
     setGalat(hasil);
@@ -49,8 +88,10 @@ export function FormMasuk() {
         kataSandi: data.kataSandi,
       });
       // Arahkan ke dashboard sesuai peran (FR-02).
-      router.push(pengguna.peran === "admin" ? "/admin" : "/dashboard");
+      router.replace(pengguna.peran === "admin" ? "/admin" : tujuanAman(lanjut));
+      router.refresh();
     } catch (err) {
+      setBelumVerifikasi(err instanceof GalatApi && err.kode === "email_belum_verifikasi");
       setGalatServer({
         pesan: pesanGalat(err),
         belumTersambung: adalahBelumTersambung(err),
@@ -67,8 +108,22 @@ export function FormMasuk() {
           judul="Belum dapat masuk"
         >
           {galatServer.pesan}
-          {galatServer.belumTersambung &&
-            " Layanan akun belum aktif pada tahap pengembangan ini."}
+          {belumVerifikasi && (
+            <>
+              {" "}
+              <Link
+                href={`/verifikasi-email?email=${encodeURIComponent(data.email.trim())}`}
+                className="font-semibold underline underline-offset-4"
+              >
+                Kirim ulang email verifikasi
+              </Link>
+            </>
+          )}
+        </Alert>
+      )}
+      {info && (
+        <Alert varian={info.varian} judul={info.judul}>
+          {info.pesan}
         </Alert>
       )}
 

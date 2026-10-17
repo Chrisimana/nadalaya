@@ -1,8 +1,6 @@
 import { SidebarAdmin } from "@/components/admin/SidebarAdmin";
 
-// TODO: lindungi dengan middleware peran admin (cek sesi, is_aktif, dan
-// peran = admin) saat Supabase Auth tersambung. Untuk sementara halaman
-// admin dapat dibuka langsung.
+// Hanya admin aktif yang dapat membuka halaman ini (diperiksa di proxy.ts).
 export default function LayoutAdmin({ children }: LayoutProps<"/">) {
   return (
     <>

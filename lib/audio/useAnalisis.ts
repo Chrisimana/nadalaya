@@ -5,6 +5,7 @@ import {
   adalahBelumTersambung,
   batalkanSesiAnalisis,
   mulaiSesiAnalisis,
+  pesanGalat,
   simpanRiwayat,
 } from "@/lib/api";
 import type { HasilAnalisis, NadaAcuan } from "@/lib/types";
@@ -82,6 +83,7 @@ export function useAnalisis({
         set({
           tahap: "gagal",
           alasan: adalahBelumTersambung(err) ? "belum_tersambung" : "lainnya",
+          pesan: pesanGalat(err),
         });
         return;
       }
@@ -113,12 +115,7 @@ export function useAnalisis({
       set({ tahap: "menyimpan" });
       let riwayatTersimpan = true;
       try {
-        await simpanRiwayat({
-          sesiId,
-          materiId,
-          skor: hasil.skor,
-          ringkasanKontur: hasil.kontur,
-        });
+        await simpanRiwayat({ sesiId, hasil });
       } catch {
         riwayatTersimpan = false;
       }

@@ -51,15 +51,20 @@ export function FormDaftar() {
 
     setMemuat(true);
     try {
-      await register({
+      const { perluVerifikasi } = await register({
         nama: data.nama.trim(),
         email: data.email.trim(),
         kataSandi: data.kataSandi,
       });
-      // UC-01 langkah 3.4: arahkan ke informasi verifikasi email.
-      router.push(
-        `/verifikasi-email?email=${encodeURIComponent(data.email.trim())}`,
-      );
+      if (perluVerifikasi) {
+        // UC-01 langkah 3.4: arahkan ke informasi verifikasi email.
+        router.push(
+          `/verifikasi-email?email=${encodeURIComponent(data.email.trim())}`,
+        );
+      } else {
+        router.replace("/dashboard");
+        router.refresh();
+      }
     } catch (err) {
       setGalatServer({
         pesan: pesanGalat(err),
@@ -77,8 +82,6 @@ export function FormDaftar() {
           judul="Pendaftaran belum dapat diproses"
         >
           {galatServer.pesan}
-          {galatServer.belumTersambung &&
-            " Data Anda sudah valid, tetapi layanan akun belum aktif pada tahap pengembangan ini."}
         </Alert>
       )}
 

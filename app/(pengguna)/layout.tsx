@@ -1,7 +1,6 @@
 import { HeaderAplikasi } from "@/components/layout/HeaderAplikasi";
 
-// Halaman di grup ini wajib login. Pemeriksaan sesi akan ditambahkan
-// lewat middleware/proxy Next.js saat Supabase Auth tersambung.
+// Halaman di grup ini wajib login (diperiksa di proxy.ts).
 export default function LayoutPengguna({ children }: LayoutProps<"/">) {
   return (
     <>

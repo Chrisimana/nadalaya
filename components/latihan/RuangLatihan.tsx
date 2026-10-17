@@ -13,12 +13,7 @@ import { PanelAcuan } from "./PanelAcuan";
 import { PanelAnalisis } from "./PanelAnalisis";
 import { PanelHasil } from "./hasil/PanelHasil";
 import { PerekamSuara } from "./PerekamSuara";
-import {
-  adalahBelumTersambung,
-  cekAksesDanKuota,
-  getMateriById,
-  pesanGalat,
-} from "@/lib/api";
+import { bukaLatihan, pesanGalat } from "@/lib/api";
 import {
   LABEL_JENIS,
   LABEL_TINGKAT,
@@ -28,16 +23,10 @@ import {
 import { useAnalisis } from "@/lib/audio/useAnalisis";
 import { usePerekam } from "@/lib/audio/usePerekam";
 
-type KeadaanMateri =
+type KeadaanLatihan =
   | { status: "memuat" }
   | { status: "galat"; pesan: string }
-  | { status: "siap"; materi: MateriLengkap | null };
-
-type KeadaanAkses =
-  | { status: "memeriksa" }
-  | { status: "hasil"; hasil: HasilCekAkses }
-  | { status: "belum_tersambung" }
-  | { status: "galat"; pesan: string };
+  | { status: "siap"; akses: HasilCekAkses; materi: MateriLengkap };
 
 export function BagianLatihan({
   nomor,
@@ -68,28 +57,15 @@ export function BagianLatihan({
 
 /** Halaman latihan: notasi & acuan, perekaman, analisis, dan hasil. */
 export function RuangLatihan({ materiId }: { materiId: string }) {
-  const [keadaan, setKeadaan] = useState<KeadaanMateri>({ status: "memuat" });
-  const [akses, setAkses] = useState<KeadaanAkses>({ status: "memeriksa" });
+  const [keadaan, setKeadaan] = useState<KeadaanLatihan>({ status: "memuat" });
 
   const muat = useCallback(() => {
     let aktif = true;
-    // UC-08 langkah 1.1: hak akses dan kuota diperiksa server saat materi dipilih.
-    cekAksesDanKuota(materiId)
-      .then((hasil) => aktif && setAkses({ status: "hasil", hasil }))
-      .catch((err) => {
-        if (!aktif) return;
-        setAkses(
-          adalahBelumTersambung(err)
-            ? { status: "belum_tersambung" }
-            : { status: "galat", pesan: pesanGalat(err) },
-        );
-      });
-    getMateriById(materiId)
-      .then((materi) => aktif && setKeadaan({ status: "siap", materi }))
-      .catch(
-        (err) =>
-          aktif && setKeadaan({ status: "galat", pesan: pesanGalat(err) }),
-      );
+    // UC-08 langkah 1.1: hak akses dan kuota diperiksa server saat materi dipilih,
+    // lalu berkas MIDI diunduh lewat signed URL.
+    bukaLatihan(materiId)
+      .then(({ akses, materi }) => aktif && setKeadaan({ status: "siap", akses, materi }))
+      .catch((err) => aktif && setKeadaan({ status: "galat", pesan: pesanGalat(err) }));
     return () => {
       aktif = false;
     };
@@ -99,20 +75,13 @@ export function RuangLatihan({ materiId }: { materiId: string }) {
 
   function muatUlang() {
     setKeadaan({ status: "memuat" });
-    setAkses({ status: "memeriksa" });
     muat();
   }
 
   const materi = keadaan.status === "siap" ? keadaan.materi : null;
-  const ditolak =
-    akses.status === "hasil" && !akses.hasil.diizinkan ? akses.hasil : null;
-  const bolehBerlatih =
-    akses.status === "belum_tersambung" ||
-    (akses.status === "hasil" && akses.hasil.diizinkan);
-  const sisaKuota =
-    akses.status === "hasil" && akses.hasil.diizinkan
-      ? akses.hasil.sisaKuota
-      : null;
+  const akses = keadaan.status === "siap" ? keadaan.akses : null;
+  const ditolak = akses && !akses.diizinkan ? akses : null;
+  const sisaKuota = akses?.diizinkan ? akses.sisaKuota : null;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
@@ -149,7 +118,7 @@ export function RuangLatihan({ materiId }: { materiId: string }) {
         )}
       </header>
 
-      {akses.status === "memeriksa" && (
+      {keadaan.status === "memuat" && (
         <p
           className="flex items-center gap-2 text-sm text-redup"
           aria-live="polite"
@@ -159,10 +128,10 @@ export function RuangLatihan({ materiId }: { materiId: string }) {
         </p>
       )}
 
-      {akses.status === "galat" && (
+      {keadaan.status === "galat" && (
         <Alert
           varian="galat"
-          judul="Hak akses gagal diperiksa"
+          judul="Latihan belum dapat dibuka"
           aksi={
             <Button
               varian="garis"
@@ -174,7 +143,7 @@ export function RuangLatihan({ materiId }: { materiId: string }) {
             </Button>
           }
         >
-          {akses.pesan}
+          {keadaan.pesan}
         </Alert>
       )}
 
@@ -183,38 +152,18 @@ export function RuangLatihan({ materiId }: { materiId: string }) {
         <KuotaHabis waktuReset={ditolak.waktuReset} />
       )}
 
-      {bolehBerlatih && (
-        <IsiLatihan
-          materiId={materiId}
-          keadaan={keadaan}
-          materi={materi}
-          belumTersambung={akses.status === "belum_tersambung"}
-          onMuatUlang={muatUlang}
-        />
-      )}
+      {materi && akses?.diizinkan && <IsiLatihan materiId={materiId} materi={materi} />}
     </div>
   );
 }
 
-function IsiLatihan({
-  materiId,
-  keadaan,
-  materi,
-  belumTersambung,
-  onMuatUlang,
-}: {
-  materiId: string;
-  keadaan: KeadaanMateri;
-  materi: MateriLengkap | null;
-  belumTersambung: boolean;
-  onMuatUlang: () => void;
-}) {
+function IsiLatihan({ materiId, materi }: { materiId: string; materi: MateriLengkap }) {
   const perekam = usePerekam();
   const sedangMerekam =
     perekam.status === "merekam" || perekam.status === "meminta_izin";
   const analisis = useAnalisis({
     materiId,
-    acuan: materi?.nada,
+    acuan: materi.nada,
     rekaman: perekam.hasil,
   });
   const sedangMenganalisis = !["siap", "gagal", "selesai"].includes(
@@ -223,47 +172,14 @@ function IsiLatihan({
 
   return (
     <>
-      {belumTersambung && (
-        <Alert varian="peringatan" judul="Mode pratinjau">
-          Hak akses dan kuota belum dapat diperiksa karena belum tersambung ke
-          server. Halaman latihan ditampilkan tanpa pemeriksaan.
-        </Alert>
-      )}
-
-      {keadaan.status === "galat" && (
-        <Alert
-          varian="galat"
-          judul="Materi gagal dimuat"
-          aksi={
-            <Button
-              varian="garis"
-              ukuran="sm"
-              ikon={<RotateCw className="size-4" aria-hidden="true" />}
-              onClick={onMuatUlang}
-            >
-              Muat Ulang
-            </Button>
-          }
-        >
-          {keadaan.pesan}
-        </Alert>
-      )}
-
-      {keadaan.status === "siap" && !materi && (
-        <Alert varian="info" judul="Data materi belum tersedia">
-          Notasi dan acuan nada akan tampil setelah materi tersambung ke server.
-          Anda tetap dapat mencoba perekam suara di bawah ini.
-        </Alert>
-      )}
-
       <BagianLatihan
         nomor={1}
         judul="Dengarkan acuan"
         deskripsi="Baca notasi sambil memutar acuan nada. Gunakan headphone."
       >
         <PanelAcuan
-          nada={materi?.nada}
-          tempo={materi?.tempo}
+          nada={materi.nada}
+          tempo={materi.tempo}
           nonaktif={sedangMerekam}
         />
       </BagianLatihan>

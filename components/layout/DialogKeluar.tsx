@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DialogKonfirmasi } from "@/components/ui/DialogKonfirmasi";
 import { logout } from "@/lib/api";
@@ -17,7 +16,6 @@ export function DialogKeluar({
   terbuka: boolean;
   onTutup: () => void;
 }) {
-  const router = useRouter();
   const [keluar, setKeluar] = useState(false);
 
   async function jalankan() {
@@ -25,9 +23,11 @@ export function DialogKeluar({
     try {
       await logout();
     } catch {
-      // TODO: sambungkan ke Supabase — hapus sesi lokal bila server tidak terjangkau.
+      // Abaikan: cookie sesi akan kedaluwarsa sendiri dan proxy.ts
+      // tetap meminta masuk ulang bila sesi tidak valid.
     }
-    router.replace("/");
+    // Muat ulang penuh agar data pengguna di memori ikut terhapus.
+    window.location.replace("/");
   }
 
   return (

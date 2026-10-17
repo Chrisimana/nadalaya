@@ -8,33 +8,35 @@ Acuan dokumen: [SRS](docs/SRS_11241022.pdf) dan [SDD](docs/SDD%20_11241022.pdf) 
 
 ## Status proyek
 
-**Langkah 1 – front-end (progres 30%).** Back-end (Supabase), mesin analisis CREPE + DTW, dan pembayaran Midtrans dikerjakan pada tahap berikutnya.
+**Langkah 2 – Supabase tersambung.** Autentikasi, basis data, Storage MIDI, hak akses, kuota, sesi analisis, riwayat, dan profil sudah memakai Supabase. Yang belum dikerjakan: mesin analisis CREPE + DTW, uji coba Premium, pembayaran Midtrans, dan fitur admin.
 
-Proyek ini tidak memakai data dummy. Halaman yang membutuhkan data menampilkan keadaan kosong. Semua fungsi pengambilan data di `lib/api/` belum tersambung ke server: fungsi itu mengembalikan hasil kosong atau melempar `BelumTersambungError`, yang ditangani UI dengan pesan "Belum tersambung ke server." Setiap fungsi ditandai `// TODO: sambungkan ke Supabase`.
+Proyek ini tidak memakai data dummy. Fungsi `lib/api/` yang back-end-nya belum dibuat (admin, uji coba, pembelian) masih melempar `BelumTersambungError` dan ditandai `// TODO`.
 
 ## Teknologi
 
 | Bagian | Teknologi |
 |---|---|
-| Framework | Next.js 16 (App Router, Turbopack, Cache Components) + React 19 |
+| Framework | Next.js 16 (App Router, Turbopack, Cache Components, `proxy.ts`) + React 19 |
 | Bahasa & gaya | TypeScript, Tailwind CSS 4 |
+| Basis data & autentikasi | Supabase (PostgreSQL, Auth, Storage, Row Level Security) via `@supabase/ssr` |
+| Berkas MIDI | `@tonejs/midi` |
 | Notasi balok | VexFlow 5 (font Bravura dibundel) |
 | Pemutaran acuan | Tone.js |
 | Perekaman | Web Audio API + MediaRecorder |
 | Grafik | Chart.js + react-chartjs-2 |
 | Ikon | lucide-react |
-| Rencana tahap berikutnya | Supabase (Auth, PostgreSQL, Storage), CREPE (TensorFlow.js), @tonejs/midi, Midtrans Snap, Docker |
+| Tahap berikutnya | CREPE (TensorFlow.js), Midtrans Snap, Docker |
 
 ## Cara menjalankan
 
-Prasyarat: Node.js 20 atau lebih baru dan npm.
+Prasyarat: Node.js 20 atau lebih baru, npm, dan proyek Supabase.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Buka <http://localhost:3000>.
+Buka <http://localhost:3000>. Sebelum itu, selesaikan [Setup Supabase](#setup-supabase).
 
 | Perintah | Kegunaan |
 |---|---|
@@ -42,192 +44,200 @@ Buka <http://localhost:3000>.
 | `npm run build` | Build produksi |
 | `npm run start` | Menjalankan hasil build |
 | `npm run lint` | Pemeriksaan ESLint |
+| `npm run buat-midi` | Membuat 5 berkas MIDI contoh di `scripts/midi/` |
 
-## Mencoba tampilan tanpa akun
+## Setup Supabase
 
-Login dan pendaftaran **belum dapat dipakai** karena Supabase belum tersambung. Menekan tombol Masuk atau Daftar hanya menampilkan pesan "Belum tersambung ke server". Tidak ada akun uji coba.
+### 1. Variabel lingkungan
 
-Semua halaman, termasuk halaman pengguna dan admin, **belum dilindungi login**. Jadi setiap halaman dapat dibuka langsung dengan mengetik alamatnya di browser. Jalankan `npm run dev`, lalu buka alamat berikut.
+Buat berkas `.env.local` di folder proyek (berkas ini tidak ikut ke git):
 
-### Halaman publik
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+SUPABASE_SECRET_KEY=sb_secret_...
+# Opsional, untuk tautan email di server produksi:
+# NEXT_PUBLIC_SITE_URL=https://domain-anda.com
+```
 
-| Halaman | Alamat |
+Nilainya ada di dashboard Supabase, **Project Settings → API Keys**. `SUPABASE_SECRET_KEY` hanya dipakai di server (`lib/supabase/admin.ts` ditandai `server-only`, sehingga build gagal bila berkas itu terimpor ke komponen klien).
+
+### 2. Basis data
+
+1. Buka **SQL Editor → New query**, salin seluruh isi [`supabase/schema.sql`](supabase/schema.sql), lalu **Run**.
+2. Ulangi untuk [`supabase/seed.sql`](supabase/seed.sql).
+3. Cek di **Table Editor**: tabel `materi_latihan` berisi 5 baris.
+
+`schema.sql` membuat tabel `users`, `materi_latihan`, `sesi_analisis`, `riwayat_latihan`, dan `transaksi`, beserta trigger profil otomatis, fungsi status paket dan kuota, Row Level Security, dan bucket privat `midi`. Berkas ini aman dijalankan ulang.
+
+### 3. Berkas MIDI
+
+1. Jalankan `npm run buat-midi` (hasilnya sudah ada di `scripts/midi/`).
+2. Buka **Storage → midi → Upload files**, lalu unggah kelima berkas `.mid` langsung ke bucket, bukan ke dalam folder.
+
+### 4. Pengaturan Auth
+
+Di **Authentication → URL Configuration**:
+
+| Kolom | Isi |
 |---|---|
-| Beranda | <http://localhost:3000/> |
-| Harga | <http://localhost:3000/harga> |
-| Tentang | <http://localhost:3000/tentang> |
-| Kebijakan Privasi | <http://localhost:3000/kebijakan-privasi> |
-| Syarat & Ketentuan | <http://localhost:3000/syarat-ketentuan> |
+| Site URL | `http://localhost:3000` (ganti dengan domain saat produksi) |
+| Redirect URLs | `http://localhost:3000/auth/konfirmasi` |
 
-### Halaman autentikasi
+**Disarankan:** ubah template email di **Authentication → Emails** agar tautan tetap berfungsi walau dibuka di browser atau perangkat lain.
 
-| Halaman | Alamat | Catatan |
+| Template | Ganti `{{ .ConfirmationURL }}` dengan |
+|---|---|
+| Confirm signup | `{{ .SiteURL }}/auth/konfirmasi?token_hash={{ .TokenHash }}&type=email&next=/dashboard` |
+| Reset password | `{{ .SiteURL }}/auth/konfirmasi?token_hash={{ .TokenHash }}&type=recovery&next=/atur-ulang-kata-sandi` |
+
+Tanpa perubahan ini, tautan bawaan tetap didukung, tetapi tautan atur ulang kata sandi harus dibuka di browser yang sama dengan tempat permintaan dibuat.
+
+### 5. Akun admin
+
+1. **Authentication → Users → Add user → Create new user**, isi email dan kata sandi, centang **Auto Confirm User**.
+2. Di SQL Editor jalankan (ganti emailnya):
+
+   ```sql
+   update public.users set peran = 'admin', nama = 'Admin Nadalaya'
+   where email = 'email-admin@contoh.com';
+   ```
+
+## Mencoba aplikasi
+
+1. Buka <http://localhost:3000/daftar>, daftar dengan email aktif, lalu buka tautan verifikasi di email.
+2. Masuk di <http://localhost:3000/masuk>. Pengguna diarahkan ke `/dashboard`, admin ke `/admin`.
+3. `/materi` menampilkan 5 materi. Tiga materi premium bergembok untuk akun Gratis.
+4. Buka materi gratis: notasi dan acuan dimuat dari berkas MIDI (signed URL), perekam suara berfungsi.
+
+**Mencoba fitur Premium** (riwayat dan progres) sebelum uji coba dan pembayaran tersedia: ubah paket akun lewat SQL Editor.
+
+```sql
+update public.users
+   set status_paket = 'premium', tanggal_berakhir = now() + interval '30 days'
+ where email = 'email-anda@contoh.com';
+```
+
+Kembalikan ke Gratis dengan `set status_paket = 'gratis', tanggal_berakhir = null`.
+
+**Mencoba akun nonaktif:** `update public.users set is_aktif = false where email = '...';`. Saat masuk atau membuka halaman pengguna akan muncul pesan "Akun Anda telah dinonaktifkan".
+
+**Status Pembayaran** (perlu masuk) dapat dilihat lewat parameter alamat, misalnya <http://localhost:3000/langganan/status?order_id=NDL-001&status=berhasil> (`berhasil`, `tertunda`, `gagal`, `kedaluwarsa`).
+
+> Tombol **Analisis** saat ini memeriksa kuota dan mencatat sesi di server, lalu berhenti dengan pesan "model gagal dimuat" karena mesin CREPE belum dipasang. Sesi tersebut ditandai batal sehingga kuota tidak berkurang.
+
+## Perlindungan halaman dan API
+
+- **`proxy.ts`** (pengganti `middleware.ts` di Next.js 16) menyegarkan sesi dan:
+  - halaman `(pengguna)` wajib masuk, jika belum diarahkan ke `/masuk?lanjut=...`;
+  - `/admin` wajib peran admin;
+  - pengguna yang sudah masuk dan membuka `/masuk` atau `/daftar` diarahkan ke dashboard;
+  - akun nonaktif langsung dikeluarkan.
+- **Setiap API route** memvalidasi sesi login, status akun, dan status paket efektif di server (`lib/server/pengguna.ts`).
+- **Row Level Security:** pengguna hanya membaca profil, sesi, riwayat, dan transaksinya sendiri, serta materi aktif. Profil hanya dapat diubah pada kolom `nama`. Penulisan sesi dan riwayat hanya lewat server dengan secret key.
+
+### Daftar API route
+
+| Metode | Alamat | Kegunaan |
 |---|---|---|
-| Masuk | <http://localhost:3000/masuk> | Validasi form berjalan; kirim menampilkan pesan belum tersambung |
-| Daftar | <http://localhost:3000/daftar> | Coba kata sandi kurang dari 8 karakter untuk melihat validasi |
-| Lupa Kata Sandi | <http://localhost:3000/lupa-kata-sandi> | |
-| Atur Ulang Kata Sandi | <http://localhost:3000/atur-ulang-kata-sandi> | Tampilan tautan kedaluwarsa: <http://localhost:3000/atur-ulang-kata-sandi?error_code=otp_expired> |
-| Verifikasi Email | <http://localhost:3000/verifikasi-email?email=contoh@email.com> | Parameter `email` mengisi alamat yang ditampilkan |
-
-### Halaman pengguna (seolah-olah sudah masuk)
-
-| Halaman | Alamat | Catatan |
-|---|---|---|
-| Dashboard | <http://localhost:3000/dashboard> | Menu akun dan Keluar (dengan dialog konfirmasi) ada di kanan atas |
-| Materi | <http://localhost:3000/materi> | Menampilkan "Belum ada materi" |
-| Latihan | <http://localhost:3000/latihan/coba> | Bagian akhir `coba` boleh diganti apa saja. **Perekam suara berfungsi penuh** |
-| Riwayat | <http://localhost:3000/riwayat> | Menampilkan ajakan upgrade karena paket bawaan Gratis |
-| Detail Riwayat | <http://localhost:3000/riwayat/coba> | |
-| Grafik Progres | <http://localhost:3000/progres> | Menampilkan ajakan upgrade karena paket bawaan Gratis |
-| Langganan | <http://localhost:3000/langganan> | |
-| Profil | <http://localhost:3000/profil> | |
-
-**Status Pembayaran.** Tampilannya ditentukan lewat parameter alamat:
-
-| Status | Alamat |
-|---|---|
-| Berhasil | <http://localhost:3000/langganan/status?order_id=NDL-001&status=berhasil> |
-| Tertunda | <http://localhost:3000/langganan/status?order_id=NDL-001&status=tertunda> |
-| Gagal | <http://localhost:3000/langganan/status?order_id=NDL-001&status=gagal> |
-| Kedaluwarsa | <http://localhost:3000/langganan/status?order_id=NDL-001&status=kedaluwarsa> |
-
-### Halaman admin
-
-| Halaman | Alamat |
-|---|---|
-| Dashboard Admin | <http://localhost:3000/admin> |
-| Kelola Materi | <http://localhost:3000/admin/materi> |
-| Tambah Materi | <http://localhost:3000/admin/materi/tambah> |
-| Ubah Materi | <http://localhost:3000/admin/materi/coba/ubah> (menampilkan "Materi tidak ditemukan" sampai data tersedia) |
-| Kelola Pengguna | <http://localhost:3000/admin/pengguna> |
-| Detail Pengguna | <http://localhost:3000/admin/pengguna/coba> (menampilkan "Pengguna tidak ditemukan" sampai data tersedia) |
-| Statistik Latihan | <http://localhost:3000/admin/statistik> |
-| Laporan Transaksi | <http://localhost:3000/admin/transaksi> |
-
-Halaman 404 dapat dilihat dengan membuka alamat yang tidak ada, misalnya <http://localhost:3000/tidak-ada>.
-
-### Mencoba perekam suara
-
-Akses mikrofon hanya diizinkan pada koneksi aman, yaitu `localhost` atau HTTPS. Buka <http://localhost:3000/latihan/coba>, tekan tombol Rekam, lalu izinkan mikrofon. Hal yang dapat dicoba:
-
-1. Batang indikator level bergerak saat Anda bersuara.
-2. Berhenti sebelum 2 detik akan memunculkan pesan "Rekaman terlalu pendek".
-3. Dengarkan Ulang memutar rekaman, dan Rekam Ulang mengosongkannya.
-4. Menolak izin mikrofon akan memunculkan petunjuk cara mengizinkannya.
-5. Perekaman berhenti otomatis pada 60 detik.
-
-Rekaman hanya disimpan sementara di browser dan tidak dikirim ke mana pun. Tombol Analisis saat ini berhenti di langkah "Memeriksa kuota" dengan pesan belum tersambung ke server.
-
-> Setelah Supabase tersambung, halaman pengguna dan admin akan dilindungi middleware sehingga hanya dapat dibuka setelah masuk dengan peran yang sesuai.
+| POST | `/api/auth/daftar`, `/masuk`, `/keluar` | Daftar, masuk (cek peran dan `is_aktif`), keluar |
+| POST | `/api/auth/lupa-sandi`, `/atur-ulang-sandi`, `/kirim-ulang-verifikasi` | Atur ulang kata sandi dan verifikasi email |
+| GET | `/auth/konfirmasi` | Tujuan tautan email (verifikasi dan atur ulang) |
+| GET | `/api/materi` | Materi aktif, premium ditandai terkunci |
+| POST | `/api/latihan/akses` | Cek premium dan kuota; mengembalikan materi dan signed URL MIDI |
+| POST | `/api/sesi` | Cek ulang kuota, buat sesi `dimulai` |
+| POST | `/api/sesi/[id]/batal` | Sesi menjadi `batal` |
+| POST | `/api/sesi/[id]/hasil` | Simpan riwayat, sesi menjadi `selesai` |
+| GET/PATCH | `/api/profil` | Baca profil, ubah nama |
+| GET | `/api/paket` | Status paket efektif dan sisa kuota hari ini |
+| GET | `/api/dashboard` | Ringkasan dashboard |
+| GET | `/api/riwayat`, `/api/riwayat/[id]`, `/api/progres` | Khusus Premium dan Uji Coba |
 
 ## Struktur folder
 
 ```
 app/
-├─ layout.tsx                Pengaturan umum saja: font, metadata, html/body
-├─ (publik)/                 Navbar publik + footer 3 kolom
-│  ├─ page.tsx               Beranda: produk, cara kerja, fitur, ringkasan harga
-│  ├─ harga/                 Kartu paket, perbandingan hak akses, FAQ
-│  ├─ tentang/               Tentang Nadalaya, teknologi, privasi, pengembang
-│  ├─ kebijakan-privasi/     Kebijakan privasi
-│  └─ syarat-ketentuan/      Syarat & ketentuan
-├─ (auth)/                   Tampilan fokus tanpa navbar dan footer
-│  ├─ masuk/  daftar/        Login (UC-02) dan registrasi (UC-01)
-│  ├─ lupa-kata-sandi/       Form email tautan atur ulang (UC-03)
-│  ├─ atur-ulang-kata-sandi/ Kata sandi baru dari tautan email (UC-03)
-│  └─ verifikasi-email/      Informasi setelah daftar + kirim ulang (UC-01)
-├─ (pengguna)/               Header aplikasi + bilah menu bawah di ponsel, tanpa footer
-│  ├─ dashboard/             Dashboard pengguna
-│  ├─ materi/                Daftar materi (UC-06, UC-07)
-│  ├─ latihan/[id]/          Latihan: acuan, rekam, analisis, hasil (UC-08 s.d. UC-13)
-│  ├─ riwayat/  riwayat/[id] Riwayat dan detail, khusus Premium (UC-14)
-│  ├─ progres/               Grafik progres, khusus Premium (UC-15)
-│  ├─ langganan/             Paket, uji coba, pembelian (UC-16, UC-17)
-│  ├─ langganan/status/      Status pembayaran (UC-18)
-│  └─ profil/                Profil (UC-05)
-├─ (admin)/admin/            Sidebar admin, tanpa footer (TODO: middleware peran admin)
-│  ├─ page.tsx               Dashboard admin
-│  ├─ materi/                Kelola, tambah, ubah, hapus materi (UC-20 s.d. UC-23)
-│  ├─ pengguna/              Kelola dan detail pengguna (UC-24, UC-25)
-│  ├─ statistik/             Statistik latihan (UC-26)
-│  └─ transaksi/             Laporan transaksi (UC-27)
-└─ api/                      Route handler (tahap berikutnya)
-components/
-├─ ui/                       Button, Input, Pilihan, KolomCari, Card, Alert, AlertServer, EmptyState,
-│                            Badge, Spinner, Memuat/Kerangka/GagalMuat, DialogKonfirmasi
-├─ Logo.tsx                  Logo Nadalaya (public/nadalaya-logo.svg)
-├─ layout/                   Navbar publik, Footer, HeaderAplikasi, MenuPengguna (Profil, Keluar)
-├─ publik/                   KepalaHalaman, AjakanDaftar, TabelPerbandingan, DaftarFaq, DokumenLegal
-├─ auth/  beranda/  dashboard/  materi/  riwayat/  progres/  pengguna/
-├─ akses/                    MateriTerkunci (FR-08), KuotaHabis (FR-09), AjakanUpgrade, KhususPremium
-├─ admin/                    SidebarAdmin, tabel kelola, FormMateri, dialog, grafik statistik
-└─ latihan/                  PanelNotasi, PanelAcuan, PerekamSuara, PanelAnalisis, hasil/
+├─ layout.tsx                Pengaturan umum: font, metadata, html/body
+├─ (publik)/                 Beranda, Harga, Tentang, Kebijakan Privasi, Syarat & Ketentuan
+├─ (auth)/                   Masuk, Daftar, Lupa/Atur Ulang Kata Sandi, Verifikasi Email
+├─ (pengguna)/               Dashboard, Materi, Latihan, Riwayat, Progres, Langganan, Profil
+├─ (admin)/admin/            Dashboard admin, materi, pengguna, statistik, transaksi
+├─ api/                      API route (lihat tabel di atas)
+└─ auth/konfirmasi/          Penerima tautan email Supabase
+proxy.ts                     Perlindungan halaman (Next.js 16)
+components/                  ui/, layout/, auth/, akses/, latihan/, riwayat/, progres/, admin/, ...
 lib/
-├─ api/                      Lapisan data (belum tersambung, ditandai TODO): auth, materi,
-│                            akses, riwayat, paket/langganan, admin
-├─ audio/                    recorder.ts, usePerekam.ts, acuan.ts (Tone.js), nada.ts,
-│                            analisis.ts, useAnalisis.ts, crepe.ts (stub)
-├─ types.ts                  Tipe data mengikuti rancangan basis data SDD
-├─ useMuat.ts                Hook memuat data dari lib/api (memuat, galat, siap)
-├─ validasi.ts  waktu.ts  paket.ts  kontak.ts  utils.ts
+├─ api/                      Lapisan data sisi klien: memanggil API route lewat klien.ts
+├─ server/                   Khusus server: sesi login, status paket, kuota, akses, galat
+├─ supabase/                 Klien Supabase: server.ts (cookie sesi), admin.ts (secret key)
+├─ audio/                    recorder, usePerekam, acuan (Tone.js), midi (@tonejs/midi),
+│                            analisis, useAnalisis, crepe.ts (stub)
+├─ types.ts  validasi.ts  waktu.ts  paket.ts  useMuat.ts  kontak.ts  utils.ts
+supabase/
+├─ schema.sql                Tabel, enum, trigger, fungsi, RLS, bucket Storage
+└─ seed.sql                  5 materi latihan
+scripts/
+├─ buat-midi.mjs             Pembuat berkas MIDI contoh
+└─ midi/                     Hasil: 5 berkas .mid
 docs/                        SRS dan SDD
 ```
 
 ## Progres fitur (27 use case)
 
-> **Keputusan terbaru:** riwayat latihan hanya dapat dilihat pengguna Premium (termasuk Uji Coba). Pengguna Gratis tetap mendapat skor dan grafik nada setiap selesai latihan. Ketentuan ini berbeda dari SRS Tabel 2.3 versi 1.1.
+> **Keputusan:** riwayat latihan dan grafik progres hanya untuk pengguna Premium (termasuk Uji Coba). Pengguna Gratis tetap mendapat skor dan grafik nada setiap selesai latihan, dan skor terbarunya tampil di dashboard. Ketentuan ini berbeda dari SRS Tabel 2.3 versi 1.1.
 
 Keterangan status:
 
-- <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi penuh"> **Berfungsi penuh**: bekerja tanpa back-end.
-- <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> **Tampilan selesai**: UI dan alur sudah lengkap, menunggu back-end atau mesin analisis.
+- <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> **Berfungsi**: tersambung ke Supabase atau bekerja penuh di browser.
+- <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> **Tampilan selesai**: UI dan alur lengkap, menunggu mesin analisis, pembayaran, atau back-end admin.
 - <img src="docs/ikon/belum.svg" width="16" height="16" alt="Belum dikerjakan"> **Belum dikerjakan**.
 
 | No | Use Case | FR | Status | Keterangan |
 |---|---|---|---|---|
-| UC-01 | Mendaftar Akun | FR-01 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Form nama, email, kata sandi dengan validasi klien. Setelah berhasil diarahkan ke `/verifikasi-email` (info + kirim ulang email). |
-| UC-02 | Masuk ke Sistem | FR-02 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Form email dan kata sandi, tautan Lupa kata sandi, pengalihan sesuai peran sudah disiapkan. |
-| UC-03 | Mengatur Ulang Kata Sandi | FR-03 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | `/lupa-kata-sandi` (form email, pesan tautan terkirim) dan `/atur-ulang-kata-sandi` (kata sandi baru + konfirmasi min. 8 karakter, tampilan tautan kedaluwarsa). |
-| UC-04 | Keluar dari Sistem | FR-02 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Menu Keluar di header pengguna dan sidebar admin dengan dialog konfirmasi. Tetap diarahkan ke beranda bila server gagal dihubungi. |
-| UC-05 | Mengubah Profil | FR-04 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | `/profil`: form ubah nama, email (tidak dapat diubah), status paket dan masa aktif, tautan ke Langganan. |
-| UC-06 | Melihat Daftar Materi | FR-07 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Pengelompokan per jenis dan tingkat, ikon gembok materi premium, keadaan kosong, memuat, dan gagal (Muat Ulang). |
-| UC-07 | Menyaring Materi | FR-07 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Chip saring jenis dan tingkat, pesan "Materi tidak ditemukan". Di luar 10 fitur target. |
-| UC-08 | Memilih Materi Latihan | FR-07, FR-08 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Navigasi kartu materi ke `/latihan/[id]` berfungsi. Data materi menunggu server. |
-| UC-09 | Memeriksa Hak Akses dan Kuota | FR-08, FR-09 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Komponen materi terkunci (ajakan upgrade) dan kuota habis (waktu reset 00.00 WIB + hitung mundur). Logika dari server. |
-| UC-10 | Memutar Acuan MIDI dan Notasi | FR-10 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Notasi VexFlow dan pemutar Tone.js menerima data lewat props, termasuk penanda not aktif. Pembacaan berkas MIDI menunggu Storage. |
-| UC-11 | Merekam Suara | FR-10, FR-11 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi penuh"> | Izin mikrofon, rekam/berhenti, indikator level, timer, berhenti otomatis 60 detik, Dengarkan Ulang, Rekam Ulang, pesan izin ditolak, pesan rekaman < 2 detik atau tanpa suara. Acuan dihentikan saat merekam. Rekaman tidak diunggah. |
-| UC-12 | Menganalisis Akurasi Nada | FR-09, FR-12, FR-13 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Tombol Analisis, status proses (kuota, model, analisis), pesan gagal (model, nada tidak terdeteksi, kuota habis), pembatalan sesi. Mesin CREPE + DTW di tahap berikutnya. |
-| UC-13 | Menampilkan Skor dan Grafik Nada | FR-14, FR-15, FR-16 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Skor 0–100, grafik pitch Chart.js, tabel alternatif, daftar nada meleset > 50 cent, Latih Lagi, Kembali ke Daftar Materi. Data lewat props. |
-| UC-14 | Melihat Riwayat Latihan | FR-16 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Khusus Premium dan Uji Coba (Gratis melihat `AjakanUpgrade`). Tabel materi, skor, tanggal; klik baris membuka detail `/riwayat/[id]` dengan skor, grafik nada, dan nada meleset. |
-| UC-15 | Melihat Grafik Progres | FR-17 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | `/progres` khusus Premium: grafik skor per jenis materi (Chart.js, palet tervalidasi), ringkasan, pesan "Data belum cukup". |
-| UC-16 | Mengaktifkan Uji Coba Premium | FR-18 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Tombol "Coba Premium 7 Hari" di `/langganan` (hanya untuk Gratis yang belum pernah uji coba) dan di ajakan upgrade. |
-| UC-17 | Membeli Paket Langganan | FR-19 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | `/langganan`: status paket, kartu Premium dan Paket Persiapan Tes dengan tombol Bayar, keterangan VA dan QRIS. |
-| UC-18 | Memproses Pembayaran | FR-19, FR-20 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | `/langganan/status`: tampilan berhasil, tertunda, gagal, kedaluwarsa (dari `getTransaksi()` atau parameter Midtrans) dan ringkasan transaksi. Pop-up Snap menunggu integrasi. |
-| UC-19 | Mengaktifkan Langganan | FR-20, FR-21 | <img src="docs/ikon/belum.svg" width="16" height="16" alt="Belum dikerjakan"> | Proses server (webhook Midtrans). Hasilnya tampil di Status Pembayaran dan Langganan. |
-| UC-20 | Melihat Data Materi (admin) | FR-05 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | `/admin/materi`: tabel materi, pencarian, filter jenis dan tingkat, empty state dengan tombol Tambah Materi. |
-| UC-21 | Menambahkan Data Materi | FR-05 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | `/admin/materi/tambah`: judul, jenis, tingkat, gratis/premium, tempo, unggah `.mid` (validasi ekstensi, nama berkas tampil). |
-| UC-22 | Mengubah Data Materi | FR-05 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | `/admin/materi/[id]/ubah`: form yang sama dengan opsi ganti berkas; berkas lama tetap dipakai jika tidak diganti. |
-| UC-23 | Menghapus Data Materi | FR-05 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Dialog konfirmasi yang menjelaskan materi yang sudah dipakai latihan dinonaktifkan, bukan dihapus. |
-| UC-24 | Melihat Data Pengguna | FR-06 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | `/admin/pengguna`: tabel, pencarian nama/email, filter status paket; detail `/admin/pengguna/[id]`. |
-| UC-25 | Menonaktifkan Akun Pengguna | FR-06 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Tombol Nonaktifkan di tabel dan detail dengan dialog konfirmasi. |
-| UC-26 | Melihat Statistik Latihan | FR-22 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | `/admin/statistik`: filter rentang tanggal, jumlah sesi, rata-rata skor, materi terpopuler, pengguna aktif, grafik latihan per hari. |
-| UC-27 | Melihat Laporan Transaksi | FR-22 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | `/admin/transaksi`: filter rentang tanggal dan status, tabel transaksi, total pendapatan. |
+| UC-01 | Mendaftar Akun | FR-01 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Supabase Auth `signUp`, profil Gratis dibuat trigger. Pesan "Email sudah terdaftar". Verifikasi email dan kirim ulang. |
+| UC-02 | Masuk ke Sistem | FR-02 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Pesan "Email atau kata sandi salah" dan "Email belum diverifikasi". Akun nonaktif langsung dikeluarkan. Pengalihan sesuai peran. |
+| UC-03 | Mengatur Ulang Kata Sandi | FR-03 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Tautan email lewat `/auth/konfirmasi`, simpan kata sandi baru, tampilan tautan kedaluwarsa. |
+| UC-04 | Keluar dari Sistem | FR-02 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Dialog konfirmasi, sesi dihapus di server. |
+| UC-05 | Mengubah Profil | FR-04 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Ubah nama (dibatasi RLS dan izin kolom), email dan status paket dari basis data. |
+| UC-06 | Melihat Daftar Materi | FR-07 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Materi aktif dari `materi_latihan`, gembok untuk materi premium. |
+| UC-07 | Menyaring Materi | FR-07 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Saring jenis dan tingkat pada data asli. Di luar 10 fitur target. |
+| UC-08 | Memilih Materi Latihan | FR-07, FR-08 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Data materi dan berkas MIDI (signed URL) dimuat setelah pemeriksaan akses. |
+| UC-09 | Memeriksa Hak Akses dan Kuota | FR-08, FR-09 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Di server: materi premium ditolak untuk Gratis, kuota 3 sesi selesai per hari (WIB), status paket efektif. |
+| UC-10 | Memutar Acuan MIDI dan Notasi | FR-10 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Berkas MIDI dari Storage dibaca `@tonejs/midi`, ditampilkan VexFlow dan diputar Tone.js. |
+| UC-11 | Merekam Suara | FR-10, FR-11 | <img src="docs/ikon/berfungsi.svg" width="16" height="16" alt="Berfungsi"> | Izin mikrofon, indikator level, berhenti otomatis 60 detik, dengarkan dan rekam ulang. Rekaman tidak diunggah. |
+| UC-12 | Menganalisis Akurasi Nada | FR-09, FR-12, FR-13 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Cek ulang kuota, pencatatan sesi `dimulai`, dan pembatalan sesi sudah tersambung. Mesin CREPE + DTW belum dipasang. |
+| UC-13 | Menampilkan Skor dan Grafik Nada | FR-14, FR-15, FR-16 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Tampilan lengkap. Penyimpanan riwayat (`/api/sesi/[id]/hasil`) siap, menunggu hasil mesin analisis. |
+| UC-14 | Melihat Riwayat Latihan | FR-16 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | API tersambung (khusus Premium). Data riwayat baru ada setelah mesin analisis selesai. |
+| UC-15 | Melihat Grafik Progres | FR-17 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | API tersambung (khusus Premium). Grafik terisi setelah ada riwayat. |
+| UC-16 | Mengaktifkan Uji Coba Premium | FR-18 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Tombol tersedia, API belum dibuat. |
+| UC-17 | Membeli Paket Langganan | FR-19 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Status paket dari basis data; pembelian menunggu Midtrans. |
+| UC-18 | Memproses Pembayaran | FR-19, FR-20 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Halaman status berhasil, tertunda, gagal, kedaluwarsa. Pop-up Snap menunggu integrasi. |
+| UC-19 | Mengaktifkan Langganan | FR-20, FR-21 | <img src="docs/ikon/belum.svg" width="16" height="16" alt="Belum dikerjakan"> | Webhook Midtrans. Tabel `transaksi` sudah dibuat. |
+| UC-20 | Melihat Data Materi (admin) | FR-05 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Halaman terlindungi peran admin; data menunggu API admin. |
+| UC-21 | Menambahkan Data Materi | FR-05 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Form dan validasi klien. |
+| UC-22 | Mengubah Data Materi | FR-05 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Form dengan opsi ganti berkas. |
+| UC-23 | Menghapus Data Materi | FR-05 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Dialog konfirmasi. |
+| UC-24 | Melihat Data Pengguna | FR-06 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Tabel, pencarian, filter, detail. |
+| UC-25 | Menonaktifkan Akun Pengguna | FR-06 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Dialog konfirmasi. Pemblokiran akun nonaktif saat masuk sudah berfungsi. |
+| UC-26 | Melihat Statistik Latihan | FR-22 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Filter rentang tanggal, kartu statistik, grafik per hari. |
+| UC-27 | Melihat Laporan Transaksi | FR-22 | <img src="docs/ikon/tampilan.svg" width="16" height="16" alt="Tampilan selesai"> | Filter tanggal dan status, total pendapatan. |
 
-**Ringkasan:** 1 berfungsi penuh, 25 tampilan selesai, dan 1 belum dikerjakan (UC-19, murni proses server). Halaman Beranda, Harga, Tentang, Kebijakan Privasi, Syarat & Ketentuan, Dashboard Pengguna, dan halaman 404 juga sudah dibuat.
+**Ringkasan:** 11 berfungsi, 15 tampilan selesai, 1 belum dikerjakan.
 
 ## Kebutuhan non-fungsional yang sudah diperhatikan
 
-- **NFR-07 Privasi:** rekaman hanya berupa `Blob` di memori browser dan tidak dikirim ke mana pun.
-- **NFR-09 Keandalan:** setiap kegagalan analisis menampilkan pesan yang jelas. Sesi yang gagal ditandai batal agar kuota tidak berkurang.
-- **NFR-10 Kemudahan:** alur latihan dibagi menjadi tiga langkah bernomor, dengan kiat sebelum latihan di dashboard.
-- **NFR-11 Bahasa:** seluruh antarmuka, pesan galat, dan panduan berbahasa Indonesia.
-- **NFR-13 Responsif:** tata letak dirancang mobile-first untuk lebar 360–1920 px tanpa gulir horizontal.
+- **NFR-07 Privasi:** rekaman hanya berupa `Blob` di memori browser. Server hanya menerima skor, ringkasan kontur, dan nada meleset.
+- **Keamanan:** secret key hanya di server, RLS pada semua tabel, bucket MIDI privat dengan signed URL 10 menit, validasi ulang semua input di server.
+- **NFR-09 Keandalan:** sesi yang gagal ditandai batal agar kuota tidak berkurang. Jika riwayat gagal disimpan, sesi tetap `dimulai` dan pengguna mendapat pesan yang jelas.
+- **NFR-10 Kemudahan:** alur latihan tiga langkah bernomor, kiat sebelum latihan di dashboard.
+- **NFR-11 Bahasa:** seluruh antarmuka dan pesan galat (termasuk dari Supabase Auth) berbahasa Indonesia.
+- **NFR-13 Responsif:** mobile-first untuk lebar 360–1920 px tanpa gulir horizontal.
 
 ## Rencana tahap berikutnya
 
-1. Integrasi Supabase Auth dan basis data. Ganti isi fungsi `lib/api/` dan tambahkan middleware untuk grup `(pengguna)`.
-2. API route untuk hak akses, kuota, dan sesi analisis (`getStatusEfektif`, perhitungan kuota WIB).
-3. Pembacaan berkas MIDI dengan `@tonejs/midi` dari Supabase Storage.
-4. Mesin analisis: CREPE (TensorFlow.js) di `lib/audio/crepe.ts`, DTW di `lib/audio/dtw.ts`, dan perhitungan skor.
-5. Riwayat, grafik progres, langganan, Midtrans, dan halaman admin.
+1. Mesin analisis: CREPE (TensorFlow.js) di `lib/audio/crepe.ts`, DTW, dan perhitungan skor.
+2. Uji coba Premium 7 hari (`uji_coba_digunakan`).
+3. Pembelian paket dan webhook Midtrans (verifikasi signature, perpanjangan `tanggal_berakhir`).
+4. API admin: kelola materi (unggah MIDI ke Storage), kelola pengguna, statistik, laporan transaksi.
+5. Jadwal harian `perbarui_paket_kedaluwarsa()` dengan pg_cron (opsional, ada di `schema.sql`).
 6. Dockerfile dan docker-compose (NFR-14).

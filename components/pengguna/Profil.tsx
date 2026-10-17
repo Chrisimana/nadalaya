@@ -89,12 +89,6 @@ export function Profil() {
 
       {keadaan.status === "siap" && (
         <>
-          {!keadaan.data.pengguna && (
-            <Alert varian="info" judul="Data akun belum tersedia">
-              Nama dan email akan tampil setelah akun tersambung ke server.
-            </Alert>
-          )}
-
           <Card className="flex flex-col gap-6">
             <h2 className="font-bold text-tinta">Data akun</h2>
             <FormNama namaAwal={keadaan.data.pengguna?.nama ?? ""} />

@@ -23,7 +23,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { getRingkasanDashboard, getStatusPaket, pesanGalat } from "@/lib/api";
+import { getRingkasanDashboard, pesanGalat } from "@/lib/api";
+import { KUOTA_HARIAN_GRATIS } from "@/lib/paket";
 import {
   LABEL_JENIS,
   LABEL_PAKET,
@@ -31,8 +32,6 @@ import {
   type RingkasanDashboard,
   type StatusPaket,
 } from "@/lib/types";
-
-const KUOTA_HARIAN_GRATIS = 3;
 
 const kiatLatihan: { ikon: LucideIcon; teks: string }[] = [
   { ikon: Headphones, teks: "Pakai headphone agar suara acuan tidak ikut terekam." },
@@ -143,7 +142,7 @@ function IsiRingkasan({
             ringkas
             ikon={Crown}
             judul="Belum ada data paket"
-            deskripsi="Status paket tampil setelah akun tersambung."
+            deskripsi="Status paket belum dapat dimuat."
             className="flex-1"
           />
         )}
@@ -246,10 +245,15 @@ export function Dashboard() {
 
   const muat = useCallback(() => {
     let aktif = true;
-    Promise.all([getRingkasanDashboard(), getStatusPaket()])
+    getRingkasanDashboard()
       .then(
-        ([data, paket]) =>
-          aktif && setKeadaan({ status: "siap", data, paket }),
+        (data) =>
+          aktif &&
+          setKeadaan({
+            status: "siap",
+            data,
+            paket: data.pengguna?.statusPaket ?? "gratis",
+          }),
       )
       .catch(
         (err) =>
