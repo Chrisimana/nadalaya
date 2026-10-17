@@ -37,3 +37,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/docs/SDD _11241022.pdf
+/docs/SRS_11241022.pdf
+/AGENTS.md
