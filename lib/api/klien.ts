@@ -12,13 +12,19 @@ const KODE_KELUAR: Record<string, string> = {
  */
 export async function minta<T>(
   alamat: string,
-  opsi: { method?: "GET" | "POST" | "PATCH"; body?: unknown; alihkanBilaKeluar?: boolean } = {},
+  opsi: {
+    method?: "GET" | "POST" | "PATCH" | "DELETE";
+    /** Objek dikirim sebagai JSON; FormData dikirim apa adanya (multipart). */
+    body?: unknown;
+    alihkanBilaKeluar?: boolean;
+  } = {},
 ): Promise<T> {
   const { method = "GET", body, alihkanBilaKeluar = true } = opsi;
+  const multipart = body instanceof FormData;
   const respons = await fetch(alamat, {
     method,
-    headers: body === undefined ? undefined : { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    headers: body === undefined || multipart ? undefined : { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : multipart ? body : JSON.stringify(body),
     cache: "no-store",
   });
 

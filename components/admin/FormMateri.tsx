@@ -182,7 +182,7 @@ export function FormMateri({ materi }: { materi?: MateriAdmin }) {
         { judul: judul.trim(), jenis, tingkat, isPremium: premium, tempo: Number(tempo), berkasMidi },
         materi?.id,
       );
-      router.push("/admin/materi");
+      router.push(`/admin/materi?disimpan=${mode}`);
     } catch (err) {
       setGalatServer(keGalatServer(err));
       setMemuat(false);

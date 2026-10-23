@@ -1,17 +1,17 @@
 "use client";
 
-import { ChevronRight, SearchX, UserX, Users } from "lucide-react";
+import { ChevronRight, SearchX, UserCheck, UserX, Users } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { KepalaAplikasi } from "@/components/pengguna/KepalaAplikasi";
 import { Alert } from "@/components/ui/Alert";
-import { AlertServer, type GalatServer } from "@/components/ui/AlertServer";
+import { AlertServer, keGalatServer, type GalatServer } from "@/components/ui/AlertServer";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { KolomCari } from "@/components/ui/KolomCari";
 import { GagalMuat, Kerangka } from "@/components/ui/Memuat";
 import { Pilihan } from "@/components/ui/Pilihan";
-import { getPenggunaAdminList } from "@/lib/api";
+import { aktifkanPengguna, getPenggunaAdminList } from "@/lib/api";
 import { LABEL_PAKET, type PenggunaAdmin, type StatusPaket } from "@/lib/types";
 import { useMuat } from "@/lib/useMuat";
 import { formatTanggal } from "@/lib/waktu";
@@ -33,7 +33,25 @@ export function KelolaPengguna() {
   const [paket, setPaket] = useState("semua");
   const [target, setTarget] = useState<PenggunaAdmin | null>(null);
   const [galatServer, setGalatServer] = useState<GalatServer | null>(null);
+  const [judulGalat, setJudulGalat] = useState("Akun belum dapat dinonaktifkan");
   const [pesanSukses, setPesanSukses] = useState<string | null>(null);
+  const [mengaktifkan, setMengaktifkan] = useState<string | null>(null);
+
+  async function aktifkan(p: PenggunaAdmin) {
+    setMengaktifkan(p.id);
+    setGalatServer(null);
+    setPesanSukses(null);
+    try {
+      await aktifkanPengguna(p.id);
+      setPesanSukses(`Akun ${p.nama} aktif kembali dan dapat masuk ke Nadalaya.`);
+      muatUlang();
+    } catch (err) {
+      setJudulGalat("Akun belum dapat diaktifkan");
+      setGalatServer(keGalatServer(err));
+    } finally {
+      setMengaktifkan(null);
+    }
+  }
 
   const tersaring = useMemo(() => {
     if (keadaan.status !== "siap") return [];
@@ -52,7 +70,7 @@ export function KelolaPengguna() {
         deskripsi="Daftar pengguna beserta status langganan dan status akun."
       />
 
-      <AlertServer galat={galatServer} judul="Akun belum dapat dinonaktifkan" />
+      <AlertServer galat={galatServer} judul={judulGalat} />
       {pesanSukses && <Alert varian="sukses">{pesanSukses}</Alert>}
 
       <div className="grid gap-3 md:grid-cols-[1fr_220px]">
@@ -87,7 +105,12 @@ export function KelolaPengguna() {
               {tersaring.map((p) => (
                 <tr key={p.id}>
                   <td className="px-5 py-3">
-                    <p className="font-semibold text-tinta">{p.nama}</p>
+                    <p className="font-semibold text-tinta">
+                      {p.nama}
+                      {p.peran === "admin" && (
+                        <Badge varian="nada" className="ml-2 align-middle">Admin</Badge>
+                      )}
+                    </p>
                     <p className="text-redup">{p.email}</p>
                   </td>
                   <td className="px-4 py-3">
@@ -99,15 +122,29 @@ export function KelolaPengguna() {
                   <td className="px-4 py-3"><BadgeAkun aktif={p.isAktif} /></td>
                   <td className="px-5 py-3">
                     <div className="flex justify-end gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setTarget(p)}
-                        disabled={!p.isAktif}
-                        className="flex size-9 items-center justify-center rounded-lg text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-redup/40 disabled:hover:bg-transparent"
-                        aria-label={`Nonaktifkan ${p.nama}`}
-                      >
-                        <UserX className="size-4" aria-hidden="true" />
-                      </button>
+                      {p.isAktif ? (
+                        <button
+                          type="button"
+                          onClick={() => setTarget(p)}
+                          disabled={p.peran === "admin"}
+                          className="flex size-9 items-center justify-center rounded-lg text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-redup/40 disabled:hover:bg-transparent"
+                          aria-label={`Nonaktifkan ${p.nama}`}
+                          title={p.peran === "admin" ? "Akun admin tidak dapat dinonaktifkan" : "Nonaktifkan"}
+                        >
+                          <UserX className="size-4" aria-hidden="true" />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => aktifkan(p)}
+                          disabled={mengaktifkan === p.id}
+                          className="flex size-9 items-center justify-center rounded-lg text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+                          aria-label={`Aktifkan kembali ${p.nama}`}
+                          title="Aktifkan kembali"
+                        >
+                          <UserCheck className="size-4" aria-hidden="true" />
+                        </button>
+                      )}
                       <Link
                         href={`/admin/pengguna/${p.id}`}
                         className="flex size-9 items-center justify-center rounded-lg text-nada-700 hover:bg-nada-50"
@@ -134,6 +171,7 @@ export function KelolaPengguna() {
         }}
         onGalat={(g) => {
           setPesanSukses(null);
+          setJudulGalat("Akun belum dapat dinonaktifkan");
           setGalatServer(g);
         }}
       />

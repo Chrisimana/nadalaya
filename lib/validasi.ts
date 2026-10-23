@@ -73,13 +73,14 @@ export function validasiKataSandiBaruDanKonfirmasi(data: {
 export const TEMPO_MIN = 40;
 export const TEMPO_MAX = 240;
 
-/** Validasi berkas MIDI di klien: hanya ekstensi .mid (UC-21). */
+/** Validasi berkas MIDI di klien: ekstensi .mid dan ukuran (UC-21). Isi diperiksa server. */
 export function validasiBerkasMidi(berkas: File | null, wajib: boolean) {
   if (!berkas) return wajib ? "Berkas MIDI wajib diunggah." : undefined;
   if (!berkas.name.toLowerCase().endsWith(".mid")) {
     return "Berkas harus berformat .mid";
   }
   if (berkas.size === 0) return "Berkas MIDI kosong.";
+  if (berkas.size > 1024 * 1024) return "Ukuran berkas MIDI maksimal 1 MB.";
   return undefined;
 }
 

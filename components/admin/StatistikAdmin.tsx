@@ -34,8 +34,15 @@ export function StatistikAdmin() {
         deskripsi="Pantau aktivitas latihan dan materi yang paling diminati."
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:max-w-xl">
-        <FilterRentang nilai={rentang} onUbah={setRentang} />
+      <div className="flex flex-col gap-2">
+        <div className="grid gap-3 sm:grid-cols-2 lg:max-w-xl">
+          <FilterRentang nilai={rentang} onUbah={setRentang} />
+        </div>
+        <p className="text-sm text-redup">
+          {rentang.dari || rentang.sampai
+            ? "Tanggal mengikuti zona waktu WIB."
+            : "Tanpa pilihan tanggal, statistik menampilkan 30 hari terakhir (WIB)."}
+        </p>
       </div>
 
       {keadaan.status === "memuat" && <Kerangka jumlah={2} tinggi="h-40" />}

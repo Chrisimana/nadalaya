@@ -72,6 +72,12 @@
 
 7. Buka <http://localhost:3000>.
 
+8. Untuk akun admin: daftar seperti biasa, lalu jalankan di SQL Editor:
+
+   ```sql
+   update public.users set peran = 'admin' where email = 'email-admin@contoh.com';
+   ```
+
 > Mikrofon hanya dapat dipakai di `localhost` atau situs HTTPS.
 
 | Perintah | Kegunaan |
@@ -118,22 +124,21 @@ tests/          Uji otomatis analisis nada
 | UC-17 | Membeli Paket Langganan | Tampilan saja |
 | UC-18 | Memproses Pembayaran | Tampilan saja |
 | UC-19 | Mengaktifkan Langganan | Belum |
-| UC-20 | Melihat Data Materi (admin) | Tampilan saja |
-| UC-21 | Menambahkan Data Materi | Tampilan saja |
-| UC-22 | Mengubah Data Materi | Tampilan saja |
-| UC-23 | Menghapus Data Materi | Tampilan saja |
-| UC-24 | Melihat Data Pengguna | Tampilan saja |
-| UC-25 | Menonaktifkan Akun Pengguna | Tampilan saja |
-| UC-26 | Melihat Statistik Latihan | Tampilan saja |
-| UC-27 | Melihat Laporan Transaksi | Tampilan saja |
+| UC-20 | Melihat Data Materi (admin) | Berfungsi |
+| UC-21 | Menambahkan Data Materi | Berfungsi |
+| UC-22 | Mengubah Data Materi | Berfungsi |
+| UC-23 | Menghapus Data Materi | Berfungsi |
+| UC-24 | Melihat Data Pengguna | Berfungsi |
+| UC-25 | Menonaktifkan Akun Pengguna | Berfungsi |
+| UC-26 | Melihat Statistik Latihan | Berfungsi |
+| UC-27 | Melihat Laporan Transaksi | Berfungsi (menunggu data pembayaran) |
 
-**Ringkasan:** 15 dari 27 fitur berfungsi (**56%**), 11 fitur baru berupa tampilan, dan 1 fitur belum dikerjakan. Kesepuluh fitur esensial sudah berfungsi. Riwayat latihan dan grafik progres khusus Premium; selama uji coba dan pembayaran belum tersedia, paket Premium diaktifkan langsung melalui basis data.
+**Ringkasan:** 23 dari 27 fitur berfungsi (**85%**), 3 fitur baru berupa tampilan (uji coba, pembelian, dan pembayaran), dan 1 fitur belum dikerjakan. Kesepuluh fitur esensial dan seluruh fitur admin sudah berfungsi; laporan transaksi akan terisi setelah pembayaran tersedia. Riwayat latihan dan grafik progres khusus Premium; selama uji coba dan pembayaran belum tersedia, paket Premium diaktifkan langsung melalui basis data.
 
 ## Rencana Berikutnya
 
 1. Pembayaran paket dengan Midtrans
 2. Uji coba Premium 7 hari
 3. Penyempurnaan grafik progres
-4. Fitur admin: kelola materi, kelola pengguna, statistik, dan laporan transaksi
-5. SMTP email dengan alamat Nadalaya sendiri
-6. Deploy
+4. SMTP email dengan alamat Nadalaya sendiri
+5. Deploy

@@ -38,6 +38,9 @@ export function galatAuth(err: AuthError): GalatRute {
     case "session_expired":
     case "refresh_token_not_found":
       return new GalatRute(401, "Sesi Anda telah berakhir. Silakan masuk kembali.", "belum_masuk");
+    case "user_banned":
+      // Akun yang dinonaktifkan admin juga diblokir di Supabase Auth.
+      return new GalatRute(403, "Akun Anda telah dinonaktifkan.", "akun_nonaktif");
     case "signup_disabled":
       return new GalatRute(403, "Pendaftaran akun sedang ditutup.", "pendaftaran_ditutup");
     default:

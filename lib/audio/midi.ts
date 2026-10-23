@@ -10,12 +10,12 @@ export type DataMidi = {
 /** Membaca isi berkas MIDI menjadi deret nada acuan (monofonik, urut waktu). */
 export function bacaMidi(isi: ArrayBuffer | Uint8Array): DataMidi {
   const midi = new Midi(isi);
-  const trek = midi.tracks.find((t) => t.notes.length > 0);
-  if (!trek) throw new Error("Berkas MIDI tidak berisi nada.");
-
-  const nada = trek.notes
+  // Nada dari semua trek digabung; validasi admin memastikan melodinya tunggal.
+  const nada = midi.tracks
+    .flatMap((t) => t.notes)
     .map((n) => ({ midi: n.midi, waktu: n.time, durasi: n.duration }))
     .sort((a, b) => a.waktu - b.waktu);
+  if (nada.length === 0) throw new Error("Berkas MIDI tidak berisi nada.");
   const bpm = midi.header.tempos[0]?.bpm;
   return { nada, tempo: bpm ? Math.round(bpm) : null };
 }

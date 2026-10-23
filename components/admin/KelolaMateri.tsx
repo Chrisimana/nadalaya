@@ -1,6 +1,6 @@
 "use client";
 
-import { Library, Pencil, Plus, SearchX, Trash2 } from "lucide-react";
+import { Library, Pencil, Plus, Power, SearchX, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { KepalaAplikasi } from "@/components/pengguna/KepalaAplikasi";
@@ -13,7 +13,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { KolomCari } from "@/components/ui/KolomCari";
 import { GagalMuat, Kerangka } from "@/components/ui/Memuat";
 import { Pilihan } from "@/components/ui/Pilihan";
-import { getMateriAdminList, hapusMateri } from "@/lib/api";
+import { aktifkanMateri, getMateriAdminList, hapusMateri } from "@/lib/api";
 import {
   LABEL_JENIS,
   LABEL_TINGKAT,
@@ -32,8 +32,13 @@ const OPSI_TINGKAT = [
   ...URUTAN_TINGKAT.map((t) => ({ nilai: t, label: LABEL_TINGKAT[t] })),
 ];
 
-/** UC-20 s.d. UC-23: daftar materi, pencarian, filter, dan hapus. */
-export function KelolaMateri() {
+const PESAN_DISIMPAN = {
+  tambah: "Materi baru berhasil disimpan.",
+  ubah: "Perubahan materi berhasil disimpan.",
+} as const;
+
+/** UC-20 s.d. UC-23: daftar materi, pencarian, filter, hapus, dan aktifkan kembali. */
+export function KelolaMateri({ disimpan }: { disimpan?: keyof typeof PESAN_DISIMPAN | null }) {
   const { keadaan, muatUlang } = useMuat(getMateriAdminList);
   const [cari, setCari] = useState("");
   const [jenis, setJenis] = useState("semua");
@@ -41,7 +46,27 @@ export function KelolaMateri() {
   const [akanDihapus, setAkanDihapus] = useState<MateriAdmin | null>(null);
   const [menghapus, setMenghapus] = useState(false);
   const [galatServer, setGalatServer] = useState<GalatServer | null>(null);
-  const [pesanSukses, setPesanSukses] = useState<string | null>(null);
+  const [judulGalat, setJudulGalat] = useState("Materi belum dapat dihapus");
+  const [pesanSukses, setPesanSukses] = useState<string | null>(
+    disimpan ? PESAN_DISIMPAN[disimpan] : null,
+  );
+  const [mengaktifkan, setMengaktifkan] = useState<string | null>(null);
+
+  async function aktifkan(m: MateriAdmin) {
+    setMengaktifkan(m.id);
+    setGalatServer(null);
+    setPesanSukses(null);
+    try {
+      await aktifkanMateri(m.id);
+      setPesanSukses(`Materi "${m.judul}" aktif kembali dan dapat dilatih pengguna.`);
+      muatUlang();
+    } catch (err) {
+      setJudulGalat("Materi belum dapat diaktifkan");
+      setGalatServer(keGalatServer(err));
+    } finally {
+      setMengaktifkan(null);
+    }
+  }
 
   const tersaring = useMemo(() => {
     if (keadaan.status !== "siap") return [];
@@ -68,6 +93,7 @@ export function KelolaMateri() {
       );
       muatUlang();
     } catch (err) {
+      setJudulGalat("Materi belum dapat dihapus");
       setGalatServer(keGalatServer(err));
     } finally {
       setMenghapus(false);
@@ -89,7 +115,7 @@ export function KelolaMateri() {
         aksi={tombolTambah}
       />
 
-      <AlertServer galat={galatServer} judul="Materi belum dapat dihapus" />
+      <AlertServer galat={galatServer} judul={judulGalat} />
       {pesanSukses && <Alert varian="sukses">{pesanSukses}</Alert>}
 
       <div className="grid gap-3 md:grid-cols-[1fr_200px_200px]">
@@ -154,6 +180,18 @@ export function KelolaMateri() {
                       >
                         <Pencil className="size-4" aria-hidden="true" />
                       </Link>
+                      {!m.isAktif && (
+                        <button
+                          type="button"
+                          onClick={() => aktifkan(m)}
+                          disabled={mengaktifkan === m.id}
+                          className="flex size-9 items-center justify-center rounded-lg text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+                          aria-label={`Aktifkan kembali ${m.judul}`}
+                          title="Aktifkan kembali"
+                        >
+                          <Power className="size-4" aria-hidden="true" />
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => setAkanDihapus(m)}

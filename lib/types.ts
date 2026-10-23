@@ -187,6 +187,11 @@ export type PenggunaAdmin = Pengguna & {
   jumlahLatihan: number;
 };
 
+/** Detail pengguna untuk admin beserta latihan terakhirnya (UC-24). */
+export type DetailPenggunaAdmin = PenggunaAdmin & {
+  latihanTerakhir: ItemRiwayat[];
+};
+
 export type StatistikLatihan = {
   jumlahSesi: number;
   /** null bila belum ada latihan. */
