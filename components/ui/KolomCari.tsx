@@ -2,7 +2,6 @@ import { Search } from "lucide-react";
 import { useId } from "react";
 import { cn } from "@/lib/utils";
 
-/** Kolom pencarian dengan ikon kaca pembesar dan label tersembunyi. */
 export function KolomCari({
   label,
   nilai,

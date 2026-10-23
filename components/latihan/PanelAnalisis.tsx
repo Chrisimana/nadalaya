@@ -146,11 +146,9 @@ type Props = {
   onAnalisis: () => void;
   onCobaLagi: () => void;
   onRekamUlang: () => void;
-  /** Konten hasil (skor dan grafik) saat analisis selesai. */
   hasil?: React.ReactNode;
 };
 
-/** UC-12 Menganalisis Akurasi Nada: tombol Analisis dan status prosesnya. */
 export function PanelAnalisis({
   rekaman,
   keadaan,

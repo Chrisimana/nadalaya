@@ -79,7 +79,6 @@ function TabelRiwayat() {
   );
 }
 
-/** UC-14 Melihat Riwayat Latihan (khusus Premium dan Uji Coba). */
 export function RiwayatLatihan() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-10 sm:px-6">

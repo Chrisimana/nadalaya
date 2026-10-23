@@ -5,10 +5,6 @@ import { validasiKataSandiBaru } from "@/lib/validasi";
 
 const PESAN_KEDALUWARSA = "Tautan atur ulang kata sandi sudah tidak berlaku.";
 
-/**
- * UC-03 langkah 4: simpan kata sandi baru. Sesi pemulihan dibuat oleh
- * /auth/konfirmasi saat pengguna membuka tautan dari email.
- */
 export const POST = rute(async (req: Request) => {
   const isi = await bacaJson(req);
   const kataSandi = teks(isi.kataSandi);

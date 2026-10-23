@@ -1,7 +1,3 @@
-/*
- * Alur analisis akurasi nada di browser (UC-12):
- * memuat model → mono 16 kHz → CREPE → DTW → skor.
- */
 import type { HasilAnalisis, NadaAcuan, TitikPitch } from "@/lib/types";
 import { deteksiPitch, keMono16k, muatModelCrepe, NadaTidakTerdeteksiError } from "./crepe";
 import { selaraskan } from "./dtw";
@@ -10,25 +6,15 @@ import { daftarMeleset, deviasiPerNada, konturSelaras, skorAkhir } from "./skor"
 
 export type TahapAnalisis = "memuat_model" | "menganalisis";
 
-/** Minimal 20% bingkai (setelah hening awal/akhir dipotong) harus bersuara (FR-09, NFR-09). */
 export const MIN_RASIO_BERSUARA = 0.2;
-/** Total bingkai bersuara minimal 30% dari durasi acuan. */
 const MIN_PORSI_DURASI_ACUAN = 0.3;
 
-/** Durasi acuan dari awal nada pertama hingga akhir nada terakhir (detik). */
 export function durasiAcuan(acuan: NadaAcuan[]) {
   if (acuan.length === 0) return 0;
   return Math.max(...acuan.map((n) => n.waktu + n.durasi)) - Math.min(...acuan.map((n) => n.waktu));
 }
 
-/**
- * Bagian murni analisis: dari kontur CREPE dan nada acuan menjadi skor,
- * grafik, dan nada meleset. Melempar NadaTidakTerdeteksiError bila bingkai
- * bersuara terlalu sedikit.
- */
 export function analisisKontur(kontur: TitikPitch[], acuan: NadaAcuan[]): HasilAnalisis {
-  // Rasio dihitung setelah hening di awal dan akhir dipotong, agar rekaman
-  // panjang dengan jeda sebelum/sesudah bernyanyi tidak ditolak.
   const inti = potongHening(kontur);
   const bersuara = inti.filter((t) => t.midi !== null).length;
   const jarak = kontur.length > 1 ? kontur[1].waktu - kontur[0].waktu : 0.01;
@@ -75,7 +61,6 @@ export async function jalankanAnalisis({
   const hasil = analisisKontur(kontur, acuan);
   const t3 = performance.now();
 
-  // Pemantauan NFR-01: rekaman 30 detik selesai dianalisis ≤ 15 detik.
   console.info(
     `[analisis] rekaman ${(audio.length / 16000).toFixed(1)} dtk · model ${((t1 - t0) / 1000).toFixed(1)} dtk · ` +
       `CREPE ${((t2 - t1) / 1000).toFixed(1)} dtk · DTW+skor ${((t3 - t2) / 1000).toFixed(2)} dtk · ` +

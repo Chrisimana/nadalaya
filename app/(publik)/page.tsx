@@ -99,7 +99,6 @@ const ringkasanHarga = [
 export default function Beranda() {
   return (
     <>
-      {/* Hero */}
       <section className="latar-paranada relative overflow-hidden">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pt-14 pb-20 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:pt-20 lg:pb-28">
           <div>
@@ -127,7 +126,6 @@ export default function Beranda() {
         </div>
       </section>
 
-      {/* Cara kerja */}
       <section
         id="cara-kerja"
         className="scroll-mt-20 border-y border-garis bg-white"
@@ -159,7 +157,6 @@ export default function Beranda() {
         </div>
       </section>
 
-      {/* Fitur */}
       <section id="fitur" className="scroll-mt-20">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
           <h2 className="font-serif text-3xl font-semibold text-nada-900 sm:text-4xl">
@@ -186,7 +183,6 @@ export default function Beranda() {
         </div>
       </section>
 
-      {/* Ringkasan harga */}
       <section
         aria-labelledby="judul-harga"
         className="border-t border-garis bg-nada-50/60"

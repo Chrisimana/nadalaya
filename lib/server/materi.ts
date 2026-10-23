@@ -4,7 +4,6 @@ import type { JenisMateri, Materi, StatusPaket, TingkatMateri } from "@/lib/type
 import { klienAdmin } from "@/lib/supabase/admin";
 import { GalatRute } from "./respons";
 
-/** Baris tabel public.materi_latihan. */
 export type BarisMateri = {
   id: string;
   judul: string;
@@ -20,7 +19,6 @@ export const KOLOM_MATERI = "id, judul, jenis, tingkat, is_premium, tempo_bpm, m
 
 const TINGKAT: Record<number, TingkatMateri> = { 1: "dasar", 2: "menengah", 3: "mahir" };
 
-/** Materi premium terkunci bagi pengguna Gratis (FR-07). */
 export function keMateri(baris: BarisMateri, paket: StatusPaket): Materi {
   return {
     id: baris.id,
@@ -33,7 +31,6 @@ export function keMateri(baris: BarisMateri, paket: StatusPaket): Materi {
   };
 }
 
-/** Materi aktif berdasarkan ID; galat 404 bila tidak ada atau nonaktif. */
 export async function ambilMateriAktif(materiId: string): Promise<BarisMateri> {
   const { data, error } = await klienAdmin()
     .from("materi_latihan")
@@ -48,7 +45,6 @@ export async function ambilMateriAktif(materiId: string): Promise<BarisMateri> {
   return data as BarisMateri;
 }
 
-/** Signed URL berkas MIDI dari bucket privat "midi", berlaku 10 menit. */
 export async function urlMidi(path: string): Promise<string> {
   const { data, error } = await klienAdmin().storage.from("midi").createSignedUrl(path, 600);
   if (error || !data?.signedUrl) {

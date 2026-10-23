@@ -10,10 +10,6 @@ type BarisTerakhir = {
   materi_latihan: BarisMateri | null;
 };
 
-/**
- * Dashboard Pengguna: status paket, sisa kuota, materi terakhir, dan skor
- * terbaru. Skor terbaru tetap tampil untuk pengguna Gratis.
- */
 export const GET = rute(async () => {
   const { uid, profil, paket } = await wajibLogin();
 

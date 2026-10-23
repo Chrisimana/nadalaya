@@ -5,7 +5,6 @@ import { adaGalat, validasiRegistrasi } from "@/lib/validasi";
 
 const PESAN_TERDAFTAR = "Email sudah terdaftar. Silakan masuk atau gunakan email lain.";
 
-/** UC-01 Mendaftar Akun. Profil Gratis dibuat oleh trigger handle_new_user. */
 export const POST = rute(async (req: Request) => {
   const isi = await bacaJson(req);
   const data = {
@@ -29,8 +28,6 @@ export const POST = rute(async (req: Request) => {
   });
   if (error) throw galatAuth(error);
 
-  // Bila verifikasi email aktif, Supabase tidak memberi galat untuk email yang
-  // sudah terdaftar, tetapi mengembalikan pengguna tanpa identitas.
   if (hasil.user && hasil.user.identities?.length === 0) {
     throw new GalatRute(409, PESAN_TERDAFTAR, "email_terdaftar");
   }

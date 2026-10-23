@@ -4,13 +4,10 @@ import { Headphones, Pause } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 
-/** Tombol Dengarkan Ulang untuk rekaman yang tersimpan sementara di browser. */
 export function PemutarRekaman({ blob }: { blob: Blob }) {
   const audio = useRef<HTMLAudioElement>(null);
   const [memutar, setMemutar] = useState(false);
 
-  // URL objek dibuat dan dilepas mengikuti siklus komponen, agar rekaman
-  // tidak tertinggal di memori setelah halaman ditinggalkan.
   useEffect(() => {
     const el = audio.current;
     if (!el) return;

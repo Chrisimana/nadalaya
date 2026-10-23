@@ -34,14 +34,12 @@ const PEMBERITAHUAN: Record<
   },
 };
 
-/** Hanya jalur internal halaman pengguna yang boleh menjadi tujuan setelah masuk. */
 function tujuanAman(lanjut: string | null | undefined) {
   return lanjut && lanjut.startsWith("/") && !lanjut.startsWith("//") && !lanjut.startsWith("/admin")
     ? lanjut
     : "/dashboard";
 }
 
-/** UC-02 Masuk ke Sistem. */
 export function FormMasuk({
   pemberitahuan = null,
   lanjut,
@@ -87,7 +85,7 @@ export function FormMasuk({
         email: data.email.trim(),
         kataSandi: data.kataSandi,
       });
-      // Arahkan ke dashboard sesuai peran (FR-02).
+      // Arahkan ke dashboard sesuai peran.
       router.replace(pengguna.peran === "admin" ? "/admin" : tujuanAman(lanjut));
       router.refresh();
     } catch (err) {

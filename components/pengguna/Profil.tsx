@@ -74,7 +74,6 @@ function FormNama({ namaAwal }: { namaAwal: string }) {
   );
 }
 
-/** UC-05 Mengubah Profil (FR-04). */
 export function Profil() {
   const { keadaan, muatUlang } = useMuat(ambilProfil);
 

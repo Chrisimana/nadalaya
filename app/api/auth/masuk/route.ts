@@ -4,7 +4,6 @@ import { bacaJson, GalatRute, rute, teks } from "@/lib/server/respons";
 import { buatKlienServer } from "@/lib/supabase/server";
 import { adaGalat, validasiMasuk } from "@/lib/validasi";
 
-/** UC-02 Masuk ke Sistem (SDD 3.2.7). */
 export const POST = rute(async (req: Request) => {
   const isi = await bacaJson(req);
   const data = { email: teks(isi.email).trim().toLowerCase(), kataSandi: teks(isi.kataSandi) };

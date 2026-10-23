@@ -95,7 +95,6 @@ function RingkasanTransaksi({ orderId, transaksi }: { orderId: string; transaksi
   );
 }
 
-/** Halaman status pembayaran (UC-18) setelah kembali dari Midtrans. */
 export function StatusPembayaran({
   orderId,
   statusDariUrl,

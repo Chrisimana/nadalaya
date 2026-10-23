@@ -2,7 +2,6 @@ import { ArrowDown, ArrowUp, CircleCheck, MicOff } from "lucide-react";
 import { namaNada } from "@/lib/audio/nada";
 import type { NadaAcuan, NadaMeleset } from "@/lib/types";
 
-/** FR-14: daftar nada yang meleset lebih dari 50 cent. */
 export function DaftarNadaMeleset({
   nadaMeleset,
 }: {
@@ -45,7 +44,6 @@ export function DaftarNadaMeleset({
   );
 }
 
-/** Tabel seluruh nada acuan sebagai tampilan alternatif grafik. */
 export function TabelNada({
   acuan,
   nadaMeleset,

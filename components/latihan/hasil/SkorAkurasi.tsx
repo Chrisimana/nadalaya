@@ -28,7 +28,6 @@ function kategori(skor: number): Kategori {
   };
 }
 
-/** Skor akurasi 0–100 (FR-14) sebagai angka utama dengan cincin progres. */
 export function SkorAkurasi({ skor }: { skor: number }) {
   const nilai = Math.round(Math.min(100, Math.max(0, skor)));
   const { label, ikon: Ikon, kelas, saran } = kategori(nilai);

@@ -37,10 +37,6 @@ export const TAHAP_PROSES = [
 
 type Tersimpan = { rekaman: Blob; keadaan: KeadaanAnalisis };
 
-/**
- * Mengelola satu analisis untuk rekaman tertentu. Bila rekaman berganti
- * (Rekam Ulang), keadaan otomatis kembali ke "siap".
- */
 export function useAnalisis({
   materiId,
   acuan,
@@ -66,7 +62,7 @@ export function useAnalisis({
     const set = (k: KeadaanAnalisis) => setSimpanan({ rekaman: blob, keadaan: k });
 
     try {
-      // UC-12 langkah 1.1–1.2: periksa ulang kuota lalu catat sesi di server.
+      // Periksa ulang kuota lalu catat sesi di server.
       set({ tahap: "memeriksa_kuota" });
       let sesiId: string;
       try {
@@ -89,7 +85,7 @@ export function useAnalisis({
         return;
       }
 
-      // Sesi yang gagal ditandai batal agar tidak dihitung sebagai kuota (FR-09).
+      // Sesi yang gagal ditandai batal agar tidak dihitung sebagai kuota.
       const gagal = (alasan: AlasanGagal) => {
         set({ tahap: "gagal", alasan });
         batalkanSesiAnalisis(sesiId).catch(() => {});
@@ -113,7 +109,7 @@ export function useAnalisis({
         return gagal("lainnya");
       }
 
-      // UC-13: simpan riwayat; bila gagal, skor tetap ditampilkan.
+      // Simpan riwayat; bila gagal, skor tetap ditampilkan.
       set({ tahap: "menyimpan" });
       let riwayatTersimpan = true;
       try {
@@ -127,7 +123,6 @@ export function useAnalisis({
     }
   }, [materiId, acuan, rekaman]);
 
-  /** Kembali ke keadaan siap untuk rekaman yang sama (misalnya Coba Lagi). */
   const reset = useCallback(() => setSimpanan(null), []);
 
   return { keadaan, mulai, reset };

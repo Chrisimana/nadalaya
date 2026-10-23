@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Logo } from "@/components/Logo";
 
-/** Kartu formulir autentikasi: logo, judul, isi, dan tautan di bawahnya. */
 export function KartuAuth({
   judul,
   deskripsi,

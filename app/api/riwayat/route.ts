@@ -3,7 +3,6 @@ import { rute } from "@/lib/server/respons";
 import { KOLOM_RIWAYAT, keItemRiwayat, type BarisRiwayat } from "@/lib/server/riwayat";
 import { klienAdmin } from "@/lib/supabase/admin";
 
-/** UC-14 Melihat Riwayat Latihan: khusus Premium dan Uji Coba, terbaru lebih dulu. */
 export const GET = rute(async () => {
   const konteks = await wajibLogin();
   wajibPremium(konteks);

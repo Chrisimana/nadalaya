@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/Input";
 import { kirimTautanResetSandi } from "@/lib/api";
 import { validasiEmail } from "@/lib/validasi";
 
-/** UC-03 langkah 1–2: meminta tautan atur ulang kata sandi. */
 export function FormLupaSandi() {
   const [email, setEmail] = useState("");
   const [galat, setGalat] = useState<string>();

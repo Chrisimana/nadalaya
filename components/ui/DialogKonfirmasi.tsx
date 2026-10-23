@@ -10,18 +10,12 @@ type Props = {
   children?: ReactNode;
   labelKonfirmasi: string;
   labelBatal?: string;
-  /** "bahaya" untuk aksi yang tidak dapat dibatalkan. */
   varian?: "bahaya" | "utama";
   memuat?: boolean;
   onKonfirmasi: () => void;
   onBatal: () => void;
 };
 
-/**
- * Dialog konfirmasi untuk aksi berisiko (hapus, nonaktifkan, keluar).
- * Memakai elemen <dialog> bawaan agar fokus terkunci di dalam dialog dan
- * tombol Esc menutupnya.
- */
 export function DialogKonfirmasi({
   terbuka,
   judul,

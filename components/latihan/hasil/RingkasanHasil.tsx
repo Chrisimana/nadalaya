@@ -16,10 +16,6 @@ const GrafikPitch = dynamic(
   },
 );
 
-/**
- * Skor, grafik nada, dan daftar nada meleset. Dipakai di halaman hasil
- * latihan (UC-13) dan detail riwayat (UC-14).
- */
 export function RingkasanHasil({ hasil }: { hasil: HasilAnalisis }) {
   return (
     <>

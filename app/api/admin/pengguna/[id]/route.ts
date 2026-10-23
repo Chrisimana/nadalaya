@@ -9,7 +9,6 @@ import { KOLOM_RIWAYAT, keItemRiwayat, type BarisRiwayat } from "@/lib/server/ri
 import { klienAdmin } from "@/lib/supabase/admin";
 import type { DetailPenggunaAdmin } from "@/lib/types";
 
-/** Detail pengguna untuk admin beserta 5 latihan terakhir. */
 export const GET = rute(async (_req: Request, ctx: RouteContext<"/api/admin/pengguna/[id]">) => {
   await wajibAdmin();
   const id = wajibUuid((await ctx.params).id, "ID pengguna");

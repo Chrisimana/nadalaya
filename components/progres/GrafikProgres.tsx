@@ -21,8 +21,6 @@ import {
 
 ChartJS.register(LinearScale, LineElement, PointElement, Tooltip, Legend);
 
-// Palet tiga seri lolos validator (lightness, chroma, CVD semua pasangan,
-// kontras). Bentuk titik berbeda sebagai penanda kedua selain warna.
 const GAYA_SERI: Record<JenisMateri, { warna: string; titik: PointStyle }> = {
   tangga_nada: { warna: "#5f54ae", titik: "circle" },
   interval: { warna: "#c2771f", titik: "rectRounded" },
@@ -39,7 +37,6 @@ function formatSumbu(ms: number) {
   });
 }
 
-/** FR-17 Grafik perkembangan skor per jenis materi. */
 export function GrafikProgres({ titik }: { titik: TitikProgres[] }) {
   const seri = URUTAN_JENIS.map((jenis) => ({
     jenis,

@@ -22,8 +22,6 @@ function KerangkaLatihan() {
   );
 }
 
-// UC-08 Memilih Materi Latihan. Nilai `id` baru diketahui saat permintaan,
-// sehingga aksesnya dibungkus Suspense (Cache Components).
 export default function HalamanLatihan({ params }: PageProps<"/latihan/[id]">) {
   return (
     <Suspense fallback={<KerangkaLatihan />}>

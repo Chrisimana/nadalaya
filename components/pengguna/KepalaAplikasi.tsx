@@ -2,7 +2,6 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-/** Judul halaman di area aplikasi (pengguna dan admin). */
 export function KepalaAplikasi({
   judul,
   deskripsi,
@@ -11,9 +10,7 @@ export function KepalaAplikasi({
 }: {
   judul: string;
   deskripsi?: ReactNode;
-  /** Tombol di sisi kanan judul. */
   aksi?: ReactNode;
-  /** Tautan kembali di atas judul. */
   kembali?: { href: string; label: string };
 }) {
   return (

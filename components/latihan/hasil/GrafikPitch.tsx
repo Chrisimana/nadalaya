@@ -32,12 +32,10 @@ function formatCent(midi: number) {
 
 type Props = {
   acuan: NadaAcuan[];
-  /** Kontur nyanyian pada sumbu waktu acuan (hasil penyelarasan DTW). */
   kontur: TitikPitch[];
   nadaMeleset: NadaMeleset[];
 };
 
-/** FR-15 Grafik pitch nyanyian dibandingkan pitch acuan. */
 export function GrafikPitch({ acuan, kontur, nadaMeleset }: Props) {
   // Acuan digambar sebagai anak tangga per nada, terputus di antara nada.
   const titikAcuan: Titik[] = acuan.flatMap((n) => [

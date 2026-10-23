@@ -27,7 +27,6 @@ function Sel({ nilai }: { nilai: NilaiHakAkses }) {
   return <span className="font-medium text-tinta">{nilai}</span>;
 }
 
-/** Tabel perbandingan hak akses keempat paket. */
 export function TabelPerbandingan() {
   const indeksUnggulan = DAFTAR_PAKET.findIndex((p) => p.unggulan);
 

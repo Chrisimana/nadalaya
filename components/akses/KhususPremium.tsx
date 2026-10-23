@@ -6,11 +6,6 @@ import { getStatusPaket } from "@/lib/api";
 import { useMuat } from "@/lib/useMuat";
 import { AjakanUpgrade } from "./AjakanUpgrade";
 
-/**
- * Menampilkan isi hanya untuk pengguna Premium, Paket Persiapan Tes, dan
- * Uji Coba. Pengguna Gratis melihat ajakan upgrade. Server tetap memeriksa
- * ulang hak akses saat data diminta.
- */
 export function KhususPremium({
   judul,
   deskripsi,

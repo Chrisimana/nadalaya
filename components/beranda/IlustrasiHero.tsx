@@ -1,7 +1,3 @@
-/**
- * Ilustrasi dekoratif untuk beranda: paranada dengan not dan garis kontur
- * nyanyian yang mengikuti acuan. Bukan data sungguhan.
- */
 export function IlustrasiHero() {
   const garis = [40, 58, 76, 94, 112];
   const not = [

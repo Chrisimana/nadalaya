@@ -1,9 +1,5 @@
 export const PESAN_BELUM_TERSAMBUNG = "Belum tersambung ke server.";
 
-/**
- * Dilempar oleh fungsi di lib/api yang back-end-nya belum dikerjakan
- * (admin, langganan, uji coba). UI menampilkannya sebagai peringatan rapi.
- */
 export class BelumTersambungError extends Error {
   constructor() {
     super(PESAN_BELUM_TERSAMBUNG);
@@ -11,7 +7,6 @@ export class BelumTersambungError extends Error {
   }
 }
 
-/** Tautan atur ulang kata sandi sudah kedaluwarsa atau pernah dipakai. */
 export class TautanKedaluwarsaError extends Error {
   constructor() {
     super("Tautan kedaluwarsa.");
@@ -19,7 +14,6 @@ export class TautanKedaluwarsaError extends Error {
   }
 }
 
-/** Galat yang dikembalikan API route, pesannya sudah berbahasa Indonesia. */
 export class GalatApi extends Error {
   constructor(
     message: string,
@@ -35,7 +29,6 @@ export function adalahBelumTersambung(galat: unknown) {
   return galat instanceof BelumTersambungError;
 }
 
-/** Mengubah galat apa pun menjadi pesan berbahasa Indonesia untuk pengguna. */
 export function pesanGalat(galat: unknown) {
   if (galat instanceof BelumTersambungError || galat instanceof GalatApi) {
     return galat.message;

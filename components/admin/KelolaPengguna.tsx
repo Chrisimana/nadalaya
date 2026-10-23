@@ -26,7 +26,6 @@ export function BadgeAkun({ aktif }: { aktif: boolean }) {
   return <Badge varian={aktif ? "sukses" : "galat"}>{aktif ? "Aktif" : "Nonaktif"}</Badge>;
 }
 
-/** UC-24 Melihat Data Pengguna dan UC-25 Menonaktifkan Akun. */
 export function KelolaPengguna() {
   const { keadaan, muatUlang } = useMuat(getPenggunaAdminList);
   const [cari, setCari] = useState("");

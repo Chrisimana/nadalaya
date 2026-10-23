@@ -2,12 +2,10 @@ import { cn } from "@/lib/utils";
 
 const JUMLAH_BATANG = 28;
 
-/** Indikator level suara berbentuk batang (UC-11 langkah 1.2). */
 export function IndikatorLevel({
   level,
   aktif,
 }: {
-  /** Level 0–1. */
   level: number;
   aktif: boolean;
 }) {

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { cn } from "@/lib/utils";
 
-/** Indikator memuat sederhana dengan teks. */
 export function Memuat({
   teks = "Memuat…",
   className,
@@ -26,7 +25,6 @@ export function Memuat({
   );
 }
 
-/** Kerangka (skeleton) berupa beberapa blok abu-abu saat data dimuat. */
 export function Kerangka({
   jumlah = 3,
   tinggi = "h-20",
@@ -34,7 +32,6 @@ export function Kerangka({
   label = "Memuat data",
 }: {
   jumlah?: number;
-  /** Kelas tinggi Tailwind untuk tiap blok. */
   tinggi?: string;
   className?: string;
   label?: string;
@@ -58,7 +55,6 @@ export function Kerangka({
   );
 }
 
-/** Alert galat memuat data dengan tombol Muat Ulang. */
 export function GagalMuat({
   judul,
   pesan,

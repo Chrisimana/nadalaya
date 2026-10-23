@@ -4,10 +4,6 @@ import { wajibLogin } from "@/lib/server/pengguna";
 import { bacaJson, rute, wajibUuid } from "@/lib/server/respons";
 import { klienAdmin } from "@/lib/supabase/admin";
 
-/**
- * Dipanggil setiap kali tombol Analisis ditekan (SDD 3.2.5): periksa ulang
- * hak akses dan kuota, lalu catat sesi_analisis berstatus "dimulai".
- */
 export const POST = rute(async (req: Request) => {
   const konteks = await wajibLogin();
   const isi = await bacaJson(req);

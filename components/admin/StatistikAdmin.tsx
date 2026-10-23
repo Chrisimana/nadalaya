@@ -17,7 +17,6 @@ const GrafikLatihanHarian = dynamic(
   { ssr: false, loading: () => <div className="h-72 animate-pulse rounded-xl bg-nada-50" /> },
 );
 
-/** UC-26 Melihat Statistik Latihan (FR-22). */
 export function StatistikAdmin() {
   const [rentang, setRentang] = useState<RentangTanggal>({});
   const sah = rentangSah(rentang);

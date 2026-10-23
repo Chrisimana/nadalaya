@@ -8,12 +8,10 @@ import { RingkasanHasil } from "./RingkasanHasil";
 
 type Props = {
   hasil: HasilAnalisis;
-  /** false bila riwayat gagal disimpan (skor tetap ditampilkan, UC-13). */
   riwayatTersimpan: boolean;
   onLatihLagi: () => void;
 };
 
-/** UC-13 Menampilkan Skor dan Grafik Nada. */
 export function PanelHasil({ hasil, riwayatTersimpan, onLatihLagi }: Props) {
   return (
     <div className="flex flex-col gap-7">

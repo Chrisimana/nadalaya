@@ -10,7 +10,6 @@ import { kirimUlangVerifikasi } from "@/lib/api";
 
 const JEDA_KIRIM_ULANG = 60;
 
-/** Informasi setelah mendaftar dan tombol kirim ulang email verifikasi. */
 export function InfoVerifikasiEmail({ email }: { email: string | null }) {
   const [memuat, setMemuat] = useState(false);
   const [galatServer, setGalatServer] = useState<GalatServer | null>(null);

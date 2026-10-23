@@ -11,10 +11,6 @@ type BarisLatihan = {
   materi_latihan: { judul: string } | null;
 };
 
-/**
- * UC-26 Melihat Statistik Latihan. Rentang `dari`–`sampai` (YYYY-MM-DD, WIB),
- * bawaan 30 hari terakhir. Satu riwayat = satu sesi analisis yang selesai.
- */
 export const GET = rute(async (req: Request) => {
   await wajibAdmin();
   const rentang = rentangWib(new URL(req.url).searchParams, 30);

@@ -3,7 +3,6 @@ import { alamatSitus, bacaJson, GalatRute, rute, teks } from "@/lib/server/respo
 import { buatKlienServer } from "@/lib/supabase/server";
 import { validasiEmail } from "@/lib/validasi";
 
-/** UC-01 langkah 3.3: kirim ulang email verifikasi. */
 export const POST = rute(async (req: Request) => {
   const isi = await bacaJson(req);
   const email = teks(isi.email).trim().toLowerCase();

@@ -15,7 +15,6 @@ import {
 
 type Kolom = "nama" | "email" | "kataSandi";
 
-/** UC-01 Mendaftar Akun. */
 export function FormDaftar() {
   const router = useRouter();
   const [data, setData] = useState({ nama: "", email: "", kataSandi: "" });
@@ -57,7 +56,7 @@ export function FormDaftar() {
         kataSandi: data.kataSandi,
       });
       if (perluVerifikasi) {
-        // UC-01 langkah 3.4: arahkan ke informasi verifikasi email.
+        // Arahkan ke informasi verifikasi email.
         router.push(
           `/verifikasi-email?email=${encodeURIComponent(data.email.trim())}`,
         );

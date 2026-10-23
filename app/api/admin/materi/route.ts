@@ -11,10 +11,6 @@ import { rute } from "@/lib/server/respons";
 import { klienAdmin } from "@/lib/supabase/admin";
 import type { JenisMateri } from "@/lib/types";
 
-/**
- * UC-20 Melihat Data Materi: semua materi termasuk yang nonaktif.
- * Parameter opsional: cari (judul), jenis, tingkat.
- */
 export const GET = rute(async (req: Request) => {
   await wajibAdmin();
   const param = new URL(req.url).searchParams;
@@ -32,7 +28,6 @@ export const GET = rute(async (req: Request) => {
   return Response.json({ materi: (data as unknown as BarisMateriAdmin[]).map(keMateriAdmin) });
 });
 
-/** UC-21 Menambahkan Data Materi (multipart/form-data). */
 export const POST = rute(async (req: Request) => {
   await wajibAdmin();
   const { data, berkas } = await bacaFormMateri(req, true);

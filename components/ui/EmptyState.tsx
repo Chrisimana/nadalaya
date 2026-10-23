@@ -11,7 +11,6 @@ type Props = {
   className?: string;
 };
 
-/** Keadaan kosong yang rapi saat data belum tersedia. */
 export function EmptyState({
   ikon: Ikon,
   judul,

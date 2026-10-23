@@ -16,10 +16,6 @@ type BarisTransaksi = {
   users: { nama: string; email: string } | null;
 };
 
-/**
- * UC-27 Melihat Laporan Transaksi, urut terbaru. Filter opsional: rentang
- * `dari`–`sampai` (WIB) dan `status`.
- */
 export const GET = rute(async (req: Request) => {
   await wajibAdmin();
   const param = new URL(req.url).searchParams;

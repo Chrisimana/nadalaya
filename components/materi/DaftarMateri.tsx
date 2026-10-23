@@ -75,7 +75,6 @@ function Chip({
   );
 }
 
-/** UC-06 Melihat Daftar Materi dan UC-07 Menyaring Materi. */
 export function DaftarMateri() {
   const [keadaan, setKeadaan] = useState<Keadaan>({ status: "memuat" });
   const [jenis, setJenis] = useState<Saring<JenisMateri>>("semua");

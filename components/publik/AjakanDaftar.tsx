@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/Button";
 
-/** Pita ajakan mendaftar di bagian bawah halaman publik. */
 export function AjakanDaftar({
   judul = "Siap menyanyikan nada pertama?",
   deskripsi = "Siapkan headphone dan mikrofon, lalu mulai latihan pertama Anda.",

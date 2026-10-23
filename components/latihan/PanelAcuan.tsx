@@ -26,11 +26,9 @@ export function useKeadaanAcuan() {
 type Props = {
   nada: NadaAcuan[] | null | undefined;
   tempo?: number;
-  /** Tombol dinonaktifkan, misalnya saat perekaman berlangsung (FR-10). */
   nonaktif?: boolean;
 };
 
-/** UC-10 Memutar Acuan MIDI dan Notasi. */
 export function PanelAcuan({ nada, tempo, nonaktif }: Props) {
   const { status, indeksAktif } = useKeadaanAcuan();
   const [galat, setGalat] = useState<"diblokir" | "gagal" | null>(null);

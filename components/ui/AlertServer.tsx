@@ -3,15 +3,10 @@ import { adalahBelumTersambung, pesanGalat } from "@/lib/api";
 
 export type GalatServer = { pesan: string; belumTersambung: boolean };
 
-/** Mengubah galat dari lib/api menjadi data untuk AlertServer. */
 export function keGalatServer(err: unknown): GalatServer {
   return { pesan: pesanGalat(err), belumTersambung: adalahBelumTersambung(err) };
 }
 
-/**
- * Alert untuk galat dari server. Selama back-end belum tersambung, pesan
- * tampil sebagai peringatan (kuning), bukan galat (merah).
- */
 export function AlertServer({
   galat,
   judul,

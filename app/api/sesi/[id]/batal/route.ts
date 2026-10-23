@@ -2,10 +2,6 @@ import { wajibLogin } from "@/lib/server/pengguna";
 import { rute, wajibUuid } from "@/lib/server/respons";
 import { klienAdmin } from "@/lib/supabase/admin";
 
-/**
- * Menandai sesi batal (rekaman kurang dari 2 detik, tanpa suara, atau model
- * gagal dimuat). Sesi batal tidak dihitung sebagai kuota.
- */
 export const POST = rute(async (_req: Request, ctx: RouteContext<"/api/sesi/[id]/batal">) => {
   const konteks = await wajibLogin();
   const sesiId = wajibUuid((await ctx.params).id, "ID sesi");

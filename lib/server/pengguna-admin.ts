@@ -9,10 +9,6 @@ export const KOLOM_PENGGUNA_ADMIN =
 
 export type BarisPenggunaAdmin = BarisUsers & { riwayat_latihan: { count: number }[] };
 
-/**
- * Status paket efektif memakai fungsi basis data status_paket_efektif().
- * Paket gratis selalu gratis, jadi hanya akun uji coba/premium yang diperiksa.
- */
 async function paketEfektif(baris: BarisUsers[]): Promise<Map<string, StatusPaket>> {
   const hasil = new Map<string, StatusPaket>();
   await Promise.all(

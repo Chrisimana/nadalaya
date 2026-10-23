@@ -9,7 +9,6 @@ import { GalatRute } from "./respons";
 
 export const PESAN_NONAKTIF = "Akun Anda telah dinonaktifkan.";
 
-/** Baris tabel public.users. */
 export type BarisUsers = {
   id: string;
   nama: string;
@@ -27,7 +26,6 @@ export type KonteksPengguna = {
   supabase: SupabaseClient;
   uid: string;
   profil: BarisUsers;
-  /** Status paket efektif (sudah memperhitungkan tanggal_berakhir). */
   paket: StatusPaket;
 };
 
@@ -44,10 +42,6 @@ export async function ambilProfil(uid: string): Promise<BarisUsers | null> {
   return (data as BarisUsers | null) ?? null;
 }
 
-/**
- * Status paket efektif (SDD 3.2.4): uji coba/premium yang sudah lewat
- * tanggal_berakhir dianggap gratis, dan status di basis data ikut diperbarui.
- */
 export async function segarkanPaket(profil: BarisUsers): Promise<BarisUsers> {
   if (profil.status_paket === "gratis") return profil;
   const berakhir = profil.tanggal_berakhir ? new Date(profil.tanggal_berakhir).getTime() : 0;
@@ -72,10 +66,6 @@ export function kePengguna(profil: BarisUsers): Pengguna {
   };
 }
 
-/**
- * Memastikan permintaan berasal dari pengguna yang masuk dan akunnya aktif.
- * Akun nonaktif langsung dikeluarkan (SDD 3.2.7).
- */
 export async function wajibLogin(opsi: { peran?: "admin" } = {}): Promise<KonteksPengguna> {
   const supabase = await buatKlienServer();
   const { data, error } = await supabase.auth.getClaims();
@@ -101,7 +91,6 @@ export async function wajibLogin(opsi: { peran?: "admin" } = {}): Promise<Kontek
   return { supabase, uid, profil, paket: profil.status_paket };
 }
 
-/** Fitur riwayat dan progres hanya untuk Premium dan Uji Coba. */
 export function wajibPremium(konteks: KonteksPengguna) {
   if (konteks.paket === "gratis") {
     throw new GalatRute(
@@ -112,10 +101,6 @@ export function wajibPremium(konteks: KonteksPengguna) {
   }
 }
 
-/**
- * Sisa kuota analisis hari ini (SDD 3.2.5): kuota dikurangi jumlah sesi
- * berstatus selesai sejak 00.00 WIB. null berarti tanpa batas.
- */
 export async function sisaKuotaHariIni(uid: string, paket: StatusPaket): Promise<number | null> {
   if (paket !== "gratis") return null;
   const { data, error } = await klienAdmin().rpc("jumlah_sesi_selesai_hari_ini", {

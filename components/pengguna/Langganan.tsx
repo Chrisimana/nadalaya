@@ -76,7 +76,6 @@ function KartuBeli({
   );
 }
 
-/** UC-16 s.d. UC-18: status langganan, uji coba, dan pembelian paket. */
 export function Langganan() {
   const router = useRouter();
   const { keadaan, muatUlang } = useMuat(getInfoLangganan);
@@ -92,7 +91,6 @@ export function Langganan() {
     try {
       const { orderId } = await buatPesanan(paket);
       // TODO: sambungkan ke Midtrans — buka pop-up Snap dengan snapToken
-      // (window.snap.pay), lalu arahkan ke halaman status setelah selesai.
       router.push(`/langganan/status?order_id=${encodeURIComponent(orderId)}`);
     } catch (err) {
       setGalatServer({ untuk: paket, galat: keGalatServer(err) });

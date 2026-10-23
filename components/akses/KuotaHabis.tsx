@@ -9,16 +9,11 @@ import {
   resetKuotaBerikutnya,
 } from "@/lib/waktu";
 
-/**
- * FR-09: pengguna Gratis sudah memakai 3 analisis hari ini.
- * `waktuReset` berasal dari server; bila kosong dihitung 00.00 WIB berikutnya.
- */
 export function KuotaHabis({
   waktuReset,
   ringkas,
 }: {
   waktuReset?: string;
-  /** Versi kecil untuk ditampilkan di panel analisis. */
   ringkas?: boolean;
 }) {
   const reset = useMemo(

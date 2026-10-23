@@ -1,14 +1,5 @@
-/*
- * Perekam suara (UC-11) dengan MediaRecorder dan Web Audio API.
- * Rekaman hanya disimpan sementara di memori browser dan tidak pernah
- * diunggah ke server (NFR-07).
- */
-
-/** Batas durasi rekaman dalam detik (SRS 2.5, FR-11). */
 export const DURASI_MAKS = 60;
-/** Rekaman lebih pendek dari ini ditolak sebelum analisis (FR-09, NFR-09). */
 export const DURASI_MIN = 2;
-/** RMS di bawah ambang ini (≈ −40 dBFS) dianggap tanpa suara. */
 const AMBANG_SUARA = 0.01;
 const INTERVAL_SAMPEL_MS = 50;
 
@@ -30,13 +21,10 @@ export class GalatMikrofon extends Error {
 export type HasilRekaman = {
   blob: Blob;
   mimeType: string;
-  /** Durasi dalam detik. */
   durasi: number;
-  /** RMS tertinggi selama perekaman (0–1). */
   puncakRms: number;
   terlaluPendek: boolean;
   tanpaSuara: boolean;
-  /** true bila perekaman dihentikan otomatis karena mencapai batas durasi. */
   berhentiOtomatis: boolean;
 };
 
@@ -47,7 +35,6 @@ const KANDIDAT_FORMAT = [
   "audio/mp4",
 ];
 
-/** Memeriksa dukungan browser; mengembalikan jenis galat atau null bila didukung. */
 export function periksaDukungan(): JenisGalatMikrofon | null {
   if (typeof window === "undefined") return "tidak_didukung";
   if (!window.isSecureContext) return "tidak_aman";
@@ -78,7 +65,6 @@ function terjemahkanGalat(err: unknown): GalatMikrofon {
   }
 }
 
-/** RMS sinyal ke skala 0–1 berbasis desibel (−60 dBFS = 0, 0 dBFS = 1). */
 export function rmsKeLevel(rms: number) {
   if (rms <= 0) return 0;
   const db = 20 * Math.log10(rms);
@@ -101,10 +87,8 @@ export class PerekamSuara {
   private durasiAkhir = 0;
   private janjiSelesai: Promise<HasilRekaman> | null = null;
 
-  /** Dipanggil saat perekaman berhenti sendiri karena mencapai DURASI_MAKS. */
   onBerhentiOtomatis?: (hasil: HasilRekaman) => void;
 
-  /** Meminta izin mikrofon lalu mulai merekam. */
   async mulai() {
     const tidakDidukung = periksaDukungan();
     if (tidakDidukung) throw new GalatMikrofon(tidakDidukung);
@@ -170,18 +154,15 @@ export class PerekamSuara {
     this.puncakRms = Math.max(this.puncakRms, this.rmsTerakhir);
   }
 
-  /** Level suara terkini pada skala 0–1 untuk indikator. */
   get level() {
     return rmsKeLevel(this.rmsTerakhir);
   }
 
-  /** Durasi berjalan dalam detik. */
   get durasi() {
     if (!this.waktuMulai) return 0;
     return Math.min(DURASI_MAKS, (performance.now() - this.waktuMulai) / 1000);
   }
 
-  /** Menghentikan perekaman dan mengembalikan hasilnya. */
   async berhenti(): Promise<HasilRekaman> {
     if (!this.recorder || !this.janjiSelesai) {
       throw new Error("Perekaman belum dimulai.");
@@ -210,7 +191,6 @@ export class PerekamSuara {
     return hasil;
   }
 
-  /** Membatalkan perekaman tanpa hasil, misalnya saat meninggalkan halaman. */
   batalkan() {
     this.hentikanPewaktu();
     if (this.recorder && this.recorder.state !== "inactive") {
@@ -227,7 +207,6 @@ export class PerekamSuara {
     this.pewaktuMaks = null;
   }
 
-  /** Melepas mikrofon agar indikator perekaman browser padam. */
   private bersihkan() {
     this.hentikanPewaktu();
     this.stream?.getTracks().forEach((t) => t.stop());

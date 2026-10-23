@@ -8,10 +8,6 @@ export type KeadaanMuat<T> =
   | { status: "galat"; pesan: string }
   | { status: "siap"; data: T };
 
-/**
- * Memuat data dari fungsi lib/api saat komponen tampil.
- * `ambil` harus stabil (fungsi modul atau dibungkus useCallback).
- */
 export function useMuat<T>(ambil: () => Promise<T>) {
   const [keadaan, setKeadaan] = useState<KeadaanMuat<T>>({ status: "memuat" });
   const [putaran, setPutaran] = useState(0);

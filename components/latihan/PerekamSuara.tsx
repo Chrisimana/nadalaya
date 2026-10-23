@@ -52,13 +52,11 @@ const PESAN_GALAT: Record<
   },
 };
 
-/** UC-11 Merekam Suara. */
 export function PerekamSuara({
   perekam,
   terkunci,
 }: {
   perekam: Perekam;
-  /** Rekam Ulang dikunci selama analisis berjalan. */
   terkunci?: boolean;
 }) {
   const { status, durasi, level, hasil, galat, mulai, berhenti, ulang } =
@@ -94,7 +92,6 @@ export function PerekamSuara({
           merekam ? "border-red-200 bg-red-50/40" : "border-garis bg-krem/60",
         )}
       >
-        {/* Tombol utama rekam/berhenti */}
         <div className="flex flex-col items-center gap-2">
           {merekam || status === "memproses" ? (
             <button
@@ -141,7 +138,6 @@ export function PerekamSuara({
           </span>
         </div>
 
-        {/* Timer dan indikator level */}
         <div className="flex w-full min-w-0 flex-1 flex-col gap-3">
           <div className="flex items-baseline justify-between gap-2">
             <p

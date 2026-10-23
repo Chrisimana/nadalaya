@@ -33,7 +33,6 @@ function TautanKedaluwarsa() {
   );
 }
 
-/** UC-03 langkah 3–4: menyimpan kata sandi baru. */
 export function FormAturUlangSandi({ kedaluwarsa }: { kedaluwarsa?: boolean }) {
   const [data, setData] = useState({ kataSandi: "", konfirmasi: "" });
   const [galat, setGalat] = useState<GalatKolom<Kolom>>({});

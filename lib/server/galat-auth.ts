@@ -3,7 +3,6 @@ import "server-only";
 import type { AuthError } from "@supabase/supabase-js";
 import { GalatRute } from "./respons";
 
-/** Menerjemahkan galat Supabase Auth menjadi pesan berbahasa Indonesia. */
 export function galatAuth(err: AuthError): GalatRute {
   switch (err.code) {
     case "invalid_credentials":

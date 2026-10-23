@@ -25,7 +25,6 @@ function Baris({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-/** Detail satu pengguna untuk admin (UC-24) dengan tombol Nonaktifkan (UC-25). */
 export function DetailPengguna({ id }: { id: string }) {
   const ambil = useCallback(() => getPenggunaAdminById(id), [id]);
   const { keadaan, muatUlang } = useMuat(ambil);

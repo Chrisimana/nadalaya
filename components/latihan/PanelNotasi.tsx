@@ -12,23 +12,16 @@ const WARNA_NOT = "#2e2a6b";
 const WARNA_AKTIF = "#d4872a";
 const TINGGI_BARIS = 120;
 const LEBAR_MIN_BIRAMA = 190;
-/** Ruang tambahan pada birama pertama tiap baris untuk kunci G dan sukat. */
 const RUANG_KUNCI = 50;
 
 const DURASI_VF: Record<TokenNotasi["ketukan"], string> = { 4: "w", 2: "h", 1: "q", 0.5: "8" };
 
 type Props = {
   nada: NadaAcuan[] | null | undefined;
-  /** Tempo (BPM) untuk mengubah detik menjadi nilai not. */
   tempo?: number;
-  /** Indeks nada yang sedang diputar, ditandai dengan warna aksen. */
   indeksAktif?: number | null;
 };
 
-/**
- * Notasi balok dari deret nada acuan (UC-10), dirender dengan VexFlow:
- * kunci G, birama 4/4, dan dipecah ke beberapa baris sesuai lebar layar.
- */
 export function PanelNotasi({ nada, tempo = 80, indeksAktif = null }: Props) {
   const wadah = useRef<HTMLDivElement>(null);
   const [lebar, setLebar] = useState(0);

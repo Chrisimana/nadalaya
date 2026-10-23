@@ -67,7 +67,6 @@ export default function HalamanTentang() {
         sudah tepat dan mana yang meleset.
       </KepalaHalaman>
 
-      {/* Apa itu dan untuk siapa */}
       <section className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:py-16">
         <div>
           <h2 className="font-serif text-3xl font-semibold text-nada-900">
@@ -107,7 +106,6 @@ export default function HalamanTentang() {
         </Card>
       </section>
 
-      {/* Cara kerja teknologi */}
       <section
         aria-labelledby="judul-teknologi"
         className="border-y border-garis bg-white"
@@ -172,7 +170,6 @@ export default function HalamanTentang() {
         </div>
       </section>
 
-      {/* Batasan */}
       <section aria-labelledby="judul-batasan">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-16">
           <h2
@@ -198,7 +195,6 @@ export default function HalamanTentang() {
         </div>
       </section>
 
-      {/* Pengembang */}
       <section
         aria-labelledby="judul-pengembang"
         className="border-t border-garis bg-nada-50/60"

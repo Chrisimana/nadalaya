@@ -34,7 +34,6 @@ function namaPaket(kode: string) {
   return DAFTAR_PAKET.find((p) => p.kode === kode)?.nama ?? kode;
 }
 
-/** UC-27 Melihat Laporan Transaksi (FR-22). */
 export function LaporanTransaksi() {
   const [rentang, setRentang] = useState<RentangTanggal>({});
   const [status, setStatus] = useState("semua");

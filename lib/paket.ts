@@ -1,7 +1,5 @@
-/** Jumlah analisis per hari untuk pengguna Gratis (FR-09). */
 export const KUOTA_HARIAN_GRATIS = 3;
 
-/** Daftar paket freemium sesuai SRS Tabel 2.1. */
 export type InfoPaket = {
   kode: "gratis" | "uji_coba" | "premium_bulanan" | "persiapan_tes";
   nama: string;
@@ -74,16 +72,8 @@ export function formatRupiah(nilai: number) {
   return `Rp${nilai.toLocaleString("id-ID")}`;
 }
 
-/**
- * Nilai satu sel tabel perbandingan: true = tersedia, false = tidak,
- * string = keterangan teks.
- */
 export type NilaiHakAkses = boolean | string;
 
-/**
- * Perbandingan hak akses per paket (SRS Tabel 2.1 dan 2.3). Urutan kolom
- * mengikuti DAFTAR_PAKET: Gratis, Uji Coba, Premium, Persiapan Tes.
- */
 export const PERBANDINGAN_HAK_AKSES: {
   fitur: string;
   nilai: [NilaiHakAkses, NilaiHakAkses, NilaiHakAkses, NilaiHakAkses];

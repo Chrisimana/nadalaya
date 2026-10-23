@@ -9,7 +9,6 @@ type BarisDetail = BarisRiwayat & {
   nada_meleset: NadaMeleset[] | null;
 };
 
-/** Detail satu riwayat: skor, kontur nada, dan nada yang meleset. */
 export const GET = rute(async (_req: Request, ctx: RouteContext<"/api/riwayat/[id]">) => {
   const konteks = await wajibLogin();
   wajibPremium(konteks);

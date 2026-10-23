@@ -5,7 +5,6 @@ import { keGalatServer, type GalatServer } from "@/components/ui/AlertServer";
 import { DialogKonfirmasi } from "@/components/ui/DialogKonfirmasi";
 import { nonaktifkanPengguna } from "@/lib/api";
 
-/** UC-25 Menonaktifkan Akun Pengguna dengan konfirmasi. */
 export function DialogNonaktifkan({
   pengguna,
   onTutup,

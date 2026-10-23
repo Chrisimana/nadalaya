@@ -18,7 +18,6 @@ function inisial(nama: string) {
     .join("");
 }
 
-/** Mengambil pengguna yang sedang masuk (null bila belum tersedia). */
 function usePengguna() {
   const [pengguna, setPengguna] = useState<Pengguna | null>(null);
   useEffect(() => {
@@ -63,7 +62,6 @@ function InfoPengguna({ pengguna }: { pengguna: Pengguna | null }) {
   );
 }
 
-/** Menu akun di navbar desktop: avatar dengan dropdown. */
 export function MenuPengguna() {
   const pengguna = usePengguna();
   const [terbuka, setTerbuka] = useState(false);

@@ -6,15 +6,9 @@ import { minta } from "./klien";
 
 export type DataLatihan = {
   akses: HasilCekAkses;
-  /** Bila akses ditolak, `nada` kosong karena berkas MIDI tidak dibagikan. */
   materi: MateriLengkap;
 };
 
-/**
- * UC-08 langkah 1.1 / UC-09 Memeriksa Hak Akses dan Kuota (FR-08, FR-09).
- * Dipanggil saat pengguna memilih materi. Bila diizinkan, berkas MIDI
- * diunduh lewat signed URL lalu dibaca menjadi deret nada acuan.
- */
 export async function bukaLatihan(materiId: string): Promise<DataLatihan> {
   const hasil = await minta<{ akses: HasilCekAkses; materi: Materi; midiUrl?: string }>(
     "/api/latihan/akses",
@@ -39,10 +33,6 @@ export async function bukaLatihan(materiId: string): Promise<DataLatihan> {
   }
 }
 
-/**
- * Dipanggil setiap kali tombol Analisis ditekan: server memeriksa ulang kuota,
- * lalu mencatat sesi_analisis berstatus "dimulai" dan mengembalikan ID sesi.
- */
 export async function mulaiSesiAnalisis(
   materiId: string,
 ): Promise<{ sesiId: string } | Extract<HasilCekAkses, { diizinkan: false }>> {
@@ -52,7 +42,6 @@ export async function mulaiSesiAnalisis(
   return "ditolak" in hasil ? hasil.ditolak : hasil;
 }
 
-/** Menandai sesi batal (rekaman terlalu pendek, tanpa suara, model gagal dimuat). */
 export async function batalkanSesiAnalisis(sesiId: string): Promise<void> {
   await minta(`/api/sesi/${encodeURIComponent(sesiId)}/batal`, { method: "POST" });
 }

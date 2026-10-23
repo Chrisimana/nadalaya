@@ -1,10 +1,3 @@
-/*
- * Uji ujung ke ujung tanpa mikrofon: audio sinus sintetis dari MIDI seed
- * → CREPE (tfjs, backend cpu) → DTW → skor (NFR-03).
- *
- * Backend cpu di Node jauh lebih lambat daripada WebGL di browser, jadi
- * uji ini memakai hop 50 ms (bukan 10 ms). Alur dan fungsinya tetap sama.
- */
 import { beforeAll, describe, expect, it } from "vitest";
 import { analisisKontur } from "@/lib/audio/analisis";
 import { deteksiPitch, NadaTidakTerdeteksiError, type ModelCrepe } from "@/lib/audio/crepe";
@@ -54,7 +47,6 @@ describe("analisis nada dengan CREPE (do-mayor.mid)", () => {
   });
 
   it("materi tepat diapit hening dan nada acak di awal/akhir tetap ≥ 80", async () => {
-    // 1 dtk hening · 3,2 dtk nada acak · 1 dtk hening · materi · 1 dtk hening · 3,2 dtk nada acak · 1 dtk hening
     const awalMateri = 1 + 3.2 + 1;
     const akhirMateri = awalMateri + durasiNada(acuan);
     const audio = sinusDariSegmen(

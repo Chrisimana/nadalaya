@@ -1,9 +1,3 @@
-// Membuat 5 berkas MIDI contoh untuk materi seed (supabase/seed.sql).
-// Jalankan: node scripts/buat-midi.mjs
-// Hasil: scripts/midi/*.mid, lalu unggah ke bucket Storage "midi".
-//
-// Semua berkas monofonik: hanya satu nada pada satu waktu (SDD 3.2.8).
-
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,7 +11,6 @@ const FOLDER = join(dirname(fileURLToPath(import.meta.url)), "midi");
 const C4 = 60, D4 = 62, E4 = 64, F4 = 65, Fis4 = 66, G4 = 67, A4 = 69, B4 = 71, C5 = 72;
 const A3 = 57, B3 = 59;
 
-/** null = jeda (tanpa nada) selama durasi ketukan. */
 const JEDA = null;
 
 const MATERI = [
@@ -73,7 +66,6 @@ const MATERI = [
   },
 ];
 
-/** Bagian ketukan yang benar-benar berbunyi, agar ada jeda kecil antarnada. */
 const LEGATO = 0.9;
 
 function buatMidi({ judul, tempo, nada }) {
@@ -102,7 +94,6 @@ function buatMidi({ judul, tempo, nada }) {
   return midi;
 }
 
-/** Pastikan tidak ada dua nada yang berbunyi bersamaan. */
 function periksaMonofonik(midi, berkas) {
   const urut = [...midi.tracks[0].notes].sort((a, b) => a.time - b.time);
   for (let i = 1; i < urut.length; i++) {

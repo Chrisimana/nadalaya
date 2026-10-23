@@ -1,17 +1,9 @@
-/*
- * Deteksi pitch dengan CREPE (TensorFlow.js) di browser pengguna (FR-12).
- * Rekaman tidak pernah dikirim ke server (NFR-07).
- *
- * Model: CREPE tiny dari ml5-data-and-models (MIT), disimpan lokal di
- * public/models/crepe/ agar tidak bergantung pada CDN.
- */
 import type { LayersModel } from "@tensorflow/tfjs";
 import type { TitikPitch } from "@/lib/types";
 import { hzKeMidi } from "./nada";
 
 export const LAJU_SAMPEL = 16000;
 export const PANJANG_BINGKAI = 1024;
-/** Hop 10 ms pada 16 kHz. */
 export const HOP_BAWAAN = 160;
 export const AMBANG_CONFIDENCE = 0.5;
 const JUMLAH_BIN = 360;
@@ -31,18 +23,10 @@ export class NadaTidakTerdeteksiError extends Error {
   }
 }
 
-/** Antarmuka minimal model: masukan [n, 1024] → keluaran [n, 360]. */
 export interface ModelCrepe {
   prediksi(bingkai: Float32Array, jumlah: number): Promise<Float32Array>;
 }
 
-/* ---------- Fungsi murni ---------- */
-
-/**
- * Memotong audio mono 16 kHz menjadi bingkai 1024 sampel (berpusat pada
- * kelipatan hop, seperti CREPE asli) dan menormalisasi tiap bingkai:
- * dikurangi rata-rata lalu dibagi simpangan baku.
- */
 export function buatBingkai(audio: Float32Array, hop = HOP_BAWAAN) {
   const jumlah = Math.max(1, 1 + Math.floor(audio.length / hop));
   const hasil = new Float32Array(jumlah * PANJANG_BINGKAI);
@@ -70,15 +54,10 @@ export function buatBingkai(audio: Float32Array, hop = HOP_BAWAAN) {
   return { bingkai: hasil, jumlah };
 }
 
-/** cents bin ke-i menurut CREPE: 1997,38 + 20·i. */
 function centBin(i: number) {
   return 1997.3794084376191 + 20 * i;
 }
 
-/**
- * Mengubah 360 aktivasi menjadi frekuensi: rata-rata berbobot cents di
- * sekitar argmax (±4 bin), confidence = aktivasi maksimum.
- */
 export function dekodeAktivasi(aktivasi: Float32Array, offset = 0) {
   let maks = 0;
   let iMaks = 0;
@@ -100,10 +79,6 @@ export function dekodeAktivasi(aktivasi: Float32Array, offset = 0) {
   return { frekuensi: 10 * 2 ** (cents / 1200), confidence: maks };
 }
 
-/**
- * Menjalankan CREPE per batch agar UI tidak macet. Bingkai dengan
- * confidence < 0,5 dianggap tanpa suara (midi null).
- */
 export async function deteksiPitch(
   audio: Float32Array,
   model: ModelCrepe,
@@ -131,9 +106,6 @@ export async function deteksiPitch(
   return titik;
 }
 
-/* ---------- Model ---------- */
-
-/** Membungkus LayersModel TensorFlow.js menjadi ModelCrepe. */
 export function bungkusModel(tf: typeof import("@tensorflow/tfjs"), model: LayersModel): ModelCrepe {
   return {
     async prediksi(bingkai, jumlah) {
@@ -151,10 +123,6 @@ export function bungkusModel(tf: typeof import("@tensorflow/tfjs"), model: Layer
 
 let modelDimuat: Promise<ModelCrepe> | null = null;
 
-/**
- * Memuat model CREPE sekali lalu menyimpannya di memori. Berkas model
- * disimpan cache browser sehingga pemuatan berikutnya lebih cepat.
- */
 export function muatModelCrepe(): Promise<ModelCrepe> {
   modelDimuat ??= (async () => {
     try {
@@ -179,9 +147,6 @@ export function muatModelCrepe(): Promise<ModelCrepe> {
   return modelDimuat;
 }
 
-/* ---------- Pra-proses di browser ---------- */
-
-/** Mengubah rekaman menjadi audio mono 16 kHz dengan OfflineAudioContext. */
 export async function keMono16k(rekaman: Blob): Promise<Float32Array> {
   const data = await rekaman.arrayBuffer();
   const dekoder = new OfflineAudioContext(1, 1, LAJU_SAMPEL);

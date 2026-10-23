@@ -61,10 +61,6 @@ function kelasTombol({
   );
 }
 
-/**
- * Tombol serbaguna. Jika diberi `href`, dirender sebagai tautan Next.js
- * dengan tampilan tombol.
- */
 export function Button(props: PropsTombol | PropsTautan) {
   if (props.href !== undefined) {
     const { varian, ukuran, lebarPenuh, ikon, className, children, ...sisa } =

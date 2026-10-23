@@ -71,7 +71,6 @@ function DaftarMenuAktif(props: { onPilih?: () => void }) {
   return <DaftarMenu pathname={usePathname()} {...props} />;
 }
 
-/** Penanda menu aktif membaca URL, sehingga dibungkus Suspense. */
 function MenuAdmin(props: { onPilih?: () => void }) {
   return (
     <Suspense fallback={<DaftarMenu pathname={null} {...props} />}>
@@ -102,17 +101,12 @@ function KepalaSidebar() {
   );
 }
 
-/**
- * Navigasi area admin: sidebar tetap di desktop, bilah atas dengan menu
- * yang dapat dibuka di ponsel.
- */
 export function SidebarAdmin() {
   const [terbuka, setTerbuka] = useState(false);
   const [konfirmasiKeluar, setKonfirmasiKeluar] = useState(false);
 
   return (
     <>
-      {/* Desktop */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-garis bg-white px-4 py-5 lg:flex">
         <KepalaSidebar />
         <nav aria-label="Menu admin" className="mt-8 flex-1">
@@ -123,7 +117,6 @@ export function SidebarAdmin() {
         </div>
       </aside>
 
-      {/* Ponsel dan tablet */}
       <header className="sticky top-0 z-40 border-b border-garis bg-white/95 backdrop-blur lg:hidden">
         <div className="flex h-16 items-center justify-between px-4 sm:px-6">
           <KepalaSidebar />

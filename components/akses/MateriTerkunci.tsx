@@ -7,7 +7,6 @@ const keuntungan = [
   "Grafik progres skor",
 ];
 
-/** FR-08: materi premium dibuka pengguna Gratis, tampilkan ajakan upgrade. */
 export function MateriTerkunci() {
   return (
     <section
@@ -39,7 +38,6 @@ export function MateriTerkunci() {
           ))}
         </ul>
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-          {/* TODO: arahkan ke halaman Langganan (pengguna) saat fitur pembayaran dibuat. */}
           <Button href="/harga" varian="aksen" ukuran="lg">
             Lihat Paket Premium
           </Button>

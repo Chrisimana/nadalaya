@@ -9,7 +9,6 @@ type BarisProgres = {
   materi_latihan: { jenis: JenisMateri } | null;
 };
 
-/** UC-15 Grafik Progres: skor per latihan, urut waktu (khusus Premium). */
 export const GET = rute(async () => {
   const konteks = await wajibLogin();
   wajibPremium(konteks);

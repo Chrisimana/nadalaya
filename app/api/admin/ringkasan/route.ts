@@ -3,7 +3,6 @@ import { rute } from "@/lib/server/respons";
 import { klienAdmin } from "@/lib/supabase/admin";
 import type { RingkasanAdmin } from "@/lib/types";
 
-/** Ringkasan Dashboard Admin. */
 export const GET = rute(async () => {
   await wajibAdmin();
 

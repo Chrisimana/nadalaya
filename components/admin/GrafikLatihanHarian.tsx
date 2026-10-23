@@ -25,7 +25,6 @@ function formatHari(tanggal: string) {
   });
 }
 
-/** Grafik batang jumlah sesi latihan per hari (UC-26). Satu seri, tanpa legenda. */
 export function GrafikLatihanHarian({
   perHari,
 }: {

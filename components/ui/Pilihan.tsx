@@ -4,14 +4,12 @@ import { cn } from "@/lib/utils";
 
 type Props = Omit<ComponentProps<"select">, "id"> & {
   label: string;
-  /** Sembunyikan label secara visual (tetap dibaca pembaca layar). */
   labelTersembunyi?: boolean;
   galat?: string;
   id?: string;
   opsi: { nilai: string; label: string }[];
 };
 
-/** Kolom pilihan (select) berlabel dengan gaya yang sama seperti Input. */
 export function Pilihan({
   label,
   labelTersembunyi,

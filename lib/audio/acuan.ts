@@ -1,10 +1,3 @@
-/*
- * Pemutar acuan nada (UC-10) berbasis Tone.js.
- *
- * Keadaan disimpan di tingkat modul agar komponen lain (misalnya perekam)
- * dapat menghentikan acuan: FR-10 mensyaratkan acuan tidak berbunyi selama
- * perekaman. Komponen React membaca keadaan lewat useSyncExternalStore.
- */
 import type { Synth } from "tone";
 import type { NadaAcuan } from "@/lib/types";
 import { midiKeHz } from "./nada";
@@ -27,7 +20,6 @@ export class AcuanGagalDimuatError extends Error {
 
 export type KeadaanAcuan = {
   status: "diam" | "menyiapkan" | "memutar";
-  /** Indeks nada yang sedang berbunyi, untuk penanda pada notasi. */
   indeksAktif: number | null;
 };
 
@@ -37,7 +29,6 @@ let keadaan: KeadaanAcuan = DIAM;
 const pendengar = new Set<() => void>();
 let synth: Synth | null = null;
 let pewaktu: ReturnType<typeof setTimeout>[] = [];
-/** Menandai sesi pemutaran agar callback sesi lama diabaikan. */
 let nomorSesi = 0;
 
 function setKeadaan(baru: KeadaanAcuan) {
@@ -60,7 +51,6 @@ export function ambilKeadaanAcuanServer() {
   return DIAM;
 }
 
-/** Menghentikan acuan seketika, termasuk nada yang sudah dijadwalkan. */
 export function hentikanAcuan() {
   nomorSesi++;
   pewaktu.forEach(clearTimeout);
@@ -73,7 +63,6 @@ export function hentikanAcuan() {
   if (keadaan !== DIAM) setKeadaan(DIAM);
 }
 
-/** Memutar deret nada acuan dari awal. */
 export async function putarAcuan(nada: NadaAcuan[]) {
   hentikanAcuan();
   if (nada.length === 0) return;

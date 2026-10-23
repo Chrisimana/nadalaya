@@ -19,7 +19,6 @@ const GrafikProgres = dynamic(
   },
 );
 
-/** Minimal dua latihan agar garis perkembangan bermakna (UC-15). */
 const MIN_TITIK = 2;
 
 function Statistik({ label, nilai }: { label: string; nilai: string | number }) {
@@ -69,7 +68,6 @@ function IsiProgres() {
   );
 }
 
-/** UC-15 Melihat Grafik Progres (FR-17, khusus Premium). */
 export function Progres() {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-10 sm:px-6">

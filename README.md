@@ -105,33 +105,33 @@ tests/          Uji otomatis analisis nada
 
 | No | Fitur | Status |
 |---|---|---|
-| UC-01 | Mendaftar Akun | Berfungsi |
-| UC-02 | Masuk ke Sistem | Berfungsi |
-| UC-03 | Mengatur Ulang Kata Sandi | Berfungsi |
-| UC-04 | Keluar dari Sistem | Berfungsi |
-| UC-05 | Mengubah Profil | Berfungsi |
-| UC-06 | Melihat Daftar Materi | Berfungsi |
-| UC-07 | Menyaring Materi | Berfungsi |
-| UC-08 | Memilih Materi Latihan | Berfungsi |
-| UC-09 | Memeriksa Hak Akses dan Kuota | Berfungsi |
-| UC-10 | Memutar Acuan MIDI dan Notasi | Berfungsi |
-| UC-11 | Merekam Suara | Berfungsi |
-| UC-12 | Menganalisis Akurasi Nada | Berfungsi |
-| UC-13 | Menampilkan Skor dan Grafik Nada | Berfungsi |
-| UC-14 | Melihat Riwayat Latihan | Berfungsi |
-| UC-15 | Melihat Grafik Progres | Berfungsi |
-| UC-16 | Mengaktifkan Uji Coba Premium | Tampilan saja |
-| UC-17 | Membeli Paket Langganan | Tampilan saja |
-| UC-18 | Memproses Pembayaran | Tampilan saja |
-| UC-19 | Mengaktifkan Langganan | Belum |
-| UC-20 | Melihat Data Materi (admin) | Berfungsi |
-| UC-21 | Menambahkan Data Materi | Berfungsi |
-| UC-22 | Mengubah Data Materi | Berfungsi |
-| UC-23 | Menghapus Data Materi | Berfungsi |
-| UC-24 | Melihat Data Pengguna | Berfungsi |
-| UC-25 | Menonaktifkan Akun Pengguna | Berfungsi |
-| UC-26 | Melihat Statistik Latihan | Berfungsi |
-| UC-27 | Melihat Laporan Transaksi | Berfungsi (menunggu data pembayaran) |
+| 1 | Mendaftar Akun | Berfungsi |
+| 2 | Masuk ke Sistem | Berfungsi |
+| 3 | Mengatur Ulang Kata Sandi | Berfungsi |
+| 4 | Keluar dari Sistem | Berfungsi |
+| 5 | Mengubah Profil | Berfungsi |
+| 6 | Melihat Daftar Materi | Berfungsi |
+| 7 | Menyaring Materi | Berfungsi |
+| 8 | Memilih Materi Latihan | Berfungsi |
+| 9 | Memeriksa Hak Akses dan Kuota | Berfungsi |
+| 10 | Memutar Acuan MIDI dan Notasi | Berfungsi |
+| 11 | Merekam Suara | Berfungsi |
+| 12 | Menganalisis Akurasi Nada | Berfungsi |
+| 13 | Menampilkan Skor dan Grafik Nada | Berfungsi |
+| 14 | Melihat Riwayat Latihan | Berfungsi |
+| 15 | Melihat Grafik Progres | Berfungsi |
+| 16 | Mengaktifkan Uji Coba Premium | Tampilan saja |
+| 17 | Membeli Paket Langganan | Tampilan saja |
+| 18 | Memproses Pembayaran | Tampilan saja |
+| 19 | Mengaktifkan Langganan | Belum |
+| 20 | Melihat Data Materi (admin) | Berfungsi |
+| 21 | Menambahkan Data Materi | Berfungsi |
+| 22 | Mengubah Data Materi | Berfungsi |
+| 23 | Menghapus Data Materi | Berfungsi |
+| 24 | Melihat Data Pengguna | Berfungsi |
+| 25 | Menonaktifkan Akun Pengguna | Berfungsi |
+| 26 | Melihat Statistik Latihan | Berfungsi |
+| 27 | Melihat Laporan Transaksi | Berfungsi (menunggu data pembayaran) |
 
 **Ringkasan:** 23 dari 27 fitur berfungsi (**85%**), 3 fitur baru berupa tampilan (uji coba, pembelian, dan pembayaran), dan 1 fitur belum dikerjakan. Kesepuluh fitur esensial dan seluruh fitur admin sudah berfungsi; laporan transaksi akan terisi setelah pembayaran tersedia. Riwayat latihan dan grafik progres khusus Premium; selama uji coba dan pembayaran belum tersedia, paket Premium diaktifkan langsung melalui basis data.
 

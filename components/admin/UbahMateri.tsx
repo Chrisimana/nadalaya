@@ -9,7 +9,6 @@ import { getMateriAdminById } from "@/lib/api";
 import { useMuat } from "@/lib/useMuat";
 import { FormMateri } from "./FormMateri";
 
-/** UC-22 Mengubah Data Materi: memuat data lalu menampilkan formulir. */
 export function UbahMateri({ id }: { id: string }) {
   const ambil = useCallback(() => getMateriAdminById(id), [id]);
   const { keadaan, muatUlang } = useMuat(ambil);

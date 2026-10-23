@@ -3,7 +3,6 @@
 import { Input } from "@/components/ui/Input";
 import type { RentangTanggal } from "@/lib/api";
 
-/** Pilihan rentang tanggal (opsional) untuk statistik dan laporan admin. */
 export function FilterRentang({
   nilai,
   onUbah,
@@ -33,7 +32,6 @@ export function FilterRentang({
   );
 }
 
-/** Rentang dianggap sah bila kosong atau tanggal awal tidak melewati akhir. */
 export function rentangSah(r: RentangTanggal) {
   return !(r.dari && r.sampai && r.dari > r.sampai);
 }

@@ -58,10 +58,8 @@ export function BagianLatihan({
   );
 }
 
-/** Halaman latihan: notasi & acuan, perekaman, analisis, dan hasil. */
 export function RuangLatihan({ materiId }: { materiId: string }) {
   const [keadaan, setKeadaan] = useState<KeadaanLatihan>({ status: "memuat" });
-  /** Sisa kuota terbaru setelah analisis selesai (menimpa hasil cek awal). */
   const [kuotaTerbaru, setKuotaTerbaru] = useState<number | null | undefined>(undefined);
 
   const segarkanKuota = useCallback(() => {
@@ -72,8 +70,6 @@ export function RuangLatihan({ materiId }: { materiId: string }) {
 
   const muat = useCallback(() => {
     let aktif = true;
-    // UC-08 langkah 1.1: hak akses dan kuota diperiksa server saat materi dipilih,
-    // lalu berkas MIDI diunduh lewat signed URL.
     bukaLatihan(materiId)
       .then(({ akses, materi }) => aktif && setKeadaan({ status: "siap", akses, materi }))
       .catch((err) => aktif && setKeadaan({ status: "galat", pesan: pesanGalat(err) }));
@@ -178,7 +174,6 @@ function IsiLatihan({
 }: {
   materiId: string;
   materi: MateriLengkap;
-  /** Dipanggil setelah analisis selesai, untuk memperbarui sisa kuota. */
   onSelesai: () => void;
 }) {
   const perekam = usePerekam();
@@ -201,7 +196,6 @@ function IsiLatihan({
     if (selesai) onSelesai();
   }, [selesai, onSelesai]);
 
-  /** Latih Lagi: kosongkan rekaman dan kembali ke langkah rekam materi yang sama. */
   function latihLagi() {
     perekam.ulang();
     document.getElementById("langkah-rekam")?.scrollIntoView({ behavior: "smooth", block: "start" });

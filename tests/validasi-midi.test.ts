@@ -1,6 +1,3 @@
-/*
- * Uji validasi berkas MIDI materi (UC-21, UC-22, SDD 3.2.8).
- */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Midi } from "@tonejs/midi";
@@ -9,7 +6,6 @@ import { UKURAN_MAKS_MIDI, validasiIsiMidi } from "@/lib/audio/validasiMidi";
 
 const FOLDER_MIDI = join(process.cwd(), "scripts", "midi");
 
-/** MIDI buatan: daftar [nomor nada, mulai, durasi] dalam detik. */
 function buatMidi(nada: Array<[number, number, number]>, jumlahTrek = 1) {
   const midi = new Midi();
   midi.header.setTempo(120);

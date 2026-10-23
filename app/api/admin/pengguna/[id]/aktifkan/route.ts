@@ -3,7 +3,6 @@ import { ambilProfil } from "@/lib/server/pengguna";
 import { GalatRute, rute, wajibUuid } from "@/lib/server/respons";
 import { klienAdmin } from "@/lib/supabase/admin";
 
-/** Mengaktifkan kembali akun: is_aktif = true dan blokir di Auth dicabut. */
 export const POST = rute(async (_req: Request, ctx: RouteContext<"/api/admin/pengguna/[id]/aktifkan">) => {
   await wajibAdmin();
   const id = wajibUuid((await ctx.params).id, "ID pengguna");

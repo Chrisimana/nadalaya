@@ -6,10 +6,6 @@ import type { StatusTransaksi } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Status Pembayaran" };
 
-/**
- * Status dari parameter alamat: `status` (internal) atau `transaction_status`
- * yang dikirim Midtrans saat mengarahkan kembali ke Nadalaya.
- */
 function statusDariParameter(
   sp: Record<string, string | string[] | undefined>,
 ): StatusTransaksi | null {

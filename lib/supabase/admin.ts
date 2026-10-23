@@ -5,10 +5,6 @@ import { envSupabase } from "./env";
 
 let klien: ReturnType<typeof createClient> | null = null;
 
-/**
- * Klien Supabase dengan secret key: melewati RLS. HANYA untuk server.
- * `server-only` membuat build gagal bila berkas ini terimpor ke klien.
- */
 export function klienAdmin() {
   if (klien) return klien;
   const { url } = envSupabase();

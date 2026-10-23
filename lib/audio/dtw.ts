@@ -1,12 +1,6 @@
-/*
- * Penyelarasan nyanyian dengan acuan (FR-13): deret per bingkai,
- * toleransi oktaf, dan Dynamic Time Warping dengan pita Sakoe-Chiba.
- * Seluruhnya fungsi murni agar mudah diuji.
- */
 import type { NadaAcuan, TitikPitch } from "@/lib/types";
 import { bersihkanKontur } from "./kontur";
 
-/** Resolusi deret setelah diturunkan: 20 bingkai per detik. */
 export const FPS_ANALISIS = 20;
 
 export type BingkaiAcuan = { waktu: number; midi: number; indeksNada: number };
@@ -20,7 +14,6 @@ function median(nilai: number[]) {
 }
 export { median };
 
-/** Deret acuan per bingkai: nada yang berbunyi pada tiap waktu (jeda dilewati). */
 export function deretAcuan(nada: NadaAcuan[], fps = FPS_ANALISIS): BingkaiAcuan[] {
   const hasil: BingkaiAcuan[] = [];
   nada.forEach((n, indeksNada) => {
@@ -31,12 +24,6 @@ export function deretAcuan(nada: NadaAcuan[], fps = FPS_ANALISIS): BingkaiAcuan[
   return hasil.sort((a, b) => a.waktu - b.waktu);
 }
 
-/**
- * Menurunkan resolusi kontur CREPE (100 bingkai/detik) menjadi `fps`.
- * Tiap kelompok diwakili median nada bersuara; kelompok yang kurang dari
- * separuhnya bersuara dianggap tanpa suara dan dibuang. Waktu relatif
- * terhadap awal rekaman tetap dipertahankan.
- */
 export function turunkanResolusi(kontur: TitikPitch[], fps = FPS_ANALISIS): BingkaiNyanyian[] {
   const kelompok = new Map<number, { bersuara: number[]; total: number }>();
   for (const t of kontur) {
@@ -52,28 +39,12 @@ export function turunkanResolusi(kontur: TitikPitch[], fps = FPS_ANALISIS): Bing
     .map(([k, isi]) => ({ waktu: k / fps, midi: median(isi.bersuara) }));
 }
 
-/**
- * Toleransi oktaf: geseran kelipatan 12 semiton yang paling dekat dengan
- * selisih median nyanyian terhadap acuan. Nilai ini dikurangkan dari nyanyian.
- */
 export function geserOktaf(nyanyian: number[], acuan: number[]) {
   const selisih = median(nyanyian) - median(acuan);
   if (!Number.isFinite(selisih)) return 0;
   return Math.round(selisih / 12) * 12;
 }
 
-/**
- * Subsequence DTW (open-begin dan open-end pada sisi nyanyian) dengan biaya
- * |selisih semiton|. Seluruh deret acuan (N) harus terpasang, tetapi boleh
- * cocok dengan sebagian nyanyian (M) saja, sehingga bagian rekaman di luar
- * materi diabaikan.
- *
- * Pita Sakoe-Chiba diukur relatif terhadap titik awal jalur (bukan diagonal
- * seluruh matriks): pada baris i, posisi j harus memenuhi
- * |(j − awal) − i| ≤ lebarPita. Dengan begitu rekaman yang jauh lebih panjang
- * dari acuan tetap tertangani, sementara perbedaan tempo tetap dibatasi.
- * Mengembalikan pasangan [i, j].
- */
 export function dtw(acuan: number[], nyanyian: number[], lebarPita?: number): Array<[number, number]> {
   const N = acuan.length;
   const M = nyanyian.length;
@@ -148,17 +119,10 @@ export function dtw(acuan: number[], nyanyian: number[], lebarPita?: number): Ar
 export type HasilPenyelarasan = {
   acuan: BingkaiAcuan[];
   nyanyian: BingkaiNyanyian[];
-  /** Geseran oktaf (semiton) yang sudah dikurangkan dari nyanyian. */
   geseran: number;
-  /** Untuk tiap bingkai acuan: nada nyanyian yang terpetakan (setelah digeser). */
   terpetakan: number[][];
 };
 
-/**
- * Menyelaraskan kontur nyanyian dengan nada acuan: kontur dibersihkan
- * (hening dipotong, lonjakan oktaf dikoreksi, median filter), diturunkan
- * resolusinya, digeser oktaf, lalu dipasangkan dengan subsequence DTW.
- */
 export function selaraskan(kontur: TitikPitch[], nada: NadaAcuan[], fps = FPS_ANALISIS): HasilPenyelarasan {
   const acuan = deretAcuan(nada, fps);
   const nyanyian = turunkanResolusi(bersihkanKontur(kontur), fps);
@@ -169,8 +133,6 @@ export function selaraskan(kontur: TitikPitch[], nada: NadaAcuan[], fps = FPS_AN
     return { tergeser, jalur: dtw(midiAcuan, tergeser) };
   }
 
-  // Perkiraan awal dari median seluruh nyanyian, lalu diperbaiki memakai
-  // bagian yang benar-benar terpasang (rekaman bisa memuat nada di luar materi).
   let geseran = geserOktaf(
     nyanyian.map((b) => b.midi),
     midiAcuan,

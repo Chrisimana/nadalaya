@@ -3,20 +3,14 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  /** Lebar dan tinggi logo dalam piksel (logo berbentuk persegi). */
   ukuran?: number;
-  /** Menampilkan teks "Nadalaya" di sebelah logo. */
   denganTeks?: boolean;
-  /** Bila diisi, logo dan teks menjadi satu tautan. */
   href?: string;
-  /** Muat lebih awal untuk logo yang tampil di atas lipatan (navbar). */
   prioritas?: boolean;
   className?: string;
-  /** Kelas tambahan untuk teks, misalnya ukuran huruf. */
   kelasTeks?: string;
 };
 
-/** Logo Nadalaya dari /nadalaya-logo.svg, dengan teks opsional. */
 export function Logo({
   ukuran = 32,
   denganTeks = true,

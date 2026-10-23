@@ -5,7 +5,6 @@ import { klienAdmin } from "@/lib/supabase/admin";
 const PESAN_GAGAL_SIMPAN =
   "Riwayat latihan gagal disimpan. Skor tetap ditampilkan, tetapi tidak tercatat di riwayat.";
 
-/** Batas ukuran ringkasan agar baris riwayat tetap ringan. */
 const MAKS_TITIK = 3000;
 const MAKS_NADA = 1000;
 
@@ -13,7 +12,6 @@ function angka(nilai: unknown): number | null {
   return typeof nilai === "number" && Number.isFinite(nilai) ? nilai : null;
 }
 
-/** Ambil hanya kolom angka yang dikenal dari setiap objek dalam larik. */
 function bersihkan<K extends string>(
   nilai: unknown,
   kolom: readonly K[],
@@ -36,11 +34,6 @@ function bersihkan<K extends string>(
   });
 }
 
-/**
- * UC-13 / FR-16: simpan riwayat_latihan lalu tandai sesi selesai (dihitung
- * sebagai satu kuota). Jika penyimpanan gagal, sesi tetap "dimulai".
- * Rekaman suara tidak pernah dikirim ke server (NFR-07).
- */
 export const POST = rute(async (req: Request, ctx: RouteContext<"/api/sesi/[id]/hasil">) => {
   const konteks = await wajibLogin();
   const sesiId = wajibUuid((await ctx.params).id, "ID sesi");

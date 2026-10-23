@@ -21,7 +21,6 @@ const kolom = [
   },
 ];
 
-/** Footer halaman publik: identitas, navigasi, dan tautan legal. */
 export function Footer() {
   return (
     <footer className="mt-auto border-t border-garis bg-white/60 text-sm">

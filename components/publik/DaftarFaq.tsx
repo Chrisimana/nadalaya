@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 
 export type ItemFaq = { tanya: string; jawab: ReactNode };
 
-/** Daftar tanya jawab yang dapat dibuka-tutup (tanpa JavaScript). */
 export function DaftarFaq({ daftar }: { daftar: ItemFaq[] }) {
   return (
     <div className="divide-y divide-garis rounded-2xl border border-garis bg-white">

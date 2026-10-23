@@ -37,7 +37,6 @@ const PESAN_DISIMPAN = {
   ubah: "Perubahan materi berhasil disimpan.",
 } as const;
 
-/** UC-20 s.d. UC-23: daftar materi, pencarian, filter, hapus, dan aktifkan kembali. */
 export function KelolaMateri({ disimpan }: { disimpan?: keyof typeof PESAN_DISIMPAN | null }) {
   const { keadaan, muatUlang } = useMuat(getMateriAdminList);
   const [cari, setCari] = useState("");

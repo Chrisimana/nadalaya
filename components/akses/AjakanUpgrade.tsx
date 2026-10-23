@@ -12,10 +12,6 @@ type Props = {
   deskripsi?: string;
 };
 
-/**
- * Ajakan beralih ke Premium untuk fitur yang dikunci bagi pengguna Gratis,
- * misalnya riwayat latihan dan grafik progres.
- */
 export function AjakanUpgrade({
   judul = "Riwayat latihan khusus Premium",
   deskripsi = "Riwayat latihan dan grafik progres tersedia di paket Premium atau Uji Coba Premium 7 hari. Skor dan grafik nada tetap tampil setiap kali Anda selesai berlatih.",
@@ -27,7 +23,7 @@ export function AjakanUpgrade({
     belumTersambung: boolean;
   } | null>(null);
 
-  // UC-16: aktifkan uji coba langsung dari ajakan ini.
+  // Aktifkan uji coba langsung dari ajakan ini.
   async function cobaPremium() {
     setGalat(null);
     setMemuat(true);

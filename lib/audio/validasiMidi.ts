@@ -1,12 +1,6 @@
-/*
- * Validasi isi berkas MIDI materi (SDD 3.2.8): berekstensi .mid, ukuran
- * maksimal 1 MB, dapat dibaca @tonejs/midi, berisi nada, dan hanya melodi
- * tunggal. Fungsi murni: dipakai API admin dan diuji dengan Vitest.
- */
 import { Midi } from "@tonejs/midi";
 
 export const UKURAN_MAKS_MIDI = 1024 * 1024;
-/** Tumpang tindih sependek ini (legato) masih dianggap melodi tunggal. */
 const TOLERANSI_TUMPANG_DETIK = 0.01;
 
 export type HasilValidasiMidi =

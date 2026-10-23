@@ -2,7 +2,6 @@ import "server-only";
 
 import { unstable_rethrow } from "next/navigation";
 
-/** Galat yang sengaja dilempar di dalam route, diteruskan apa adanya ke klien. */
 export class GalatRute extends Error {
   constructor(
     readonly status: number,
@@ -18,10 +17,6 @@ export function jsonGalat(status: number, pesan: string, kode?: string) {
   return Response.json({ pesan, ...(kode ? { kode } : {}) }, { status });
 }
 
-/**
- * Membungkus handler agar galat yang tidak terduga tidak membocorkan detail
- * server dan tetap menghasilkan pesan berbahasa Indonesia.
- */
 export function rute<A extends unknown[]>(handler: (...args: A) => Promise<Response>) {
   return async (...args: A): Promise<Response> => {
     try {
@@ -36,7 +31,6 @@ export function rute<A extends unknown[]>(handler: (...args: A) => Promise<Respo
   };
 }
 
-/** Membaca body JSON; body yang rusak dianggap permintaan tidak valid. */
 export async function bacaJson(req: Request): Promise<Record<string, unknown>> {
   try {
     const isi = await req.json();
@@ -60,7 +54,6 @@ export function wajibUuid(nilai: unknown, nama = "ID"): string {
   return nilai;
 }
 
-/** Alamat situs untuk tautan email (verifikasi dan atur ulang kata sandi). */
 export function alamatSitus(req: Request) {
   return (process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin).replace(/\/$/, "");
 }

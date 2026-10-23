@@ -1,6 +1,3 @@
-/*
- * Uji cepat fungsi murni dengan deret nada sintetis (tanpa CREPE).
- */
 import { describe, expect, it } from "vitest";
 import { analisisKontur } from "@/lib/audio/analisis";
 import { NadaTidakTerdeteksiError } from "@/lib/audio/crepe";
@@ -10,7 +7,6 @@ import { skorAkhir, skorNada } from "@/lib/audio/skor";
 import type { NadaAcuan, TitikPitch } from "@/lib/types";
 import { nadaDariMidi } from "./bantuan";
 
-/** Kontur CREPE tiruan 100 bingkai/detik dari deret nada. */
 function konturSintetis(
   nada: NadaAcuan[],
   opsi: { geser?: number; tempo?: number; jitter?: number; awal?: number } = {},

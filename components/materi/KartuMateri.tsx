@@ -4,10 +4,6 @@ import { Badge } from "@/components/ui/Badge";
 import { LABEL_TINGKAT, type Materi } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-/**
- * Kartu satu materi. Materi premium bagi pengguna Gratis tampil dengan
- * ikon gembok (FR-07); hak akses tetap diperiksa server saat dibuka (FR-08).
- */
 export function KartuMateri({ materi }: { materi: Materi }) {
   const terkunci = materi.isPremium && materi.terkunci;
 

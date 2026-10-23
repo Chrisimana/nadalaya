@@ -19,9 +19,7 @@ export type StatusPerekam =
 
 export type KeadaanPerekam = {
   status: StatusPerekam;
-  /** Durasi berjalan (detik) selama merekam. */
   durasi: number;
-  /** Level suara 0–1 selama merekam. */
   level: number;
   hasil: HasilRekaman | null;
   galat: JenisGalatMikrofon | null;
@@ -35,7 +33,6 @@ const AWAL: KeadaanPerekam = {
   galat: null,
 };
 
-/** Hook React untuk PerekamSuara: status, level, timer, dan hasil rekaman. */
 export function usePerekam() {
   const [keadaan, setKeadaan] = useState<KeadaanPerekam>(AWAL);
   const perekam = useRef<PerekamSuara | null>(null);
@@ -57,7 +54,7 @@ export function usePerekam() {
 
   const mulai = useCallback(async () => {
     if (perekam.current) return;
-    // FR-10: acuan tidak boleh berbunyi selama perekaman.
+    // Acuan tidak boleh berbunyi selama perekaman.
     hentikanAcuan();
     setKeadaan({ ...AWAL, status: "meminta_izin" });
 
@@ -107,7 +104,6 @@ export function usePerekam() {
     }
   }, [hentikanAnimasi, selesai]);
 
-  /** Membuang rekaman dan kembali ke keadaan siap merekam. */
   const ulang = useCallback(() => {
     hentikanAnimasi();
     perekam.current?.batalkan();

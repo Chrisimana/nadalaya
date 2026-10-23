@@ -6,17 +6,10 @@ import { buatKlienServer } from "@/lib/supabase/server";
 const JENIS_OTP: EmailOtpType[] = ["signup", "invite", "magiclink", "recovery", "email_change", "email"];
 const HALAMAN_ATUR_ULANG = "/atur-ulang-kata-sandi";
 
-/** Hanya izinkan pengalihan ke jalur internal (mencegah open redirect). */
 function jalurAman(next: string | null) {
   return next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
 }
 
-/**
- * Tujuan tautan dari email Supabase: verifikasi akun (UC-01) dan atur ulang
- * kata sandi (UC-03). Mendukung dua format tautan:
- * - `?token_hash=...&type=...` (template email kustom, disarankan)
- * - `?code=...` (template bawaan Supabase, alur PKCE)
- */
 export async function GET(req: NextRequest) {
   const { searchParams, origin } = req.nextUrl;
   const tujuan = jalurAman(searchParams.get("next"));
@@ -42,16 +35,13 @@ export async function GET(req: NextRequest) {
   } else if (kode) {
     const { error } = await supabase.auth.exchangeCodeForSession(kode);
     if (error) {
-      // Pada alur PKCE, email sudah diverifikasi Supabase sebelum diarahkan ke
-      // sini. Bila tautan dibuka di peramban lain, sesi tidak dapat dibuat,
-      // tetapi akun tetap aktif dan pengguna cukup masuk.
       return pemulihan ? gagal() : alihkan("/masuk?verifikasi=berhasil");
     }
   } else {
     return gagal();
   }
 
-  // Akun nonaktif tidak boleh memakai sesi baru (SDD 3.2.7).
+  // Akun nonaktif tidak boleh memakai sesi baru.
   const { data } = await supabase.auth.getClaims();
   const uid = data?.claims?.sub;
   const profil = uid ? await ambilProfil(uid) : null;

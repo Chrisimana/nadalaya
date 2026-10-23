@@ -1,8 +1,3 @@
-/*
- * Validasi formulir di sisi klien. Server tetap memvalidasi ulang nanti.
- * Pesan mengikuti UCD pada SRS (UC-01, UC-02).
- */
-
 export const MIN_PANJANG_SANDI = 8;
 
 const POLA_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -73,7 +68,6 @@ export function validasiKataSandiBaruDanKonfirmasi(data: {
 export const TEMPO_MIN = 40;
 export const TEMPO_MAX = 240;
 
-/** Validasi berkas MIDI di klien: ekstensi .mid dan ukuran (UC-21). Isi diperiksa server. */
 export function validasiBerkasMidi(berkas: File | null, wajib: boolean) {
   if (!berkas) return wajib ? "Berkas MIDI wajib diunggah." : undefined;
   if (!berkas.name.toLowerCase().endsWith(".mid")) {
@@ -84,7 +78,6 @@ export function validasiBerkasMidi(berkas: File | null, wajib: boolean) {
   return undefined;
 }
 
-/** Validasi formulir materi (UC-21, UC-22). */
 export function validasiMateri(
   data: { judul: string; tempo: string; berkasMidi: File | null },
   mode: "tambah" | "ubah",

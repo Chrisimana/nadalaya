@@ -3,16 +3,8 @@ import { ambilProfil } from "@/lib/server/pengguna";
 import { GalatRute, rute, wajibUuid } from "@/lib/server/respons";
 import { klienAdmin } from "@/lib/supabase/admin";
 
-/** Blokir praktis tanpa batas (±100 tahun). */
 const DURASI_BLOKIR = "876000h";
 
-/**
- * UC-25 Menonaktifkan Akun Pengguna: is_aktif = false, lalu seluruh sesinya
- * dicabut. auth.admin.signOut() pada supabase-js membutuhkan JWT milik
- * pengguna, jadi pencabutan memakai cara resmi Admin API yang setara:
- * memblokir akun (ban_duration) sehingga token tidak dapat diperbarui dan
- * akun tidak dapat masuk. Setiap permintaan juga memeriksa is_aktif.
- */
 export const POST = rute(async (_req: Request, ctx: RouteContext<"/api/admin/pengguna/[id]/nonaktifkan">) => {
   const { uid } = await wajibAdmin();
   const id = wajibUuid((await ctx.params).id, "ID pengguna");

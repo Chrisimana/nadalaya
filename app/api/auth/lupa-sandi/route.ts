@@ -3,10 +3,6 @@ import { alamatSitus, bacaJson, GalatRute, rute, teks } from "@/lib/server/respo
 import { buatKlienServer } from "@/lib/supabase/server";
 import { validasiEmail } from "@/lib/validasi";
 
-/**
- * UC-03 langkah 2: kirim tautan atur ulang kata sandi.
- * Respons selalu sama agar tidak membocorkan email mana yang terdaftar.
- */
 export const POST = rute(async (req: Request) => {
   const isi = await bacaJson(req);
   const email = teks(isi.email).trim().toLowerCase();

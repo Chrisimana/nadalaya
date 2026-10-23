@@ -1,32 +1,18 @@
-/*
- * Menyusun deret nada acuan menjadi birama notasi balok (UC-10).
- * Fungsi murni: tidak bergantung pada VexFlow agar mudah diuji.
- */
 import type { NadaAcuan } from "@/lib/types";
 
-/** Satu simbol pada notasi: not (midi terisi) atau tanda diam (midi null). */
 export type TokenNotasi = {
   midi: number | null;
-  /** Panjang dalam ketukan not seperempat: 4, 2, 1, atau 0,5. */
   ketukan: 4 | 2 | 1 | 0.5;
-  /** Indeks nada acuan asal, untuk penanda saat diputar. */
   indeksNada: number | null;
-  /** true bila disambung (tie) ke token berikutnya. */
   sambung: boolean;
 };
 
 export type Birama = TokenNotasi[];
 
-/** Resolusi kuantisasi: not 1/8 = setengah ketukan. */
 const GRID = 0.5;
 const NILAI: TokenNotasi["ketukan"][] = [4, 2, 1, 0.5];
 const EPS = 1e-6;
 
-/**
- * Kuantisasi waktu dan durasi ke not 1/1, 1/2, 1/4, 1/8 berdasarkan tempo,
- * lalu pecah ke birama (bawaan 4/4). Not yang melewati garis birama atau
- * panjangnya bukan nilai dasar dipecah dan disambung dengan tie.
- */
 export function susunBirama(nada: NadaAcuan[], tempo: number, ketukanPerBirama = 4): Birama[] {
   const detikPerKetukan = 60 / tempo;
   const kuantisasi = (detik: number) => Math.round(detik / detikPerKetukan / GRID) * GRID;
@@ -72,7 +58,6 @@ export function susunBirama(nada: NadaAcuan[], tempo: number, ketukanPerBirama =
   return birama;
 }
 
-/** Tempo dari MIDI bila ada, selain itu tempo materi di basis data. */
 export function tempoEfektif(tempoMidi: number | null | undefined, tempoMateri: number) {
   return tempoMidi && tempoMidi >= 20 && tempoMidi <= 300 ? tempoMidi : tempoMateri;
 }

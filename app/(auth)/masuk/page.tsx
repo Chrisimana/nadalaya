@@ -8,7 +8,6 @@ export const metadata: Metadata = { title: "Masuk" };
 
 type ParamCari = Record<string, string | string[] | undefined>;
 
-/** Pesan dari /auth/konfirmasi dan proxy.ts yang dikirim lewat URL. */
 function pemberitahuan(sp: ParamCari): PemberitahuanMasuk {
   if (sp.galat === "nonaktif") return "nonaktif";
   if (sp.verifikasi === "berhasil") return "verifikasi_berhasil";

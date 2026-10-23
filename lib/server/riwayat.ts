@@ -2,7 +2,6 @@ import "server-only";
 
 import type { ItemRiwayat, JenisMateri } from "@/lib/types";
 
-/** Kolom riwayat_latihan beserta judul dan jenis materinya. */
 export const KOLOM_RIWAYAT = "id, materi_id, skor, created_at, materi_latihan(judul, jenis)";
 
 export type BarisRiwayat = {

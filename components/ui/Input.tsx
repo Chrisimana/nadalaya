@@ -11,10 +11,6 @@ type Props = Omit<ComponentProps<"input">, "id"> & {
   id?: string;
 };
 
-/**
- * Kolom isian berlabel dengan pesan galat per kolom.
- * Untuk `type="password"` tersedia tombol tampilkan/sembunyikan.
- */
 export function Input({
   label,
   galat,

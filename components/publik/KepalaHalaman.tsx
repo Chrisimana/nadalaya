@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-/** Judul halaman publik dengan latar motif paranada. */
 export function KepalaHalaman({
   judul,
   children,

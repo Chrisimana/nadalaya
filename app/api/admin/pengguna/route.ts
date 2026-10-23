@@ -10,10 +10,6 @@ import type { StatusPaket } from "@/lib/types";
 
 const PAKET_SAH: StatusPaket[] = ["gratis", "uji_coba", "premium"];
 
-/**
- * UC-24 Melihat Data Pengguna. Parameter opsional: cari (nama/email) dan
- * paket (status paket efektif).
- */
 export const GET = rute(async (req: Request) => {
   await wajibAdmin();
   const param = new URL(req.url).searchParams;

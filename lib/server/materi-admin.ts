@@ -10,7 +10,6 @@ import { GalatRute } from "./respons";
 
 const BUCKET = "midi";
 
-/** Kolom materi beserta jumlah pemakaiannya (FK restrict). */
 export const KOLOM_MATERI_ADMIN =
   "id, judul, jenis, tingkat, is_premium, tempo_bpm, midi_path, is_aktif, sesi_analisis(count), riwayat_latihan(count)";
 
@@ -43,10 +42,6 @@ function galat(pesan: string): never {
   throw new GalatRute(400, pesan, "data_tidak_valid");
 }
 
-/**
- * Membaca dan memvalidasi formulir materi (multipart/form-data).
- * Berkas wajib saat menambah, opsional saat mengubah.
- */
 export async function bacaFormMateri(
   req: Request,
   berkasWajib: boolean,
@@ -92,7 +87,6 @@ export async function bacaFormMateri(
   };
 }
 
-/** "Tangga Nada Do Mayor" → "tangga-nada-do-mayor". */
 export function slug(teks: string) {
   return (
     teks
@@ -105,7 +99,6 @@ export function slug(teks: string) {
   );
 }
 
-/** Mengunggah berkas MIDI dengan nama unik (slug-judul + id singkat). */
 export async function unggahMidi(judul: string, berkas: BerkasMidi): Promise<string> {
   const path = `${slug(judul)}-${crypto.randomUUID().slice(0, 8)}.mid`;
   const { error } = await klienAdmin()
@@ -118,7 +111,6 @@ export async function unggahMidi(judul: string, berkas: BerkasMidi): Promise<str
   return path;
 }
 
-/** Menghapus berkas MIDI; kegagalan hanya dicatat (berkas yatim tidak memengaruhi aplikasi). */
 export async function hapusBerkasMidi(path: string) {
   const { error } = await klienAdmin().storage.from(BUCKET).remove([path]);
   if (error) console.error("[midi] hapus berkas gagal", path, error);

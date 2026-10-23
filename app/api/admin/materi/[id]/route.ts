@@ -23,18 +23,12 @@ async function ambilMateri(id: string) {
   return data as unknown as BarisMateriAdmin;
 }
 
-/** Detail satu materi (termasuk yang nonaktif). */
 export const GET = rute(async (_req: Request, ctx: Konteks) => {
   await wajibAdmin();
   const id = wajibUuid((await ctx.params).id, "ID materi");
   return Response.json({ materi: keMateriAdmin(await ambilMateri(id)) });
 });
 
-/**
- * UC-22 Mengubah Data Materi. Berkas opsional; bila diganti, berkas baru
- * divalidasi dan diunggah, midi_path diperbarui, lalu berkas lama dihapus.
- * Bila validasi gagal, berkas lama tetap dipakai.
- */
 export const PATCH = rute(async (req: Request, ctx: Konteks) => {
   await wajibAdmin();
   const id = wajibUuid((await ctx.params).id, "ID materi");
@@ -57,10 +51,6 @@ export const PATCH = rute(async (req: Request, ctx: Konteks) => {
   return Response.json({ materi: keMateriAdmin(hasil as unknown as BarisMateriAdmin) });
 });
 
-/**
- * UC-23 Menghapus Data Materi. Materi yang sudah dipakai (sesi atau riwayat)
- * hanya dinonaktifkan agar riwayat pengguna tetap utuh.
- */
 export const DELETE = rute(async (_req: Request, ctx: Konteks) => {
   await wajibAdmin();
   const id = wajibUuid((await ctx.params).id, "ID materi");
@@ -79,8 +69,6 @@ export const DELETE = rute(async (_req: Request, ctx: Konteks) => {
   ]);
   if (jumlahSesi + jumlahRiwayat > 0) return nonaktifkan();
 
-  // Baris dihapus lebih dulu: bila tiba-tiba sudah dipakai (FK restrict),
-  // materi cukup dinonaktifkan dan berkasnya tetap ada.
   const { error } = await admin.from("materi_latihan").delete().eq("id", id);
   if (error) {
     if ((error as { code?: string }).code === "23503") return nonaktifkan();

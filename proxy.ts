@@ -4,9 +4,7 @@ import { envSupabase } from "@/lib/supabase/env";
 
 // Next.js 16: middleware.ts berganti nama menjadi proxy.ts (fungsinya sama).
 
-/** Halaman grup (pengguna): wajib masuk. */
 const AWALAN_PENGGUNA = ["/dashboard", "/materi", "/latihan", "/riwayat", "/progres", "/langganan", "/profil"];
-/** Halaman yang tidak perlu dibuka lagi setelah masuk. */
 const HALAMAN_TAMU = ["/masuk", "/daftar"];
 
 function cocok(jalur: string, awalan: string) {
@@ -39,7 +37,6 @@ export async function proxy(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const uid = data?.claims?.sub;
 
-  /** Pengalihan yang tetap membawa cookie sesi yang baru disegarkan. */
   const alihkan = (tujuan: string, lanjut?: boolean) => {
     const alamat = new URL(tujuan, request.url);
     if (lanjut) alamat.searchParams.set("lanjut", jalur + request.nextUrl.search);

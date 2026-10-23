@@ -2,10 +2,6 @@ import type { ReactNode } from "react";
 
 export type BagianLegal = { id: string; judul: string; isi: ReactNode };
 
-/**
- * Tata letak dokumen legal: lebar baca terbatas, daftar isi, dan judul
- * bagian bernomor.
- */
 export function DokumenLegal({
   judul,
   pengantar,
@@ -14,7 +10,6 @@ export function DokumenLegal({
 }: {
   judul: string;
   pengantar: ReactNode;
-  /** Contoh: "17 Oktober 2026". */
   diperbarui: string;
   bagian: BagianLegal[];
 }) {

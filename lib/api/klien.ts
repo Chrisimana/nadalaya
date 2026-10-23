@@ -1,20 +1,14 @@
 import { GalatApi } from "./galat";
 
-/** Kode galat yang membuat pengguna harus masuk ulang. */
 const KODE_KELUAR: Record<string, string> = {
   belum_masuk: "/masuk",
   akun_nonaktif: "/masuk?galat=nonaktif",
 };
 
-/**
- * Memanggil API route Nadalaya dan mengembalikan isi JSON-nya.
- * Respons gagal diubah menjadi GalatApi dengan pesan dari server.
- */
 export async function minta<T>(
   alamat: string,
   opsi: {
     method?: "GET" | "POST" | "PATCH" | "DELETE";
-    /** Objek dikirim sebagai JSON; FormData dikirim apa adanya (multipart). */
     body?: unknown;
     alihkanBilaKeluar?: boolean;
   } = {},

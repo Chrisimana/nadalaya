@@ -58,7 +58,6 @@ function IsiDetail({ id }: { id: string }) {
   );
 }
 
-/** UC-14 langkah 2: detail skor dan grafik nada satu riwayat. */
 export function DetailRiwayat({ id }: { id: string }) {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-10 sm:px-6">

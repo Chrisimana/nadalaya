@@ -1,7 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 
-/** Kartu angka ringkasan untuk halaman admin. */
 export function KartuStat({
   ikon: Ikon,
   label,

@@ -11,9 +11,7 @@ export type TautanNav = { href: string; label: string };
 
 type Props = {
   tautan: TautanNav[];
-  /** Elemen di sisi kanan (tombol masuk/daftar atau menu pengguna). */
   aksi?: ReactNode;
-  /** Versi aksi untuk menu ponsel; bila kosong memakai `aksi`. */
   aksiPonsel?: ReactNode;
 };
 
@@ -64,10 +62,6 @@ function DaftarTautanAktif(props: PropsDaftar) {
   return <DaftarTautan {...props} pathname={usePathname()} />;
 }
 
-/**
- * Penanda tautan aktif membaca URL saat permintaan. Dengan Cache Components,
- * bagian itu dibungkus Suspense agar rute dinamis tetap dapat diprerender.
- */
 function Tautan(props: PropsDaftar) {
   return (
     <Suspense fallback={<DaftarTautan {...props} pathname={null} />}>

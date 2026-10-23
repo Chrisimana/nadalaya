@@ -92,10 +92,6 @@ function KerangkaMemuat() {
   );
 }
 
-/**
- * Tautan ke halaman riwayat. Riwayat khusus Premium, sehingga pengguna Gratis
- * melihat ikon gembok dan halaman riwayat menampilkan ajakan upgrade.
- */
 function TautanRiwayat({ terkunci }: { terkunci: boolean }) {
   return (
     <Link

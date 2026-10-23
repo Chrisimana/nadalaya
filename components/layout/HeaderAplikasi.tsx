@@ -25,7 +25,6 @@ const MENU: MenuAplikasi[] = [
   { href: "/langganan", label: "Langganan", ikon: Crown },
 ];
 
-/** Halaman latihan termasuk bagian menu Materi. */
 function aktif(pathname: string | null, href: string) {
   if (!pathname) return false;
   if (href === "/materi" && pathname.startsWith("/latihan")) return true;
@@ -101,7 +100,6 @@ function DaftarMenuAktif({ bawah }: { bawah?: boolean }) {
   return <DaftarMenu pathname={usePathname()} bawah={bawah} />;
 }
 
-/** Menu aplikasi; penanda aktif membaca URL sehingga dibungkus Suspense. */
 function Menu({ bawah }: { bawah?: boolean }) {
   return (
     <Suspense fallback={<DaftarMenu pathname={null} bawah={bawah} />}>
@@ -110,10 +108,6 @@ function Menu({ bawah }: { bawah?: boolean }) {
   );
 }
 
-/**
- * Header aplikasi untuk halaman pengguna yang sudah masuk. Di desktop menu
- * tampil di header; di ponsel menu pindah ke bilah bawah yang ringkas.
- */
 export function HeaderAplikasi() {
   return (
     <>

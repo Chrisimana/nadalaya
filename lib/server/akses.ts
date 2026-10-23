@@ -5,11 +5,6 @@ import { resetKuotaBerikutnya } from "@/lib/waktu";
 import type { BarisMateri } from "./materi";
 import { sisaKuotaHariIni, type KonteksPengguna } from "./pengguna";
 
-/**
- * UC-09 Memeriksa Hak Akses dan Kuota (FR-08, FR-09, SDD 3.2.5).
- * Materi premium ditolak untuk pengguna Gratis; kuota habis bila sudah ada
- * 3 sesi berstatus selesai sejak 00.00 WIB.
- */
 export async function periksaAkses(
   konteks: KonteksPengguna,
   materi: BarisMateri,

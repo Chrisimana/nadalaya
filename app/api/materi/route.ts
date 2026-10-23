@@ -2,7 +2,6 @@ import { KOLOM_MATERI, keMateri, type BarisMateri } from "@/lib/server/materi";
 import { wajibLogin } from "@/lib/server/pengguna";
 import { rute } from "@/lib/server/respons";
 
-/** UC-06 Melihat Daftar Materi: hanya materi aktif, premium ditandai terkunci. */
 export const GET = rute(async () => {
   const konteks = await wajibLogin();
   // Memakai klien pengguna: RLS hanya mengizinkan materi aktif.

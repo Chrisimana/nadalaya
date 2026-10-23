@@ -5,8 +5,6 @@ import { KartuAuth } from "@/components/auth/KartuAuth";
 
 export const metadata: Metadata = { title: "Atur Ulang Kata Sandi" };
 
-// Supabase mengarahkan ke sini dengan `error_code=otp_expired` bila tautan
-// sudah tidak berlaku; `galat=kedaluwarsa` dipakai untuk pengalihan internal.
 function tautanKedaluwarsa(sp: Record<string, string | string[] | undefined>) {
   return sp.error_code === "otp_expired" || sp.galat === "kedaluwarsa";
 }
