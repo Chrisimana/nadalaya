@@ -13,8 +13,8 @@ import { GagalMuat, Kerangka } from "@/components/ui/Memuat";
 import { getInfoLangganan, getPenggunaSaatIni, ubahNama } from "@/lib/api";
 import { LABEL_PAKET } from "@/lib/types";
 import { useMuat } from "@/lib/useMuat";
+import { labelSisaHari, ringkasPaket } from "@/lib/statusPaket";
 import { validasiNama } from "@/lib/validasi";
-import { formatTanggal } from "@/lib/waktu";
 
 async function ambilProfil() {
   const [pengguna, langganan] = await Promise.all([
@@ -113,10 +113,13 @@ export function Profil() {
                   {LABEL_PAKET[keadaan.data.langganan.statusPaket]}
                 </Badge>
                 <p className="text-sm text-redup">
-                  {keadaan.data.langganan.tanggalBerakhir
-                    ? `Aktif hingga ${formatTanggal(keadaan.data.langganan.tanggalBerakhir)}`
-                    : "Tanpa masa berlaku"}
+                  {ringkasPaket(keadaan.data.langganan).keterangan}
                 </p>
+                {ringkasPaket(keadaan.data.langganan).sisaHari !== null && (
+                  <p className="text-sm font-semibold text-nada-700">
+                    {labelSisaHari(ringkasPaket(keadaan.data.langganan).sisaHari)}
+                  </p>
+                )}
               </div>
             </div>
             <Button href="/langganan" varian="garis" className="self-start sm:self-auto">

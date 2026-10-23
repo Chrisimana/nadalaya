@@ -1,5 +1,11 @@
+"use client";
+
 import { Check, Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { getInfoLangganan } from "@/lib/api";
+import { bolehUjiCoba } from "@/lib/statusPaket";
+import { useMuat } from "@/lib/useMuat";
+import { TombolUjiCoba } from "./TombolUjiCoba";
 
 const keuntungan = [
   "Semua materi interval dan melodi",
@@ -7,7 +13,10 @@ const keuntungan = [
   "Grafik progres skor",
 ];
 
-export function MateriTerkunci() {
+export function MateriTerkunci({ onUjiCobaAktif }: { onUjiCobaAktif?: () => void }) {
+  const { keadaan } = useMuat(getInfoLangganan);
+  const tampilkanUjiCoba = keadaan.status === "siap" && bolehUjiCoba(keadaan.data);
+
   return (
     <section
       aria-labelledby="judul-terkunci"
@@ -24,8 +33,9 @@ export function MateriTerkunci() {
           Materi ini khusus Premium
         </h2>
         <p className="max-w-md text-sm leading-relaxed text-redup">
-          Beralih ke Premium atau aktifkan uji coba gratis 7 hari untuk membuka
-          materi ini beserta seluruh materi interval dan melodi.
+          {tampilkanUjiCoba
+            ? "Beralih ke Premium atau aktifkan uji coba gratis 7 hari untuk membuka materi ini beserta seluruh materi interval dan melodi."
+            : "Beralih ke Premium untuk membuka materi ini beserta seluruh materi interval dan melodi."}
         </p>
       </div>
       <div className="flex flex-col items-center gap-6 px-6 py-8">
@@ -37,8 +47,11 @@ export function MateriTerkunci() {
             </li>
           ))}
         </ul>
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-          <Button href="/harga" varian="aksen" ukuran="lg">
+        <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-start">
+          {tampilkanUjiCoba && (
+            <TombolUjiCoba onBerhasil={() => onUjiCobaAktif?.()} className="max-w-md" />
+          )}
+          <Button href="/langganan" varian={tampilkanUjiCoba ? "garis" : "aksen"} ukuran="lg">
             Lihat Paket Premium
           </Button>
           <Button href="/materi" varian="garis" ukuran="lg">

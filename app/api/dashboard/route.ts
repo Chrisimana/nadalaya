@@ -39,6 +39,7 @@ export const GET = rute(async () => {
           tanggal: baris.created_at,
         }
       : null,
+    ujiCobaBerakhir: profil.uji_coba_digunakan && paket === "gratis",
   };
   return Response.json(ringkasan);
 });

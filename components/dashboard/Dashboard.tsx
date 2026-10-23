@@ -25,6 +25,7 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getRingkasanDashboard, pesanGalat } from "@/lib/api";
 import { KUOTA_HARIAN_GRATIS } from "@/lib/paket";
+import { labelSisaHari, ringkasPaket } from "@/lib/statusPaket";
 import {
   LABEL_JENIS,
   LABEL_PAKET,
@@ -118,6 +119,7 @@ function IsiRingkasan({
   paket: StatusPaket;
 }) {
   const { pengguna, sisaKuota, materiTerakhir, skorTerbaru } = data;
+  const statusPaket = pengguna ? ringkasPaket(pengguna) : null;
 
   return (
     <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
@@ -127,11 +129,12 @@ function IsiRingkasan({
             <Badge varian="nada" className="self-start">
               {LABEL_PAKET[pengguna.statusPaket]}
             </Badge>
-            <p className="text-sm text-redup">
-              {pengguna.tanggalBerakhir
-                ? `Aktif hingga ${formatTanggal(pengguna.tanggalBerakhir)}`
-                : "Tanpa masa berlaku"}
-            </p>
+            <p className="text-sm text-redup">{statusPaket?.keterangan}</p>
+            {statusPaket?.sisaHari != null && (
+              <p className="text-sm font-semibold text-nada-700">
+                {labelSisaHari(statusPaket.sisaHari)}
+              </p>
+            )}
           </div>
         ) : (
           <EmptyState
@@ -306,6 +309,20 @@ export function Dashboard() {
           }
         >
           {keadaan.pesan}
+        </Alert>
+      )}
+      {keadaan.status === "siap" && keadaan.data.ujiCobaBerakhir && (
+        <Alert
+          varian="info"
+          judul="Uji coba Premium Anda telah berakhir"
+          aksi={
+            <Button href="/langganan" varian="garis" ukuran="sm">
+              Lihat Paket
+            </Button>
+          }
+        >
+          Akun Anda kembali ke paket Gratis. Berlangganan Premium untuk membuka
+          lagi seluruh materi, riwayat, dan grafik progres.
         </Alert>
       )}
       {keadaan.status === "siap" && <IsiRingkasan data={keadaan.data} paket={keadaan.paket} />}

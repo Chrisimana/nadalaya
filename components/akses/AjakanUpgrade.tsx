@@ -1,45 +1,22 @@
 "use client";
 
-import { Crown, Lock } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Alert } from "@/components/ui/Alert";
+import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { adalahBelumTersambung, aktifkanUjiCoba, pesanGalat } from "@/lib/api";
+import { TombolUjiCoba } from "./TombolUjiCoba";
 
 type Props = {
   judul?: string;
   deskripsi?: string;
+  bolehUjiCoba?: boolean;
+  onUjiCobaAktif?: () => void;
 };
 
 export function AjakanUpgrade({
   judul = "Riwayat latihan khusus Premium",
   deskripsi = "Riwayat latihan dan grafik progres tersedia di paket Premium atau Uji Coba Premium 7 hari. Skor dan grafik nada tetap tampil setiap kali Anda selesai berlatih.",
+  bolehUjiCoba = false,
+  onUjiCobaAktif,
 }: Props) {
-  const router = useRouter();
-  const [memuat, setMemuat] = useState(false);
-  const [galat, setGalat] = useState<{
-    pesan: string;
-    belumTersambung: boolean;
-  } | null>(null);
-
-  // Aktifkan uji coba langsung dari ajakan ini.
-  async function cobaPremium() {
-    setGalat(null);
-    setMemuat(true);
-    try {
-      await aktifkanUjiCoba();
-      router.refresh();
-    } catch (err) {
-      setGalat({
-        pesan: pesanGalat(err),
-        belumTersambung: adalahBelumTersambung(err),
-      });
-    } finally {
-      setMemuat(false);
-    }
-  }
-
   return (
     <section
       aria-labelledby="judul-ajakan-upgrade"
@@ -60,32 +37,17 @@ export function AjakanUpgrade({
         </p>
       </div>
       <div className="flex flex-col items-center gap-4 px-6 py-8">
-        {galat && (
-          <Alert
-            varian={galat.belumTersambung ? "peringatan" : "galat"}
-            judul="Uji coba belum dapat diaktifkan"
-            className="w-full max-w-md"
-          >
-            {galat.pesan}
-          </Alert>
-        )}
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-          <Button href="/harga" varian="garis" ukuran="lg">
-            Lihat Paket
+        <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-start">
+          <Button href="/langganan" varian={bolehUjiCoba ? "garis" : "aksen"} ukuran="lg">
+            Lihat Paket Premium
           </Button>
-          <Button
-            varian="aksen"
-            ukuran="lg"
-            onClick={cobaPremium}
-            memuat={memuat}
-            ikon={<Crown className="size-5" aria-hidden="true" />}
-          >
-            Coba Premium 7 Hari
-          </Button>
+          {bolehUjiCoba && <TombolUjiCoba onBerhasil={() => onUjiCobaAktif?.()} className="max-w-md" />}
         </div>
-        <p className="text-xs text-redup">
-          Uji coba gratis hanya dapat diaktifkan satu kali per akun.
-        </p>
+        {bolehUjiCoba && (
+          <p className="text-xs text-redup">
+            Uji coba gratis hanya dapat diaktifkan satu kali per akun.
+          </p>
+        )}
       </div>
     </section>
   );

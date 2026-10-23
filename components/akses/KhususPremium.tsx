@@ -2,7 +2,8 @@
 
 import type { ReactNode } from "react";
 import { GagalMuat, Kerangka } from "@/components/ui/Memuat";
-import { getStatusPaket } from "@/lib/api";
+import { getStatusPaketDanKuota } from "@/lib/api";
+import { bolehUjiCoba } from "@/lib/statusPaket";
 import { useMuat } from "@/lib/useMuat";
 import { AjakanUpgrade } from "./AjakanUpgrade";
 
@@ -15,7 +16,7 @@ export function KhususPremium({
   deskripsi?: string;
   children: ReactNode;
 }) {
-  const { keadaan, muatUlang } = useMuat(getStatusPaket);
+  const { keadaan, muatUlang } = useMuat(getStatusPaketDanKuota);
 
   if (keadaan.status === "memuat") return <Kerangka jumlah={3} />;
   if (keadaan.status === "galat") {
@@ -23,8 +24,15 @@ export function KhususPremium({
       <GagalMuat judul="Status paket gagal dimuat" pesan={keadaan.pesan} onMuatUlang={muatUlang} />
     );
   }
-  if (keadaan.data === "gratis") {
-    return <AjakanUpgrade judul={judul} deskripsi={deskripsi} />;
+  if (keadaan.data.statusPaket === "gratis") {
+    return (
+      <AjakanUpgrade
+        judul={judul}
+        deskripsi={deskripsi}
+        bolehUjiCoba={bolehUjiCoba(keadaan.data)}
+        onUjiCobaAktif={muatUlang}
+      />
+    );
   }
   return <>{children}</>;
 }

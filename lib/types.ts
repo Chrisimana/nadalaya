@@ -91,6 +91,8 @@ export type RingkasanDashboard = {
   sisaKuota: number | null;
   materiTerakhir: Materi | null;
   skorTerbaru: { skor: number; judulMateri: string; tanggal: string } | null;
+  /** true bila uji coba pernah dipakai dan paket kini kembali Gratis. */
+  ujiCobaBerakhir: boolean;
 };
 
 export type KodePaketBerbayar = "premium_bulanan" | "persiapan_tes";

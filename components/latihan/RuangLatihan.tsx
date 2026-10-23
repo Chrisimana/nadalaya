@@ -155,7 +155,7 @@ export function RuangLatihan({ materiId }: { materiId: string }) {
         </Alert>
       )}
 
-      {ditolak?.alasan === "materi_premium" && <MateriTerkunci />}
+      {ditolak?.alasan === "materi_premium" && <MateriTerkunci onUjiCobaAktif={muatUlang} />}
       {ditolak?.alasan === "kuota_habis" && (
         <KuotaHabis waktuReset={ditolak.waktuReset} />
       )}

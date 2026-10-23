@@ -21,7 +21,7 @@ export async function getStatusPaket(): Promise<StatusPaket> {
 }
 
 export async function aktifkanUjiCoba(): Promise<{ tanggalBerakhir: string }> {
-  throw new BelumTersambungError();
+  return minta<{ tanggalBerakhir: string }>("/api/uji-coba", { method: "POST" });
 }
 
 export async function getInfoLangganan(): Promise<InfoLangganan> {

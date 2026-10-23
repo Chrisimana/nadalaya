@@ -4,17 +4,19 @@ import { Check, CreditCard, Crown, QrCode, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { KepalaAplikasi } from "@/components/pengguna/KepalaAplikasi";
+import { Alert } from "@/components/ui/Alert";
 import { AlertServer, keGalatServer, type GalatServer } from "@/components/ui/AlertServer";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { GagalMuat, Kerangka } from "@/components/ui/Memuat";
-import { aktifkanUjiCoba, buatPesanan, getInfoLangganan } from "@/lib/api";
+import { TombolUjiCoba } from "@/components/akses/TombolUjiCoba";
+import { buatPesanan, getInfoLangganan } from "@/lib/api";
 import { DAFTAR_PAKET, formatRupiah, type InfoPaket } from "@/lib/paket";
 import { LABEL_PAKET, type KodePaketBerbayar } from "@/lib/types";
 import { useMuat } from "@/lib/useMuat";
 import { cn } from "@/lib/utils";
-import { formatTanggal } from "@/lib/waktu";
+import { bolehUjiCoba, labelSisaHari, ringkasPaket } from "@/lib/statusPaket";
 
 const PAKET_BERBAYAR = DAFTAR_PAKET.filter(
   (p): p is InfoPaket & { kode: KodePaketBerbayar } =>
@@ -79,11 +81,12 @@ function KartuBeli({
 export function Langganan() {
   const router = useRouter();
   const { keadaan, muatUlang } = useMuat(getInfoLangganan);
-  const [diproses, setDiproses] = useState<KodePaketBerbayar | "uji_coba" | null>(null);
+  const [diproses, setDiproses] = useState<KodePaketBerbayar | null>(null);
   const [galatServer, setGalatServer] = useState<{
-    untuk: KodePaketBerbayar | "uji_coba";
+    untuk: KodePaketBerbayar;
     galat: GalatServer;
   } | null>(null);
+  const [ujiCobaBaruAktif, setUjiCobaBaruAktif] = useState(false);
 
   async function bayar(paket: KodePaketBerbayar) {
     setGalatServer(null);
@@ -98,18 +101,7 @@ export function Langganan() {
     }
   }
 
-  async function cobaPremium() {
-    setGalatServer(null);
-    setDiproses("uji_coba");
-    try {
-      await aktifkanUjiCoba();
-      muatUlang();
-    } catch (err) {
-      setGalatServer({ untuk: "uji_coba", galat: keGalatServer(err) });
-    } finally {
-      setDiproses(null);
-    }
-  }
+  const paket = keadaan.status === "siap" ? ringkasPaket(keadaan.data) : null;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-10 sm:px-6">
@@ -125,6 +117,11 @@ export function Langganan() {
 
       {keadaan.status === "siap" && (
         <>
+          {ujiCobaBaruAktif && (
+            <Alert varian="sukses" judul="Uji Coba Premium aktif">
+              Selamat berlatih! Semua materi dan fitur Premium kini terbuka selama 7 hari.
+            </Alert>
+          )}
           <Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-nada-700 text-white">
@@ -136,15 +133,15 @@ export function Langganan() {
                   {LABEL_PAKET[keadaan.data.statusPaket]}
                 </p>
                 <p className="text-sm text-redup">
-                  {keadaan.data.tanggalBerakhir
-                    ? `Berakhir pada ${formatTanggal(keadaan.data.tanggalBerakhir)}`
+                  {paket?.sisaHari !== null && paket?.sisaHari !== undefined
+                    ? `${paket.keterangan} · ${labelSisaHari(paket.sisaHari)}`
                     : "Tanpa masa berlaku. 3 analisis per hari dan materi tangga nada dasar."}
                 </p>
               </div>
             </div>
           </Card>
 
-          {keadaan.data.statusPaket === "gratis" && !keadaan.data.ujiCobaDigunakan && (
+          {bolehUjiCoba(keadaan.data) && (
             <section className="latar-paranada flex flex-col gap-4 rounded-2xl border border-kuningan-200 bg-kuningan-50 p-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
                 <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white text-kuningan-600 ring-1 ring-kuningan-200">
@@ -157,26 +154,22 @@ export function Langganan() {
                   </p>
                 </div>
               </div>
-              <Button
-                varian="aksen"
-                onClick={cobaPremium}
-                memuat={diproses === "uji_coba"}
-                disabled={diproses !== null && diproses !== "uji_coba"}
-                className="self-start sm:self-auto"
-              >
-                Coba Premium 7 Hari
-              </Button>
+              <TombolUjiCoba
+                ukuran="md"
+                className="self-start sm:max-w-sm sm:self-auto"
+                onBerhasil={() => {
+                  setUjiCobaBaruAktif(true);
+                  muatUlang();
+                }}
+              />
             </section>
-          )}
-          {galatServer?.untuk === "uji_coba" && (
-            <AlertServer galat={galatServer.galat} judul="Uji coba belum dapat diaktifkan" />
           )}
 
           <section aria-labelledby="judul-beli" className="flex flex-col gap-5">
             <h2 id="judul-beli" className="font-serif text-2xl font-semibold text-nada-900">
               {keadaan.data.statusPaket === "gratis" ? "Pilih paket" : "Perpanjang paket"}
             </h2>
-            {galatServer && galatServer.untuk !== "uji_coba" && (
+            {galatServer && (
               <AlertServer galat={galatServer.galat} judul="Pesanan belum dapat dibuat" />
             )}
             <div className="grid gap-5 md:grid-cols-2">

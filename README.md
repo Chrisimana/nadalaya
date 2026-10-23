@@ -54,7 +54,7 @@
 
    `SUPABASE_SECRET_KEY` hanya dipakai di server. Jangan dibagikan dan jangan di-commit.
 
-3. Di Supabase **SQL Editor**, jalankan `supabase/schema.sql`, lalu `supabase/seed.sql`.
+3. Di Supabase **SQL Editor**, jalankan berurutan: `supabase/schema.sql`, `supabase/seed.sql`, lalu `supabase/migrasi-01-uji-coba.sql`.
 
 4. Buka **Storage** dan pastikan ada bucket privat bernama `midi`. Bucket ini dibuat oleh `schema.sql`; jika belum ada, buat secara manual. Unggah kelima berkas dari `scripts/midi/` langsung ke bucket tersebut, bukan ke dalam folder.
 
@@ -95,7 +95,7 @@ components/     Komponen antarmuka
 lib/api/        Pemanggilan API dari sisi klien
 lib/audio/      Perekam, acuan MIDI, notasi, CREPE, DTW, dan skor
 lib/server/     Logika khusus server: sesi, paket, kuota, hak akses
-supabase/       schema.sql dan seed.sql
+supabase/       schema.sql, seed.sql, dan berkas migrasi
 scripts/        Pembuat berkas MIDI contoh dan hasilnya (scripts/midi/)
 public/models/  Model CREPE untuk TensorFlow.js
 tests/          Uji otomatis analisis nada
@@ -120,7 +120,7 @@ tests/          Uji otomatis analisis nada
 | 13 | Menampilkan Skor dan Grafik Nada | Berfungsi |
 | 14 | Melihat Riwayat Latihan | Berfungsi |
 | 15 | Melihat Grafik Progres | Berfungsi |
-| 16 | Mengaktifkan Uji Coba Premium | Tampilan saja |
+| 16 | Mengaktifkan Uji Coba Premium | Berfungsi |
 | 17 | Membeli Paket Langganan | Tampilan saja |
 | 18 | Memproses Pembayaran | Tampilan saja |
 | 19 | Mengaktifkan Langganan | Belum |
@@ -133,12 +133,11 @@ tests/          Uji otomatis analisis nada
 | 26 | Melihat Statistik Latihan | Berfungsi |
 | 27 | Melihat Laporan Transaksi | Berfungsi (menunggu data pembayaran) |
 
-**Ringkasan:** 23 dari 27 fitur berfungsi (**85%**), 3 fitur baru berupa tampilan (uji coba, pembelian, dan pembayaran), dan 1 fitur belum dikerjakan. Kesepuluh fitur esensial dan seluruh fitur admin sudah berfungsi; laporan transaksi akan terisi setelah pembayaran tersedia. Riwayat latihan dan grafik progres khusus Premium; selama uji coba dan pembayaran belum tersedia, paket Premium diaktifkan langsung melalui basis data.
+**Ringkasan:** 24 dari 27 fitur berfungsi (**89%**), 2 fitur baru berupa tampilan (pembelian dan pembayaran), dan 1 fitur belum dikerjakan. Kesepuluh fitur esensial, uji coba Premium 7 hari, dan seluruh fitur admin sudah berfungsi; laporan transaksi akan terisi setelah pembayaran tersedia.
 
 ## Rencana Berikutnya
 
 1. Pembayaran paket dengan Midtrans
-2. Uji coba Premium 7 hari
-3. Penyempurnaan grafik progres
-4. SMTP email dengan alamat Nadalaya sendiri
-5. Deploy
+2. Penyempurnaan grafik progres
+3. SMTP email dengan alamat Nadalaya sendiri
+4. Deploy
