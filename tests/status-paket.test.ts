@@ -1,29 +1,44 @@
 import { describe, expect, it } from "vitest";
-import { bolehUjiCoba, labelSisaHari, ringkasPaket, sisaHari } from "@/lib/statusPaket";
+import { bolehUjiCoba, labelSisa, ringkasPaket, sisaHari } from "@/lib/statusPaket";
 
 const SEKARANG = new Date("2026-10-23T10:00:00Z");
 const JAM = 60 * 60 * 1000;
 const tambah = (ms: number) => new Date(SEKARANG.getTime() + ms).toISOString();
 
 describe("sisa hari", () => {
-  it("tepat 7 hari setelah aktivasi → 7", () => {
+  it("tepat 7 hari → 7", () => {
     expect(sisaHari(tambah(7 * 24 * JAM), SEKARANG)).toBe(7);
+    expect(labelSisa(tambah(7 * 24 * JAM), SEKARANG)).toBe("Sisa 7 hari");
   });
 
-  it("dibulatkan ke atas: 6 hari 1 jam → 7, 2 jam → 1", () => {
+  it("jam perangkat tertinggal 30 detik dari server tetap → 7, bukan 8", () => {
+    expect(sisaHari(tambah(7 * 24 * JAM + 30_000), SEKARANG)).toBe(7);
+  });
+
+  it("6 hari 23 jam → 7", () => {
+    expect(sisaHari(tambah(6 * 24 * JAM + 23 * JAM), SEKARANG)).toBe(7);
+  });
+
+  it("6 hari 1 jam → 7", () => {
     expect(sisaHari(tambah(6 * 24 * JAM + JAM), SEKARANG)).toBe(7);
-    expect(sisaHari(tambah(2 * JAM), SEKARANG)).toBe(1);
   });
 
-  it("sudah lewat → 0, tanpa masa berlaku → null", () => {
+  it("12 jam → \"Sisa 12 jam\"", () => {
+    expect(labelSisa(tambah(12 * JAM), SEKARANG)).toBe("Sisa 12 jam");
+  });
+
+  it("kurang dari 1 jam → \"Berakhir hari ini\"", () => {
+    expect(labelSisa(tambah(40 * 60 * 1000), SEKARANG)).toBe("Berakhir hari ini");
+  });
+
+  it("sudah lewat → 0", () => {
     expect(sisaHari(tambah(-JAM), SEKARANG)).toBe(0);
-    expect(sisaHari(null, SEKARANG)).toBeNull();
+    expect(labelSisa(tambah(-JAM), SEKARANG)).toBe("Sudah berakhir");
   });
 
-  it("label sisa hari", () => {
-    expect(labelSisaHari(3)).toBe("Sisa 3 hari");
-    expect(labelSisaHari(0)).toBe("Sudah berakhir");
-    expect(labelSisaHari(null)).toBeNull();
+  it("tanpa masa berlaku → null", () => {
+    expect(sisaHari(null, SEKARANG)).toBeNull();
+    expect(labelSisa(null, SEKARANG)).toBeNull();
   });
 });
 
@@ -33,6 +48,7 @@ describe("ringkasan status paket", () => {
       judul: "Gratis",
       keterangan: "Tanpa masa berlaku",
       sisaHari: null,
+      labelSisa: null,
     });
   });
 
@@ -45,6 +61,7 @@ describe("ringkasan status paket", () => {
     expect(hasil.judul).toBe("Uji Coba Premium");
     expect(hasil.keterangan).toBe("Uji Coba Premium, berakhir 31 Oktober 2026, 00.30 WIB");
     expect(hasil.sisaHari).toBe(8);
+    expect(hasil.labelSisa).toBe("Sisa 8 hari");
   });
 
   it("Premium menampilkan label Premium", () => {

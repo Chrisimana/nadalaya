@@ -25,7 +25,7 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getRingkasanDashboard, pesanGalat } from "@/lib/api";
 import { KUOTA_HARIAN_GRATIS } from "@/lib/paket";
-import { labelSisaHari, ringkasPaket } from "@/lib/statusPaket";
+import { ringkasPaket } from "@/lib/statusPaket";
 import {
   LABEL_JENIS,
   LABEL_PAKET,
@@ -130,10 +130,8 @@ function IsiRingkasan({
               {LABEL_PAKET[pengguna.statusPaket]}
             </Badge>
             <p className="text-sm text-redup">{statusPaket?.keterangan}</p>
-            {statusPaket?.sisaHari != null && (
-              <p className="text-sm font-semibold text-nada-700">
-                {labelSisaHari(statusPaket.sisaHari)}
-              </p>
+            {statusPaket?.labelSisa && (
+              <p className="text-sm font-semibold text-nada-700">{statusPaket.labelSisa}</p>
             )}
           </div>
         ) : (

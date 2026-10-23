@@ -16,7 +16,7 @@ import { DAFTAR_PAKET, formatRupiah, type InfoPaket } from "@/lib/paket";
 import { LABEL_PAKET, type KodePaketBerbayar } from "@/lib/types";
 import { useMuat } from "@/lib/useMuat";
 import { cn } from "@/lib/utils";
-import { bolehUjiCoba, labelSisaHari, ringkasPaket } from "@/lib/statusPaket";
+import { bolehUjiCoba, ringkasPaket } from "@/lib/statusPaket";
 
 const PAKET_BERBAYAR = DAFTAR_PAKET.filter(
   (p): p is InfoPaket & { kode: KodePaketBerbayar } =>
@@ -133,8 +133,8 @@ export function Langganan() {
                   {LABEL_PAKET[keadaan.data.statusPaket]}
                 </p>
                 <p className="text-sm text-redup">
-                  {paket?.sisaHari !== null && paket?.sisaHari !== undefined
-                    ? `${paket.keterangan} · ${labelSisaHari(paket.sisaHari)}`
+                  {paket?.labelSisa
+                    ? `${paket.keterangan} · ${paket.labelSisa}`
                     : "Tanpa masa berlaku. 3 analisis per hari dan materi tangga nada dasar."}
                 </p>
               </div>

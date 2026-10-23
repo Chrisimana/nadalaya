@@ -13,7 +13,7 @@ import { GagalMuat, Kerangka } from "@/components/ui/Memuat";
 import { getInfoLangganan, getPenggunaSaatIni, ubahNama } from "@/lib/api";
 import { LABEL_PAKET } from "@/lib/types";
 import { useMuat } from "@/lib/useMuat";
-import { labelSisaHari, ringkasPaket } from "@/lib/statusPaket";
+import { ringkasPaket } from "@/lib/statusPaket";
 import { validasiNama } from "@/lib/validasi";
 
 async function ambilProfil() {
@@ -115,9 +115,9 @@ export function Profil() {
                 <p className="text-sm text-redup">
                   {ringkasPaket(keadaan.data.langganan).keterangan}
                 </p>
-                {ringkasPaket(keadaan.data.langganan).sisaHari !== null && (
+                {ringkasPaket(keadaan.data.langganan).labelSisa && (
                   <p className="text-sm font-semibold text-nada-700">
-                    {labelSisaHari(ringkasPaket(keadaan.data.langganan).sisaHari)}
+                    {ringkasPaket(keadaan.data.langganan).labelSisa}
                   </p>
                 )}
               </div>
