@@ -1,0 +1,4 @@
+# Build args NEXT_PUBLIC dibaca dari .env.local, bukan .env.
+include:
+  - path: compose.web.yml
+    env_file: .env.local
