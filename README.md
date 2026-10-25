@@ -36,7 +36,7 @@
 
 ## Cara Menjalankan
 
-**Prasyarat:** Node.js 20 atau lebih baru, serta proyek Supabase.
+**Prasyarat:** Node.js 24.22.1 atau lebih baru (lihat `.nvmrc`), serta proyek Supabase.
 
 1. Pasang dependensi:
 
