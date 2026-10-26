@@ -1,99 +1,36 @@
 import { wajibLogin } from "@/lib/server/pengguna";
 import { bacaJson, GalatRute, rute, wajibUuid } from "@/lib/server/respons";
+import { galatSesi, migrasiBelumDijalankan, validasiHasil } from "@/lib/sesiAnalisis";
 import { klienAdmin } from "@/lib/supabase/admin";
 
 const PESAN_GAGAL_SIMPAN =
   "Riwayat latihan gagal disimpan. Skor tetap ditampilkan, tetapi tidak tercatat di riwayat.";
 
-const MAKS_TITIK = 3000;
-const MAKS_NADA = 1000;
-
-function angka(nilai: unknown): number | null {
-  return typeof nilai === "number" && Number.isFinite(nilai) ? nilai : null;
-}
-
-function bersihkan<K extends string>(
-  nilai: unknown,
-  kolom: readonly K[],
-  maks: number,
-  bolehNull: K[] = [],
-): Record<K, number | null>[] {
-  if (!Array.isArray(nilai) || nilai.length > maks) {
-    throw new GalatRute(400, "Data hasil analisis tidak valid.", "permintaan_tidak_valid");
-  }
-  return nilai.map((item) => {
-    const hasil = {} as Record<K, number | null>;
-    for (const k of kolom) {
-      const v = angka((item as Record<string, unknown> | null)?.[k]);
-      if (v === null && !bolehNull.includes(k)) {
-        throw new GalatRute(400, "Data hasil analisis tidak valid.", "permintaan_tidak_valid");
-      }
-      hasil[k] = v;
-    }
-    return hasil;
-  });
-}
-
 export const POST = rute(async (req: Request, ctx: RouteContext<"/api/sesi/[id]/hasil">) => {
-  const konteks = await wajibLogin();
+  const { uid } = await wajibLogin();
   const sesiId = wajibUuid((await ctx.params).id, "ID sesi");
-  const isi = await bacaJson(req);
 
-  const skor = angka(isi.skor);
-  if (skor === null || skor < 0 || skor > 100) {
-    throw new GalatRute(400, "Skor tidak valid.", "permintaan_tidak_valid");
-  }
-  const kontur = bersihkan(isi.kontur, ["waktu", "midi"] as const, MAKS_TITIK, ["midi"]);
-  const acuan = bersihkan(isi.acuan, ["midi", "waktu", "durasi"] as const, MAKS_NADA);
-  const nadaMeleset = bersihkan(
-    isi.nadaMeleset,
-    ["urutan", "midiAcuan", "selisihCent", "waktu"] as const,
-    MAKS_NADA,
-    ["selisihCent"],
-  );
+  const hasil = validasiHasil(await bacaJson(req));
+  if (!hasil.sah) throw new GalatRute(400, hasil.pesan, "permintaan_tidak_valid");
+  const { skor, kontur, acuan, nadaMeleset } = hasil.data;
 
-  const admin = klienAdmin();
-  const { data: sesi, error: galatSesi } = await admin
-    .from("sesi_analisis")
-    .select("id, materi_id, status")
-    .eq("id", sesiId)
-    .eq("user_id", konteks.uid)
-    .maybeSingle();
-  if (galatSesi) throw galatSesi;
-  if (!sesi) throw new GalatRute(404, "Sesi analisis tidak ditemukan.", "sesi_tidak_ditemukan");
-  const { materi_id, status } = sesi as { materi_id: string; status: string };
-  if (status !== "dimulai") {
-    throw new GalatRute(409, "Sesi analisis ini sudah selesai atau dibatalkan.", "sesi_tidak_aktif");
-  }
-
-  const { data: riwayat, error: galatSimpan } = await admin
-    .from("riwayat_latihan")
-    .insert({
-      user_id: konteks.uid,
-      materi_id,
-      sesi_id: sesiId,
-      skor: Math.round(skor),
-      kontur_pitch: { titik: kontur, acuan },
-      nada_meleset: nadaMeleset,
-    } as never)
-    .select("id")
-    .single();
-  if (galatSimpan) {
-    console.error("[riwayat] gagal menyimpan", galatSimpan);
-    throw new GalatRute(500, PESAN_GAGAL_SIMPAN, "riwayat_gagal");
-  }
-  const riwayatId = (riwayat as { id: string }).id;
-
-  const { error: galatSelesai } = await admin
-    .from("sesi_analisis")
-    .update({ status: "selesai" } as never)
-    .eq("id", sesiId);
-  if (galatSelesai) {
-    // Kembalikan ke keadaan semula agar riwayat dan kuota tetap konsisten.
-    console.error("[riwayat] gagal menandai sesi selesai", galatSelesai);
-    await admin.from("riwayat_latihan").delete().eq("id", riwayatId);
+  // Riwayat disimpan dan sesi ditandai selesai dalam satu transaksi.
+  const { data, error } = await klienAdmin().rpc("selesaikan_sesi", {
+    p_user: uid,
+    p_sesi: sesiId,
+    p_skor: skor,
+    p_kontur: { titik: kontur, acuan },
+    p_nada: nadaMeleset,
+  } as never);
+  if (error) {
+    if (migrasiBelumDijalankan(error)) {
+      console.error("[sesi] fungsi selesaikan_sesi belum dibuat (jalankan migrasi-02-keamanan-sesi.sql)");
+    }
+    const dikenal = galatSesi(error);
+    if (dikenal) throw new GalatRute(dikenal.status, dikenal.pesan, dikenal.kode);
+    console.error("[riwayat] gagal menyimpan", error.code, error.message);
     throw new GalatRute(500, PESAN_GAGAL_SIMPAN, "riwayat_gagal");
   }
 
-  return Response.json({ riwayatId });
+  return Response.json({ riwayatId: data as string });
 });

@@ -2,7 +2,7 @@
 
 **Tanggal:** 27 Oktober 2026
 **Cakupan:** kode di repositori (API route, autentikasi, proxy, konfigurasi, SQL, Docker), hasil `npm run build`, riwayat git, dan `npm audit`.
-**Status:** Tahap 1, laporan saja. Belum ada kode yang diubah.
+**Status:** Tahap 2 berjalan. KS-01, KS-03, KS-08, dan KS-13 sudah diperbaiki di kode. Perbaikan KS-01, KS-03, dan KS-13 baru aktif setelah [`supabase/migrasi-02-keamanan-sesi.sql`](supabase/migrasi-02-keamanan-sesi.sql) dijalankan.
 
 Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`supabase/audit-keamanan.sql`](supabase/audit-keamanan.sql) di SQL Editor dan bandingkan hasilnya dengan "Harapan" di setiap bagian.
 
@@ -14,23 +14,23 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
 | Sedang | 6 | KS-02 – KS-07 |
 | Rendah | 8 | KS-08 – KS-15 |
 
-| ID | Area | Judul | Risiko |
-|---|---|---|---|
-| KS-01 | API | Kuota harian 3 analisis bisa ditembus | **Tinggi** |
-| KS-02 | Autentikasi | *Open redirect* lewat parameter `next` dan `lanjut` | Sedang |
-| KS-03 | API | Sesi analisis tanpa batas waktu dan penyelesaian tidak atomik | Sedang |
-| KS-04 | API | Ukuran body permintaan tidak dibatasi | Sedang |
-| KS-05 | Autentikasi | Tidak ada pembatasan percobaan di aplikasi | Sedang |
-| KS-06 | Autentikasi | Cookie sesi tidak `HttpOnly` dan tidak `Secure` | Sedang |
-| KS-07 | Header | Header keamanan belum ada | Sedang |
-| KS-08 | API | Rentang angka data hasil analisis tidak dibatasi | Rendah |
-| KS-09 | Autentikasi | Pendaftaran membocorkan email yang sudah terdaftar | Rendah |
-| KS-10 | Autentikasi | Ubah kata sandi tanpa cek akun aktif dan tanpa kata sandi lama | Rendah |
-| KS-11 | API | Tidak ada pemeriksaan `Origin`/`Content-Type` (CSRF) | Rendah |
-| KS-12 | Autentikasi | Alamat tautan email bisa diambil dari header `Host` | Rendah |
-| KS-13 | Database | Hak eksekusi beberapa fungsi belum dicabut | Rendah |
-| KS-14 | Unggah MIDI | Batas ukuran dicek setelah seluruh berkas dibaca | Rendah |
-| KS-15 | Logging | Objek galat database dicatat utuh | Rendah |
+| ID | Area | Judul | Risiko | Status |
+|---|---|---|---|---|
+| KS-01 | API | Kuota harian 3 analisis bisa ditembus | **Tinggi** | Diperbaiki |
+| KS-02 | Autentikasi | *Open redirect* lewat parameter `next` dan `lanjut` | Sedang | Terbuka |
+| KS-03 | API | Sesi analisis tanpa batas waktu dan penyelesaian tidak atomik | Sedang | Diperbaiki |
+| KS-04 | API | Ukuran body permintaan tidak dibatasi | Sedang | Terbuka |
+| KS-05 | Autentikasi | Tidak ada pembatasan percobaan di aplikasi | Sedang | Terbuka |
+| KS-06 | Autentikasi | Cookie sesi tidak `HttpOnly` dan tidak `Secure` | Sedang | Terbuka |
+| KS-07 | Header | Header keamanan belum ada | Sedang | Terbuka |
+| KS-08 | API | Rentang angka data hasil analisis tidak dibatasi | Rendah | Diperbaiki |
+| KS-09 | Autentikasi | Pendaftaran membocorkan email yang sudah terdaftar | Rendah | Terbuka |
+| KS-10 | Autentikasi | Ubah kata sandi tanpa cek akun aktif dan tanpa kata sandi lama | Rendah | Terbuka |
+| KS-11 | API | Tidak ada pemeriksaan `Origin`/`Content-Type` (CSRF) | Rendah | Terbuka |
+| KS-12 | Autentikasi | Alamat tautan email bisa diambil dari header `Host` | Rendah | Terbuka |
+| KS-13 | Database | Hak eksekusi beberapa fungsi belum dicabut | Rendah | Diperbaiki |
+| KS-14 | Unggah MIDI | Batas ukuran dicek setelah seluruh berkas dibaca | Rendah | Terbuka |
+| KS-15 | Logging | Objek galat database dicatat utuh | Rendah | Terbuka |
 
 ---
 
@@ -54,6 +54,17 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - `mulai_sesi(p_user, p_materi)`: kunci baris pengguna (`for update`), lalu hitung *sesi selesai hari ini* ditambah *sesi `dimulai` yang belum kedaluwarsa*. Tolak bila jumlahnya sudah 3.
   - `selesaikan_sesi(p_user, p_sesi, skor, kontur, nada)`: dalam satu transaksi, kunci sesi, pastikan miliknya, berstatus `dimulai`, dan berumur ≤ 15 menit. Hitung ulang kuota, lalu sisipkan riwayat dan ubah status menjadi `selesai`.
   - Tambahkan kolom `selesai_at` (atau hitung dari `riwayat_latihan.created_at`) agar kuota dihitung dari waktu selesai.
+- **Status:** ✅ **Diperbaiki** (aktif setelah migrasi 02 dijalankan).
+  - **Migrasi baru:** [supabase/migrasi-02-keamanan-sesi.sql](supabase/migrasi-02-keamanan-sesi.sql).
+  - **Kolom `selesai_at`:** kolom baru di `sesi_analisis`. Untuk sesi lama, nilainya diisi dari `riwayat_latihan.created_at`. `jumlah_sesi_selesai_hari_ini` kini menghitung dari `selesai_at` sejak 00.00 WIB.
+  - **`mulai_sesi(p_user, p_materi)`:**
+    - Mengunci baris pengguna (`for update`) dan mengecek akun aktif, materi aktif, dan hak Premium.
+    - Menandai batal sesi `dimulai` yang lebih dari 15 menit.
+    - Untuk pengguna Gratis, menolak bila *sesi selesai hari ini + sesi `dimulai`* sudah mencapai 3. Pesannya `kuota_habis` bila 3 sesi sudah selesai, atau `sesi_berjalan` bila masih ada analisis yang berjalan.
+    - Premium dan uji coba tidak dibatasi.
+  - **`selesaikan_sesi(p_user, p_sesi, p_skor, p_kontur, p_nada)`:** dalam satu transaksi, mengunci pengguna dan sesi, mengecek kepemilikan, status `dimulai`, umur ≤ 15 menit, hak Premium, dan kuota (dihitung ulang). Setelah itu, fungsi ini menyimpan riwayat dan mengubah status menjadi `selesai` beserta `selesai_at`, hanya bila status masih `dimulai`.
+  - **Route:** [app/api/sesi/route.ts](app/api/sesi/route.ts) dan [app/api/sesi/[id]/hasil/route.ts](app/api/sesi/[id]/hasil/route.ts) memanggil kedua fungsi itu lewat `klienAdmin()`. Galat database diterjemahkan oleh [lib/sesiAnalisis.ts](lib/sesiAnalisis.ts). Sebelum migrasi dijalankan, route membalas 503 "Fitur analisis sedang diperbarui", bukan 500.
+  - **Tes:** [tests/sesi-analisis.test.ts](tests/sesi-analisis.test.ts) menguji pemetaan galat, termasuk saat migrasi belum dijalankan. Logika kuota dan kunci baris berada di database, jadi belum bisa dites tanpa Supabase.
 
 ### KS-02 · *Open redirect* lewat parameter `next` dan `lanjut`
 
@@ -92,6 +103,10 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - **Tidak atomik:** pengecekan status, penyimpanan riwayat, dan perubahan status menjadi `selesai` adalah tiga permintaan terpisah. Perubahan status juga tidak memfilter `status = 'dimulai'`, jadi sesi yang dibatalkan di antara langkah-langkah itu bisa berubah menjadi `selesai`.
 - **Dampak:** Memperbesar celah KS-01 dan membuat data sesi tidak konsisten.
 - **Usulan perbaikan:** Sudah tercakup oleh fungsi `selesaikan_sesi` di KS-01, dengan batas 15 menit. Pengecekan yang sama juga perlu dipasang di route batal.
+- **Status:** ✅ **Diperbaiki** (aktif setelah migrasi 02 dijalankan).
+  - **Route hasil:** `selesaikan_sesi` menolak sesi berumur lebih dari 15 menit (`sesi_kedaluwarsa`, 410). Pengecekan, penyimpanan riwayat, dan perubahan status kini satu transaksi dengan kunci baris. Status hanya berubah bila masih `dimulai`.
+  - **Route batal:** [app/api/sesi/[id]/batal/route.ts](app/api/sesi/[id]/batal/route.ts) memakai fungsi baru `batalkan_sesi(p_user, p_sesi)`, yang hanya membatalkan sesi milik pengguna yang masih `dimulai`. Sesi milik orang lain atau yang tidak ada dibalas 404.
+  - **Sesi lama:** sesi `dimulai` yang kedaluwarsa ditandai batal setiap kali pengguna memulai sesi baru.
 
 ### KS-04 · Ukuran body permintaan tidak dibatasi
 
@@ -163,6 +178,21 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - **Belum dibatasi:** nilai di dalam kontur, acuan, dan nada meleset hanya dicek sebagai angka hingga. `midi` bisa `1e300`, `durasi` dan `waktu` bisa negatif, dan `urutan` bisa pecahan.
 - **Dampak:** Grafik riwayat dan statistik bisa rusak atau tampil aneh. Tidak ada kebocoran data.
 - **Usulan perbaikan:** Batasi `midi` 0–127, `waktu` 0–120 detik, `durasi` > 0 dan ≤ 60, `selisihCent` −2400 sampai 2400, dan `urutan` bilangan bulat ≥ 0.
+- **Status:** ✅ **Diperbaiki.**
+  - **Lokasi baru:** validasi dipindah ke `validasiHasil()` di [lib/sesiAnalisis.ts](lib/sesiAnalisis.ts).
+  - **Batas yang dipasang:**
+
+    | Kolom | Batas |
+    |---|---|
+    | `midi` | 0–127; bilangan bulat untuk acuan dan nada meleset; pecahan atau `null` untuk kontur |
+    | `waktu` | 0–300 detik |
+    | `durasi` | > 0 dan ≤ 60 detik |
+    | `selisihCent` | −2400 sampai 2400 atau `null` |
+    | `urutan` | bilangan bulat 0–1000 |
+    | `skor` | 0–100 |
+  - **Lain-lain:** nilai `null`, kolom yang hilang, dan `Infinity` ditolak. Kolom asing dibuang.
+  - **Penyesuaian dari usulan:** batas `waktu` dinaikkan dari 120 menjadi 300 detik. Waktu kontur dan nada memakai skala acuan, bukan skala rekaman, dan analisis masih menerima acuan sampai ±200 detik (60 detik rekaman dibagi porsi minimal 0,3). Batas 120 detik akan menolak hasil yang sah.
+  - **Tes:** 10 kasus rentang di [tests/sesi-analisis.test.ts](tests/sesi-analisis.test.ts).
 
 ### KS-09 · Pendaftaran membocorkan email yang sudah terdaftar
 
@@ -227,6 +257,11 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   | `status_paket_efektif`, `jumlah_sesi_selesai_hari_ini`, `awal_hari_wib` | SECURITY INVOKER | Tunduk pada RLS, jadi pengguna hanya bisa melihat datanya sendiri. |
 - **Dampak:** Hampir tidak ada saat ini. Permukaan serangan saja yang lebih luas dari perlu.
 - **Usulan perbaikan:** Buat migrasi baru yang menjalankan `revoke execute ... from public, anon, authenticated` untuk kelima fungsi, lalu `grant execute ... to service_role` untuk tiga fungsi yang dipanggil server.
+- **Status:** ✅ **Diperbaiki** (aktif setelah migrasi 02 dijalankan).
+  - **Pencabutan:** migrasi 02 mencabut hak eksekusi `public`, `anon`, dan `authenticated` dari kelima fungsi ini, juga dari keempat fungsi baru (`mulai_sesi`, `selesaikan_sesi`, `batalkan_sesi`, `batalkan_sesi_kedaluwarsa`).
+  - **Pemberian ke `service_role`:** `status_paket_efektif`, `jumlah_sesi_selesai_hari_ini`, `awal_hari_wib`, `mulai_sesi`, `selesaikan_sesi`, dan `batalkan_sesi`.
+  - **SECURITY DEFINER:** semua fungsi baru yang SECURITY DEFINER memakai `set search_path = ''`.
+  - **Verifikasi:** jalankan bagian 5 dan 6 di [supabase/audit-keamanan.sql](supabase/audit-keamanan.sql). Kolom `anon_boleh` dan `authenticated_boleh` harus `false` untuk semua fungsi.
 
 ### KS-14 · Batas ukuran unggah MIDI dicek setelah seluruh berkas dibaca
 
@@ -362,9 +397,9 @@ Setelah diterapkan, uji dengan DevTools Console: tidak boleh ada pelanggaran CSP
 
 ## Urutan perbaikan yang disarankan
 
-1. **KS-01 + KS-03:** fungsi atomik `mulai_sesi`/`selesaikan_sesi` dan batas 15 menit (migrasi baru dan dua route).
+1. ~~**KS-01 + KS-03:** fungsi atomik `mulai_sesi`/`selesaikan_sesi` dan batas 15 menit.~~ Selesai (bersama KS-08 dan KS-13).
 2. **KS-02:** satu fungsi `jalurInternal()` beserta tes.
 3. **KS-06 + KS-07:** cookie `HttpOnly`/`Secure` dan header keamanan. Uji di browser setelahnya.
 4. **KS-04 + KS-11 + KS-14:** batas ukuran body dan pemeriksaan `Content-Type`/`Origin` di `bacaJson`/`rute`.
 5. **KS-05:** pembatas percobaan.
-6. **KS-08, KS-10, KS-12, KS-13, KS-15:** perbaikan kecil. KS-09 opsional.
+6. **KS-10, KS-12, KS-15:** perbaikan kecil. KS-09 opsional.
