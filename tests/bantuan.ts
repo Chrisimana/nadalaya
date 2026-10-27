@@ -48,6 +48,11 @@ export function segmenDariNada(nada: NadaAcuan[], geser = 0, mulai = 0): Segmen[
   return nada.map((n) => ({ midi: n.midi + geser, mulai: mulai + n.waktu, durasi: n.durasi }));
 }
 
+/** Materi dimainkan `kecepatan` kali lebih cepat (1,3 = lebih cepat, 0,8 = lebih lambat). */
+export function segmenBertempo(nada: NadaAcuan[], kecepatan: number, mulai = 0.5): Segmen[] {
+  return nada.map((n) => ({ midi: n.midi, mulai: mulai + n.waktu / kecepatan, durasi: n.durasi / kecepatan }));
+}
+
 export function durasiNada(nada: NadaAcuan[]) {
   return Math.max(...nada.map((n) => n.waktu + n.durasi));
 }

@@ -27,7 +27,7 @@ export function analisisKontur(kontur: TitikPitch[], acuan: NadaAcuan[]): HasilA
   }
 
   const selaras = selaraskan(kontur, acuan);
-  if (selaras.nyanyian.length === 0) throw new NadaTidakTerdeteksiError();
+  if (selaras.nyanyian.every((b) => b.midi === null)) throw new NadaTidakTerdeteksiError();
 
   const deviasi = deviasiPerNada(acuan, selaras);
   return {

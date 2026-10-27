@@ -4,7 +4,11 @@ import { bersihkanKontur } from "./kontur";
 export const FPS_ANALISIS = 20;
 
 export type BingkaiAcuan = { waktu: number; midi: number; indeksNada: number };
-export type BingkaiNyanyian = { waktu: number; midi: number };
+/** midi null = bingkai tanpa suara; tetap disimpan agar skala waktu nyanyian utuh. */
+export type BingkaiNyanyian = { waktu: number; midi: number | null };
+
+/** Biaya (semiton) memasangkan acuan dengan bingkai tanpa suara. */
+export const BIAYA_TANPA_SUARA = 2;
 
 function median(nilai: number[]) {
   if (nilai.length === 0) return NaN;
@@ -33,10 +37,19 @@ export function turunkanResolusi(kontur: TitikPitch[], fps = FPS_ANALISIS): Bing
     if (t.midi !== null) isi.bersuara.push(t.midi);
     kelompok.set(k, isi);
   }
-  return [...kelompok.entries()]
-    .sort((a, b) => a[0] - b[0])
-    .filter(([, isi]) => isi.bersuara.length * 2 >= isi.total && isi.bersuara.length > 0)
-    .map(([k, isi]) => ({ waktu: k / fps, midi: median(isi.bersuara) }));
+  const urut = [...kelompok.keys()].sort((a, b) => a - b);
+  if (urut.length === 0) return [];
+  const hasil: BingkaiNyanyian[] = [];
+  for (let k = urut[0]; k <= urut[urut.length - 1]; k++) {
+    const isi = kelompok.get(k);
+    const bersuara = isi && isi.bersuara.length > 0 && isi.bersuara.length * 2 >= isi.total;
+    hasil.push({ waktu: k / fps, midi: bersuara ? median(isi.bersuara) : null });
+  }
+  return hasil;
+}
+
+function midiBersuara(bingkai: BingkaiNyanyian[]) {
+  return bingkai.flatMap((b) => (b.midi === null ? [] : [b.midi]));
 }
 
 export function geserOktaf(nyanyian: number[], acuan: number[]) {
@@ -45,11 +58,18 @@ export function geserOktaf(nyanyian: number[], acuan: number[]) {
   return Math.round(selisih / 12) * 12;
 }
 
+/** Lebar pita Sakoe-Chiba; melebar bila nyanyian lebih pendek dari acuan (dinyanyikan lebih cepat). */
+export function lebarPitaBawaan(N: number, M: number) {
+  return Math.max(FPS_ANALISIS, Math.ceil(0.5 * N), N - M + FPS_ANALISIS);
+}
+
+/** nyanyian berisi NaN untuk bingkai tanpa suara. */
 export function dtw(acuan: number[], nyanyian: number[], lebarPita?: number): Array<[number, number]> {
   const N = acuan.length;
   const M = nyanyian.length;
   if (N === 0 || M === 0) return [];
-  const w = lebarPita ?? Math.max(FPS_ANALISIS, Math.ceil(0.35 * N));
+  const w = lebarPita ?? lebarPitaBawaan(N, M);
+  const jarak = (a: number, n: number) => (Number.isNaN(n) ? BIAYA_TANPA_SUARA : Math.abs(a - n));
 
   const biaya = new Float64Array(N * M).fill(Infinity);
   const awal = new Int32Array(N * M).fill(-1);
@@ -58,29 +78,27 @@ export function dtw(acuan: number[], nyanyian: number[], lebarPita?: number): Ar
   const idx = (i: number, j: number) => i * M + j;
 
   for (let j = 0; j < M; j++) {
-    biaya[idx(0, j)] = Math.abs(acuan[0] - nyanyian[j]);
+    biaya[idx(0, j)] = jarak(acuan[0], nyanyian[j]);
     awal[idx(0, j)] = j;
   }
 
   for (let i = 1; i < N; i++) {
     for (let j = 0; j < M; j++) {
-      let terbaik = Infinity;
-      let arah = 0;
-      let mulaiJalur = -1;
-      const calon: Array<[number, number, number]> = [];
-      if (j > 0) calon.push([idx(i - 1, j - 1), 1, 0]);
-      calon.push([idx(i - 1, j), 2, 0]);
-      if (j > 0) calon.push([idx(i, j - 1), 3, 0]);
-      for (const [k, a] of calon) {
-        const b = biaya[k];
-        if (b < terbaik) {
-          terbaik = b;
-          arah = a;
-          mulaiJalur = awal[k];
-        }
+      // Urutan pemeriksaan (diagonal, atas, kiri) menentukan pilihan saat biaya sama.
+      let k = idx(i - 1, j);
+      let arah = 2;
+      if (j > 0 && biaya[idx(i - 1, j - 1)] <= biaya[k]) {
+        k = idx(i - 1, j - 1);
+        arah = 1;
       }
+      if (j > 0 && biaya[idx(i, j - 1)] < biaya[k]) {
+        k = idx(i, j - 1);
+        arah = 3;
+      }
+      const terbaik = biaya[k];
+      const mulaiJalur = awal[k];
       if (!Number.isFinite(terbaik) || Math.abs(j - mulaiJalur - i) > w) continue;
-      biaya[idx(i, j)] = terbaik + Math.abs(acuan[i] - nyanyian[j]);
+      biaya[idx(i, j)] = terbaik + jarak(acuan[i], nyanyian[j]);
       awal[idx(i, j)] = mulaiJalur;
       asal[idx(i, j)] = arah;
     }
@@ -129,26 +147,23 @@ export function selaraskan(kontur: TitikPitch[], nada: NadaAcuan[], fps = FPS_AN
   const midiAcuan = acuan.map((b) => b.midi);
 
   function pasangkan(geseran: number) {
-    const tergeser = nyanyian.map((b) => b.midi - geseran);
+    const tergeser = nyanyian.map((b) => (b.midi === null ? NaN : b.midi - geseran));
     return { tergeser, jalur: dtw(midiAcuan, tergeser) };
   }
 
-  let geseran = geserOktaf(
-    nyanyian.map((b) => b.midi),
-    midiAcuan,
-  );
+  let geseran = geserOktaf(midiBersuara(nyanyian), midiAcuan);
   let { tergeser, jalur } = pasangkan(geseran);
-  const terpasang = jalur.map(([, j]) => nyanyian[j].midi);
+  const pasanganBersuara = jalur.filter(([, j]) => nyanyian[j].midi !== null);
   const perbaikan = geserOktaf(
-    terpasang,
-    jalur.map(([i]) => midiAcuan[i]),
+    pasanganBersuara.map(([, j]) => nyanyian[j].midi!),
+    pasanganBersuara.map(([i]) => midiAcuan[i]),
   );
-  if (jalur.length > 0 && perbaikan !== geseran) {
+  if (pasanganBersuara.length > 0 && perbaikan !== geseran) {
     geseran = perbaikan;
     ({ tergeser, jalur } = pasangkan(geseran));
   }
 
   const terpetakan: number[][] = acuan.map(() => []);
-  for (const [i, j] of jalur) terpetakan[i].push(tergeser[j]);
+  for (const [i, j] of jalur) if (!Number.isNaN(tergeser[j])) terpetakan[i].push(tergeser[j]);
   return { acuan, nyanyian, geseran, terpetakan };
 }

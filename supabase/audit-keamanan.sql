@@ -90,7 +90,13 @@ from storage.objects
 where bucket_id = 'midi'
 group by bucket_id;
 
--- 10. Akun admin (memastikan hanya akun yang memang dimaksud)
+-- 10. Jadwal pg_cron
+-- Harapan: satu job 'perbarui-paket-kedaluwarsa', jadwal '0 17 * * *', active = true.
+select jobid, jobname, schedule, command, active
+from cron.job
+order by jobname;
+
+-- 11. Akun admin (memastikan hanya akun yang memang dimaksud)
 select id, email, is_aktif, created_at
 from public.users
 where peran = 'admin'

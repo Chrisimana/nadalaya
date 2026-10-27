@@ -2,7 +2,7 @@
 
 **Tanggal:** 27 Oktober 2026
 **Cakupan:** kode di repositori (API route, autentikasi, proxy, konfigurasi, SQL, Docker), hasil `npm run build`, riwayat git, dan `npm audit`.
-**Status:** Selesai. Kelima belas temuan sudah diperbaiki; sisa risikonya tercatat di [Risiko yang diterima](#risiko-yang-diterima). Perbaikan KS-01, KS-03, dan KS-13 baru aktif setelah [`supabase/migrasi-02-keamanan-sesi.sql`](supabase/migrasi-02-keamanan-sesi.sql) dijalankan, dan bagian opsional KS-14 setelah [`supabase/migrasi-03-bucket-midi.sql`](supabase/migrasi-03-bucket-midi.sql).
+**Status:** Selesai. Kelima belas temuan sudah diperbaiki; sisa risikonya tercatat di [Risiko yang diterima](#risiko-yang-diterima). Perbaikan KS-01, KS-03, dan KS-13 baru aktif setelah [`supabase/migrasi-02-keamanan-sesi.sql`](supabase/migrasi-02-keamanan-sesi.sql) dijalankan, dan bagian opsional KS-14 setelah [`supabase/migrasi-04-bucket-midi.sql`](supabase/migrasi-04-bucket-midi.sql).
 
 Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`supabase/audit-keamanan.sql`](supabase/audit-keamanan.sql) di SQL Editor dan bandingkan hasilnya dengan "Harapan" di setiap bagian.
 
@@ -313,7 +313,7 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - **Pencabutan:** migrasi 02 mencabut hak eksekusi `public`, `anon`, dan `authenticated` dari kelima fungsi ini, juga dari keempat fungsi baru (`mulai_sesi`, `selesaikan_sesi`, `batalkan_sesi`, `batalkan_sesi_kedaluwarsa`).
   - **Pemberian ke `service_role`:** `status_paket_efektif`, `jumlah_sesi_selesai_hari_ini`, `awal_hari_wib`, `mulai_sesi`, `selesaikan_sesi`, dan `batalkan_sesi`.
   - **SECURITY DEFINER:** semua fungsi baru yang SECURITY DEFINER memakai `set search_path = ''`.
-  - **Tambahan setelah audit SQL:** migrasi 02 juga mencabut `TRUNCATE`, `TRIGGER`, dan `REFERENCES` dari `authenticated` di kelima tabel, serta hak eksekusi `set_updated_at`.
+  - **Tambahan setelah audit SQL:** migrasi 02 juga mencabut `TRUNCATE`, `TRIGGER`, dan `REFERENCES` dari `authenticated` di kelima tabel, serta hak eksekusi `set_updated_at`. Perintah yang sama juga dicatat di [supabase/migrasi-03-jadwal-dan-hak.sql](supabase/migrasi-03-jadwal-dan-hak.sql) bersama jadwal `pg_cron`; keduanya aman dijalankan ulang.
   - **Verifikasi:** jalankan bagian 5 dan 6 di [supabase/audit-keamanan.sql](supabase/audit-keamanan.sql). Kolom `anon_boleh` dan `authenticated_boleh` harus `false` untuk semua fungsi.
 
 ### KS-14 · Batas ukuran unggah MIDI dicek setelah seluruh berkas dibaca
@@ -336,7 +336,7 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
 - **Usulan perbaikan:** Cek `Content-Length` sebelum `formData()` (bagian dari KS-04). Opsional: atur `allowed_mime_types = '{audio/midi}'` pada bucket.
 - **Status:** ✅ **Diperbaiki.**
   - **Cek ukuran lebih awal:** `bacaFormMateri()` memanggil `wajibUkuranForm()` sebelum `formData()`. Unggahan tanpa `Content-Length` ditolak 411, dan yang melewati ±1,2 MB ditolak 413. Browser selalu mengirim `Content-Length` untuk `FormData`.
-  - **Opsional, sudah dibuat:** [supabase/migrasi-03-bucket-midi.sql](supabase/migrasi-03-bucket-midi.sql) membatasi bucket ke `audio/midi`, `audio/mid`, dan `audio/x-midi`.
+  - **Opsional, sudah dibuat:** [supabase/migrasi-04-bucket-midi.sql](supabase/migrasi-04-bucket-midi.sql) membatasi bucket ke `audio/midi`, `audio/mid`, dan `audio/x-midi`.
 
 ### KS-15 · Objek galat database dicatat utuh
 
@@ -463,4 +463,4 @@ Setelah diterapkan, uji dengan DevTools Console: tidak boleh ada pelanggaran CSP
 2. KS-02, KS-06, KS-07, KS-09, KS-10, KS-12: pengalihan, cookie, header keamanan, alur akun.
 3. KS-04, KS-05, KS-11, KS-14, KS-15: batas body, pembatas percobaan, CSRF, unggah MIDI, log.
 
-Semua temuan sudah diperbaiki. Sebelum deploy, jalankan migrasi 02 dan 03, lalu jalankan ulang [supabase/audit-keamanan.sql](supabase/audit-keamanan.sql) untuk memastikan database sesuai.
+Semua temuan sudah diperbaiki. Sebelum deploy, jalankan migrasi 02, 03, dan 04, lalu jalankan ulang [supabase/audit-keamanan.sql](supabase/audit-keamanan.sql) untuk memastikan database sesuai.

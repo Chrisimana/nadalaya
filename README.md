@@ -57,7 +57,7 @@
 
    `NEXT_PUBLIC_SITE_URL` adalah alamat situs untuk tautan di email. Saat `npm run dev`, nilai bawaannya `http://localhost:3000`. Di produksi (`npm start`, Docker, Render) variabel ini **wajib** diisi; tanpa itu server menolak berjalan.
 
-3. Di Supabase **SQL Editor**, jalankan berurutan: `supabase/schema.sql`, `supabase/seed.sql`, `supabase/migrasi-01-uji-coba.sql`, `supabase/migrasi-02-keamanan-sesi.sql`, lalu `supabase/migrasi-03-bucket-midi.sql`.
+3. Di Supabase **SQL Editor**, jalankan berurutan: `supabase/schema.sql`, `supabase/seed.sql`, `supabase/migrasi-01-uji-coba.sql`, `supabase/migrasi-02-keamanan-sesi.sql`, `supabase/migrasi-03-jadwal-dan-hak.sql`, lalu `supabase/migrasi-04-bucket-midi.sql`. Migrasi 03 mengaktifkan ekstensi `pg_cron` dan menjadwalkan pembaruan paket kedaluwarsa setiap pukul 00.00 WIB.
 
 4. Buka **Storage** dan pastikan ada bucket privat bernama `midi`. Bucket ini dibuat oleh `schema.sql`; jika belum ada, buat secara manual. Unggah kelima berkas dari `scripts/midi/` langsung ke bucket tersebut, bukan ke dalam folder.
 
