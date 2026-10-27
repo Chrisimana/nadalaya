@@ -1,3 +1,4 @@
+import { BATAS_JSON_HASIL } from "@/lib/permintaan";
 import { wajibLogin } from "@/lib/server/pengguna";
 import { bacaJson, GalatRute, rute, wajibUuid } from "@/lib/server/respons";
 import { galatSesi, migrasiBelumDijalankan, validasiHasil } from "@/lib/sesiAnalisis";
@@ -10,7 +11,7 @@ export const POST = rute(async (req: Request, ctx: RouteContext<"/api/sesi/[id]/
   const { uid } = await wajibLogin();
   const sesiId = wajibUuid((await ctx.params).id, "ID sesi");
 
-  const hasil = validasiHasil(await bacaJson(req));
+  const hasil = validasiHasil(await bacaJson(req, BATAS_JSON_HASIL));
   if (!hasil.sah) throw new GalatRute(400, hasil.pesan, "permintaan_tidak_valid");
   const { skor, kontur, acuan, nadaMeleset } = hasil.data;
 

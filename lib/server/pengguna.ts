@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { KUOTA_HARIAN_GRATIS } from "@/lib/paket";
 import type { Pengguna, StatusPaket } from "@/lib/types";
+import { ringkasGalat } from "@/lib/permintaan";
 import { klienAdmin } from "@/lib/supabase/admin";
 import { buatKlienServer } from "@/lib/supabase/server";
 import { GalatRute } from "./respons";
@@ -51,7 +52,7 @@ export async function segarkanPaket(profil: BarisUsers): Promise<BarisUsers> {
     .from("users")
     .update({ status_paket: "gratis" } as never)
     .eq("id", profil.id);
-  if (error) console.error("[paket] gagal memperbarui paket kedaluwarsa", error);
+  if (error) console.error("[paket] gagal memperbarui paket kedaluwarsa", ringkasGalat(error));
   return { ...profil, status_paket: "gratis" };
 }
 

@@ -1,3 +1,4 @@
+import { batasi, PEMBATAS } from "@/lib/pembatas";
 import { wajibLogin } from "@/lib/server/pengguna";
 import { bacaJson, GalatRute, rute, wajibUuid } from "@/lib/server/respons";
 import { galatSesi, migrasiBelumDijalankan } from "@/lib/sesiAnalisis";
@@ -9,6 +10,7 @@ export const POST = rute(async (req: Request) => {
   const { uid } = await wajibLogin();
   const isi = await bacaJson(req);
   const materiId = wajibUuid(isi.materiId, "ID materi");
+  batasi([[PEMBATAS.sesiPengguna, uid]]);
 
   // Hak akses, kuota, dan pembuatan sesi diperiksa atomik di database.
   const { data, error } = await klienAdmin().rpc("mulai_sesi", { p_user: uid, p_materi: materiId } as never);

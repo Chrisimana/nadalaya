@@ -1,6 +1,7 @@
 import "server-only";
 
 import { validasiIsiMidi } from "@/lib/audio/validasiMidi";
+import { BATAS_FORM_MIDI, ringkasGalat, wajibUkuranForm } from "@/lib/permintaan";
 import { klienAdmin } from "@/lib/supabase/admin";
 import type { JenisMateri, MateriAdmin } from "@/lib/types";
 import { TEMPO_MAX, TEMPO_MIN } from "@/lib/validasi";
@@ -46,6 +47,8 @@ export async function bacaFormMateri(
   req: Request,
   berkasWajib: boolean,
 ): Promise<{ data: DataFormMateri; berkas: BerkasMidi | null }> {
+  // Ukuran dicek sebelum formulir dibaca ke memori.
+  wajibUkuranForm(req, BATAS_FORM_MIDI);
   let form: FormData;
   try {
     form = await req.formData();
@@ -105,7 +108,7 @@ export async function unggahMidi(judul: string, berkas: BerkasMidi): Promise<str
     .storage.from(BUCKET)
     .upload(path, berkas.isi, { contentType: "audio/midi", upsert: false });
   if (error) {
-    console.error("[midi] unggah gagal", error);
+    console.error("[midi] unggah gagal", ringkasGalat(error));
     throw new GalatRute(502, "Berkas MIDI gagal diunggah. Silakan coba lagi.", "unggah_gagal");
   }
   return path;
@@ -113,5 +116,5 @@ export async function unggahMidi(judul: string, berkas: BerkasMidi): Promise<str
 
 export async function hapusBerkasMidi(path: string) {
   const { error } = await klienAdmin().storage.from(BUCKET).remove([path]);
-  if (error) console.error("[midi] hapus berkas gagal", path, error);
+  if (error) console.error("[midi] hapus berkas gagal", path, ringkasGalat(error));
 }

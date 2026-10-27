@@ -1,3 +1,5 @@
+import { batasi, PEMBATAS } from "@/lib/pembatas";
+import { ipKlien } from "@/lib/permintaan";
 import { galatAuth } from "@/lib/server/galat-auth";
 import { ambilProfil, kePengguna, PESAN_NONAKTIF, segarkanPaket } from "@/lib/server/pengguna";
 import { bacaJson, GalatRute, rute, teks } from "@/lib/server/respons";
@@ -11,6 +13,11 @@ export const POST = rute(async (req: Request) => {
   if (adaGalat(galat)) {
     throw new GalatRute(400, Object.values(galat)[0] ?? "Data tidak valid.", "data_tidak_valid");
   }
+
+  batasi([
+    [PEMBATAS.masukIp, ipKlien(req.headers)],
+    [PEMBATAS.masukEmail, data.email],
+  ]);
 
   const supabase = await buatKlienServer();
   const { data: hasil, error } = await supabase.auth.signInWithPassword({

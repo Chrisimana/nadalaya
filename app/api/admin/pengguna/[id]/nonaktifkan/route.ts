@@ -1,3 +1,4 @@
+import { ringkasGalat } from "@/lib/permintaan";
 import { wajibAdmin } from "@/lib/server/admin";
 import { ambilProfil } from "@/lib/server/pengguna";
 import { GalatRute, rute, wajibUuid } from "@/lib/server/respons";
@@ -26,7 +27,7 @@ export const POST = rute(async (_req: Request, ctx: RouteContext<"/api/admin/pen
   if (galatBlokir) {
     // Kembalikan agar status di aplikasi dan di Auth tetap konsisten.
     await admin.from("users").update({ is_aktif: true } as never).eq("id", id);
-    console.error("[admin] gagal mencabut sesi", galatBlokir);
+    console.error("[admin] gagal mencabut sesi", ringkasGalat(galatBlokir));
     throw new GalatRute(502, "Sesi pengguna gagal dicabut. Akun belum dinonaktifkan.", "cabut_sesi_gagal");
   }
 

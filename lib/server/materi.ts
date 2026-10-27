@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { JenisMateri, Materi, StatusPaket, TingkatMateri } from "@/lib/types";
+import { ringkasGalat } from "@/lib/permintaan";
 import { klienAdmin } from "@/lib/supabase/admin";
 import { GalatRute } from "./respons";
 
@@ -48,7 +49,7 @@ export async function ambilMateriAktif(materiId: string): Promise<BarisMateri> {
 export async function urlMidi(path: string): Promise<string> {
   const { data, error } = await klienAdmin().storage.from("midi").createSignedUrl(path, 600);
   if (error || !data?.signedUrl) {
-    console.error("[midi] signed URL gagal", path, error);
+    console.error("[midi] signed URL gagal", path, ringkasGalat(error));
     throw new GalatRute(502, "Berkas acuan nada tidak dapat dimuat. Coba lagi nanti.", "midi_gagal");
   }
   return data.signedUrl;

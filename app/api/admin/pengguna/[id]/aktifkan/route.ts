@@ -1,3 +1,4 @@
+import { ringkasGalat } from "@/lib/permintaan";
 import { wajibAdmin } from "@/lib/server/admin";
 import { ambilProfil } from "@/lib/server/pengguna";
 import { GalatRute, rute, wajibUuid } from "@/lib/server/respons";
@@ -13,7 +14,7 @@ export const POST = rute(async (_req: Request, ctx: RouteContext<"/api/admin/pen
   const admin = klienAdmin();
   const { error: galatBlokir } = await admin.auth.admin.updateUserById(id, { ban_duration: "none" });
   if (galatBlokir) {
-    console.error("[admin] gagal membuka blokir", galatBlokir);
+    console.error("[admin] gagal membuka blokir", ringkasGalat(galatBlokir));
     throw new GalatRute(502, "Akun gagal diaktifkan kembali. Silakan coba lagi.", "aktifkan_gagal");
   }
   const { error } = await admin.from("users").update({ is_aktif: true } as never).eq("id", id);

@@ -2,7 +2,7 @@
 
 **Tanggal:** 27 Oktober 2026
 **Cakupan:** kode di repositori (API route, autentikasi, proxy, konfigurasi, SQL, Docker), hasil `npm run build`, riwayat git, dan `npm audit`.
-**Status:** Tahap 2 berjalan. KS-01, KS-02, KS-03, KS-06, KS-07, KS-08, KS-09, KS-10, KS-12, dan KS-13 sudah diperbaiki. Perbaikan KS-01, KS-03, dan KS-13 baru aktif setelah [`supabase/migrasi-02-keamanan-sesi.sql`](supabase/migrasi-02-keamanan-sesi.sql) dijalankan.
+**Status:** Selesai. Kelima belas temuan sudah diperbaiki; sisa risikonya tercatat di [Risiko yang diterima](#risiko-yang-diterima). Perbaikan KS-01, KS-03, dan KS-13 baru aktif setelah [`supabase/migrasi-02-keamanan-sesi.sql`](supabase/migrasi-02-keamanan-sesi.sql) dijalankan, dan bagian opsional KS-14 setelah [`supabase/migrasi-03-bucket-midi.sql`](supabase/migrasi-03-bucket-midi.sql).
 
 Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`supabase/audit-keamanan.sql`](supabase/audit-keamanan.sql) di SQL Editor dan bandingkan hasilnya dengan "Harapan" di setiap bagian.
 
@@ -19,18 +19,18 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
 | KS-01 | API | Kuota harian 3 analisis bisa ditembus | **Tinggi** | Diperbaiki |
 | KS-02 | Autentikasi | *Open redirect* lewat parameter `next` dan `lanjut` | Sedang | Diperbaiki |
 | KS-03 | API | Sesi analisis tanpa batas waktu dan penyelesaian tidak atomik | Sedang | Diperbaiki |
-| KS-04 | API | Ukuran body permintaan tidak dibatasi | Sedang | Terbuka |
-| KS-05 | Autentikasi | Tidak ada pembatasan percobaan di aplikasi | Sedang | Terbuka |
+| KS-04 | API | Ukuran body permintaan tidak dibatasi | Sedang | Diperbaiki |
+| KS-05 | Autentikasi | Tidak ada pembatasan percobaan di aplikasi | Sedang | Diperbaiki |
 | KS-06 | Autentikasi | Cookie sesi tidak `HttpOnly` dan tidak `Secure` | Sedang | Diperbaiki |
 | KS-07 | Header | Header keamanan belum ada | Sedang | Diperbaiki |
 | KS-08 | API | Rentang angka data hasil analisis tidak dibatasi | Rendah | Diperbaiki |
 | KS-09 | Autentikasi | Pendaftaran membocorkan email yang sudah terdaftar | Rendah | Diperbaiki |
 | KS-10 | Autentikasi | Ubah kata sandi tanpa cek akun aktif dan tanpa kata sandi lama | Rendah | Diperbaiki |
-| KS-11 | API | Tidak ada pemeriksaan `Origin`/`Content-Type` (CSRF) | Rendah | Terbuka |
+| KS-11 | API | Tidak ada pemeriksaan `Origin`/`Content-Type` (CSRF) | Rendah | Diperbaiki |
 | KS-12 | Autentikasi | Alamat tautan email bisa diambil dari header `Host` | Rendah | Diperbaiki |
 | KS-13 | Database | Hak eksekusi beberapa fungsi belum dicabut | Rendah | Diperbaiki |
-| KS-14 | Unggah MIDI | Batas ukuran dicek setelah seluruh berkas dibaca | Rendah | Terbuka |
-| KS-15 | Logging | Objek galat database dicatat utuh | Rendah | Terbuka |
+| KS-14 | Unggah MIDI | Batas ukuran dicek setelah seluruh berkas dibaca | Rendah | Diperbaiki |
+| KS-15 | Logging | Objek galat database dicatat utuh | Rendah | Diperbaiki |
 
 ---
 
@@ -129,6 +129,13 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
 - **Usulan perbaikan:**
   - Di `bacaJson`, tolak bila `Content-Length` lebih dari batas, lalu baca body secara streaming dan hentikan saat melewati batas. Usulan batas: 16 KB untuk route auth dan profil, 1 MB untuk hasil analisis.
   - Di unggah MIDI, cek `Content-Length` ≤ ±1,2 MB sebelum memanggil `formData()`.
+- **Status:** ✅ **Diperbaiki.**
+  - **`bacaJson(req, batas)`** di [lib/server/respons.ts](lib/server/respons.ts) memakai `bacaTeksTerbatas()` dari [lib/permintaan.ts](lib/permintaan.ts):
+    - `Content-Length` di atas batas langsung ditolak 413 tanpa membaca body.
+    - Body tanpa `Content-Length` dibaca secara streaming dan dihentikan begitu melewati batas.
+  - **Batas:** 16 KB untuk semua route JSON (auth, profil, sesi, latihan), 1 MB untuk hasil analisis.
+  - **Unggah MIDI:** lihat KS-14.
+  - **Uji di container Docker:** body 20 KB ke `/api/auth/masuk` ditolak 413, baik dengan `Content-Length` maupun *chunked*.
 
 ### KS-05 · Tidak ada pembatasan percobaan di aplikasi
 
@@ -145,6 +152,17 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - Tambahkan pembatas di aplikasi, per IP (`x-forwarded-for` dari Render) dan per email. Contoh batas: masuk 5 kali per 15 menit per email dan 20 kali per 15 menit per IP; daftar, lupa sandi, dan kirim ulang 3 kali per jam per email.
   - Untuk satu *instance*, penyimpanan di memori sudah cukup. Untuk beberapa *instance*, gunakan tabel Supabase atau layanan seperti Upstash.
   - Batasi juga pembuatan sesi, misalnya 20 per jam per pengguna.
+- **Status:** ✅ **Diperbaiki.**
+  - **Pembatas:** pembatas berjendela geser di memori ([lib/pembatas.ts](lib/pembatas.ts)). Bila ada yang penuh, respons 429 dengan pesan "Terlalu banyak percobaan. Silakan coba lagi dalam N menit." dan header `Retry-After`. Percobaan yang ditolak tidak dihitung.
+
+    | Route | Per email | Per IP |
+    |---|---|---|
+    | Masuk | 5 / 15 menit | 20 / 15 menit |
+    | Daftar, lupa sandi, kirim ulang verifikasi | 3 / jam | 10 / jam |
+    | Mulai sesi analisis | 20 / jam per pengguna | – |
+  - **IP klien:** nilai pertama `x-forwarded-for`, lalu `x-real-ip`, lalu kunci bersama "tidak-diketahui". Nilainya harus berbentuk IP.
+  - **Uji di container Docker:** percobaan ke-6 untuk satu email ditolak 429 (`Retry-After: 897`), sedangkan email lain dari IP yang sama tetap dilayani.
+  - **Sisa risiko:** lihat [Risiko yang diterima](#risiko-yang-diterima). Pembatas hanya berlaku per *instance*, dan `x-forwarded-for` bisa dipalsukan bila proxy di depannya tidak menimpanya.
 
 ### KS-06 · Cookie sesi tidak `HttpOnly` dan tidak `Secure`
 
@@ -255,6 +273,11 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - Kecuali *login CSRF*: `/api/auth/masuk` tidak butuh cookie, jadi situs lain bisa membuat korban masuk ke akun penyerang.
 - **Dampak:** Kecil selama `SameSite=Lax` tetap berlaku. Login CSRF bisa membuat korban berlatih di akun penyerang.
 - **Usulan perbaikan:** Di `bacaJson`, wajibkan `Content-Type: application/json`. Di `rute()`, tolak metode non-GET bila header `Origin` ada dan berbeda dari alamat situs.
+- **Status:** ✅ **Diperbaiki.**
+  - **`Content-Type`:** `bacaJson` mewajibkan `application/json`; selain itu ditolak 415. Formulir HTML `text/plain` dari situs lain tidak bisa lagi mengirim JSON yang sah.
+  - **`Origin`:** `rute()` menolak POST/PATCH/DELETE dengan 403 bila header `Origin` ada dan berbeda dari `NEXT_PUBLIC_SITE_URL`. Ini juga menutup login CSRF.
+  - **Uji di container Docker:** `Origin: https://evil.com` ditolak 403, dan `text/plain` ditolak 415.
+  - **Catatan:** di Docker lokal, buka situs lewat `http://localhost:3000`, bukan `127.0.0.1`. Origin yang berbeda dari alamat situs akan ditolak.
 
 ### KS-12 · Alamat tautan email bisa diambil dari header `Host`
 
@@ -311,6 +334,9 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   | `allowed_mime_types` bucket | Belum diatur |
 - **Dampak:** Akun admin yang dibajak bisa mengunggah body sangat besar (lihat KS-04).
 - **Usulan perbaikan:** Cek `Content-Length` sebelum `formData()` (bagian dari KS-04). Opsional: atur `allowed_mime_types = '{audio/midi}'` pada bucket.
+- **Status:** ✅ **Diperbaiki.**
+  - **Cek ukuran lebih awal:** `bacaFormMateri()` memanggil `wajibUkuranForm()` sebelum `formData()`. Unggahan tanpa `Content-Length` ditolak 411, dan yang melewati ±1,2 MB ditolak 413. Browser selalu mengirim `Content-Length` untuk `FormData`.
+  - **Opsional, sudah dibuat:** [supabase/migrasi-03-bucket-midi.sql](supabase/migrasi-03-bucket-midi.sql) membatasi bucket ke `audio/midi`, `audio/mid`, dan `audio/x-midi`.
 
 ### KS-15 · Objek galat database dicatat utuh
 
@@ -327,6 +353,9 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - Pesan ke pengguna tetap umum ("Terjadi kesalahan pada server"), jadi tidak ada kebocoran ke klien.
 - **Dampak:** Data pribadi bisa muncul di log Render.
 - **Usulan perbaikan:** Catat hanya `code` dan `message` untuk galat database.
+- **Status:** ✅ **Diperbaiki.**
+  - **`ringkasGalat()`** di [lib/permintaan.ts](lib/permintaan.ts) dipakai di `rute()`, unggah/hapus MIDI, *signed URL*, pembaruan paket, dan blokir akun admin.
+  - **Isi log:** galat yang punya `code` (PostgreSQL, PostgREST, Storage, Auth) hanya dicatat `code` dan `message`; `details` dan `hint` tidak lagi tercatat. Galat program biasa tetap dicatat dengan *stack* agar bisa ditelusuri.
 
 ---
 
@@ -392,10 +421,13 @@ Setelah diterapkan, uji dengan DevTools Console: tidak boleh ada pelanggaran CSP
 
 ## Risiko yang diterima
 
-| Risiko | Alasan | Mitigasi yang ada atau diusulkan |
+| Risiko | Alasan diterima | Mitigasi yang ada atau diusulkan |
 |---|---|---|
 | **Skor bisa dipalsukan.** Skor dan kontur dihitung di browser (CREPE + DTW), sehingga pengguna yang paham bisa mengirim skor 100. | Analisis di browser adalah keputusan desain: rekaman tidak pernah diunggah ke server, demi privasi dan biaya. | Server memastikan sesi milik pengguna, berstatus `dimulai`, satu hasil per sesi, dan skor 0–100. Usulan KS-01 dan KS-03 menambah batas 15 menit dan kuota atomik. Skor hanya memengaruhi riwayat milik pengguna itu sendiri dan statistik admin. |
 | **Access token tetap berlaku sampai kedaluwarsa** (±1 jam) setelah keluar. | Sifat JWT Supabase. | Akun nonaktif tetap ditolak karena setiap API membaca `is_aktif` dari database, dan admin juga memblokir akun di Supabase Auth. |
+| **Pembatas percobaan disimpan di memori** (KS-05). | Render paket gratis berjalan sebagai satu *instance*, jadi cukup. | Bila aplikasi berjalan di banyak *instance* atau sering *restart*, pindahkan catatan ke penyimpanan bersama (tabel Supabase atau Redis). Supabase Auth tetap punya batasnya sendiri. |
+| **IP klien dari `x-forwarded-for`** (KS-05). | Satu-satunya sumber IP di belakang proxy Render. | Bila proxy tidak menimpa header ini, penyerang bisa memalsukan IP untuk melewati batas per IP. Batas per email tetap berlaku. Pengguna di balik satu NAT (mis. Wi-Fi kampus) berbagi batas per IP; 20 percobaan masuk per 15 menit dianggap cukup. |
+| **CSP memakai `'unsafe-inline'` untuk skrip** (KS-07). | Partial Prerendering tidak mendukung CSP berbasis *nonce*. | Header lain tetap penuh. Cookie sesi sudah `HttpOnly` (KS-06), jadi XSS tidak bisa membaca token. |
 | **Signed URL MIDI berlaku 10 menit.** | Cukup untuk memuat acuan dalam satu latihan. | Hanya diberikan setelah hak akses dan kuota diperiksa. |
 
 ---
@@ -425,10 +457,10 @@ Setelah diterapkan, uji dengan DevTools Console: tidak boleh ada pelanggaran CSP
 
 ---
 
-## Urutan perbaikan yang disarankan
+## Urutan perbaikan
 
-1. ~~**KS-01 + KS-03:** fungsi atomik `mulai_sesi`/`selesaikan_sesi` dan batas 15 menit.~~ Selesai (bersama KS-08 dan KS-13).
-2. ~~**KS-02, KS-06, KS-07:** jalur internal, cookie, dan header keamanan.~~ Selesai (bersama KS-09, KS-10, KS-12).
-3. **KS-04 + KS-11 + KS-14:** batas ukuran body dan pemeriksaan `Content-Type`/`Origin` di `bacaJson`/`rute`.
-4. **KS-05:** pembatas percobaan.
-5. **KS-15:** perbaikan kecil.
+1. KS-01, KS-03, KS-08, KS-13: kuota dan sesi atomik, validasi rentang, hak eksekusi fungsi.
+2. KS-02, KS-06, KS-07, KS-09, KS-10, KS-12: pengalihan, cookie, header keamanan, alur akun.
+3. KS-04, KS-05, KS-11, KS-14, KS-15: batas body, pembatas percobaan, CSRF, unggah MIDI, log.
+
+Semua temuan sudah diperbaiki. Sebelum deploy, jalankan migrasi 02 dan 03, lalu jalankan ulang [supabase/audit-keamanan.sql](supabase/audit-keamanan.sql) untuk memastikan database sesuai.
