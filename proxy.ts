@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { envSupabase } from "@/lib/supabase/env";
+import { envSupabase, OPSI_COOKIE } from "@/lib/supabase/env";
 
 // Next.js 16: middleware.ts berganti nama menjadi proxy.ts (fungsinya sama).
 
@@ -17,6 +17,7 @@ export async function proxy(request: NextRequest) {
 
   // Menyegarkan token sesi dan menyalinnya ke request dan response.
   const supabase = createServerClient(url, kunci, {
+    cookieOptions: OPSI_COOKIE,
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll(daftar, header) {

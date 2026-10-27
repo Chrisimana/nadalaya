@@ -1,9 +1,8 @@
+import { alamatSitus } from "@/lib/keamanan";
 import { galatAuth } from "@/lib/server/galat-auth";
-import { alamatSitus, bacaJson, GalatRute, rute, teks } from "@/lib/server/respons";
+import { bacaJson, GalatRute, rute, teks } from "@/lib/server/respons";
 import { buatKlienServer } from "@/lib/supabase/server";
 import { adaGalat, validasiRegistrasi } from "@/lib/validasi";
-
-const PESAN_TERDAFTAR = "Email sudah terdaftar. Silakan masuk atau gunakan email lain.";
 
 export const POST = rute(async (req: Request) => {
   const isi = await bacaJson(req);
@@ -23,13 +22,18 @@ export const POST = rute(async (req: Request) => {
     password: data.kataSandi,
     options: {
       data: { nama: data.nama },
-      emailRedirectTo: `${alamatSitus(req)}/auth/konfirmasi?next=/dashboard`,
+      emailRedirectTo: `${alamatSitus()}/auth/konfirmasi?next=/dashboard`,
     },
   });
-  if (error) throw galatAuth(error);
 
+  // Email yang sudah terdaftar dijawab sama seperti pendaftaran baru agar tidak bisa ditebak.
+  if (error) {
+    const terjemahan = galatAuth(error);
+    if (terjemahan.kode === "email_terdaftar") return Response.json({ perluVerifikasi: true });
+    throw terjemahan;
+  }
   if (hasil.user && hasil.user.identities?.length === 0) {
-    throw new GalatRute(409, PESAN_TERDAFTAR, "email_terdaftar");
+    return Response.json({ perluVerifikasi: true });
   }
 
   return Response.json({ perluVerifikasi: !hasil.session });

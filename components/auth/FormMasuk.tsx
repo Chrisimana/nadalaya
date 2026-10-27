@@ -7,6 +7,7 @@ import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { adalahBelumTersambung, GalatApi, login, pesanGalat } from "@/lib/api";
+import { jalurInternal } from "@/lib/keamanan";
 import { adaGalat, validasiMasuk, type GalatKolom } from "@/lib/validasi";
 
 type Kolom = "email" | "kataSandi";
@@ -35,9 +36,8 @@ const PEMBERITAHUAN: Record<
 };
 
 function tujuanAman(lanjut: string | null | undefined) {
-  return lanjut && lanjut.startsWith("/") && !lanjut.startsWith("//") && !lanjut.startsWith("/admin")
-    ? lanjut
-    : "/dashboard";
+  const jalur = jalurInternal(lanjut);
+  return jalur === "/admin" || jalur.startsWith("/admin/") ? "/dashboard" : jalur;
 }
 
 export function FormMasuk({

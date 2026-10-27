@@ -50,9 +50,12 @@
    NEXT_PUBLIC_SUPABASE_URL=
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
    SUPABASE_SECRET_KEY=
+   NEXT_PUBLIC_SITE_URL=http://localhost:3000
    ```
 
    `SUPABASE_SECRET_KEY` hanya dipakai di server. Jangan dibagikan dan jangan di-commit.
+
+   `NEXT_PUBLIC_SITE_URL` adalah alamat situs untuk tautan di email. Saat `npm run dev`, nilai bawaannya `http://localhost:3000`. Di produksi (`npm start`, Docker, Render) variabel ini **wajib** diisi; tanpa itu server menolak berjalan.
 
 3. Di Supabase **SQL Editor**, jalankan berurutan: `supabase/schema.sql`, `supabase/seed.sql`, `supabase/migrasi-01-uji-coba.sql`, lalu `supabase/migrasi-02-keamanan-sesi.sql`.
 
@@ -91,7 +94,7 @@
 
 **Prasyarat:** Docker Desktop yang sedang berjalan, serta langkah 2–5 di atas sudah dilakukan.
 
-1. Pastikan `.env.local` berisi ketiga variabel di atas.
+1. Pastikan `.env.local` berisi variabel di atas.
 2. Bangun dan jalankan:
 
    ```bash
@@ -105,12 +108,12 @@
    docker compose down
    ```
 
-Kedua variabel `NEXT_PUBLIC_*` dibaca dari `.env.local` saat build. Seluruh isi `.env.local` diberikan ke container saat berjalan dan tidak pernah masuk ke image.
+Variabel `NEXT_PUBLIC_*` dibaca dari `.env.local` saat build; bila `NEXT_PUBLIC_SITE_URL` kosong, Docker Compose memakai `http://localhost:3000`. Seluruh isi `.env.local` diberikan ke container saat berjalan dan tidak pernah masuk ke image.
 
 **Deploy ke Render (Docker web service):**
 
 - Isi `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` sebagai environment variable agar tersedia saat build, karena keduanya ditanam ke kode ketika image dibangun.
-- Isi juga `NEXT_PUBLIC_SITE_URL` dengan alamat situs (misalnya `https://nadalaya.onrender.com`) agar tautan email mengarah ke domain yang benar. Tambahkan alamat yang sama di pengaturan URL Supabase.
+- Isi juga `NEXT_PUBLIC_SITE_URL` (**wajib**) dengan alamat situs (misalnya `https://nadalaya.onrender.com`) agar tautan email mengarah ke domain yang benar. Tambahkan alamat yang sama di pengaturan URL Supabase.
 - Isi `SUPABASE_SECRET_KEY` sebagai environment variable biasa. Kunci ini hanya dibaca saat aplikasi berjalan.
 - `PORT` diisi otomatis oleh Render; tidak perlu diatur.
 

@@ -222,5 +222,10 @@ grant execute on function public.mulai_sesi(uuid, uuid) to service_role;
 grant execute on function public.selesaikan_sesi(uuid, uuid, integer, jsonb, jsonb) to service_role;
 grant execute on function public.batalkan_sesi(uuid, uuid) to service_role;
 
+-- Hak tabel yang tidak dibutuhkan pengguna.
+revoke truncate, trigger, references on public.users, public.materi_latihan,
+  public.sesi_analisis, public.riwayat_latihan, public.transaksi from authenticated;
+revoke execute on function public.set_updated_at() from public, anon, authenticated;
+
 -- Muat ulang cache skema PostgREST agar fungsi baru langsung dikenali.
 notify pgrst, 'reload schema';

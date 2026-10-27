@@ -1,8 +1,8 @@
-# Audit Keamanan Nadalaya
+# Audit Keamanan NadalayaDiperbaiki |Diperbaiki |Diperbaiki |Diperbaiki |Diperbaiki |Diperbaiki |
 
 **Tanggal:** 27 Oktober 2026
 **Cakupan:** kode di repositori (API route, autentikasi, proxy, konfigurasi, SQL, Docker), hasil `npm run build`, riwayat git, dan `npm audit`.
-**Status:** Tahap 2 berjalan. KS-01, KS-03, KS-08, dan KS-13 sudah diperbaiki di kode. Perbaikan KS-01, KS-03, dan KS-13 baru aktif setelah [`supabase/migrasi-02-keamanan-sesi.sql`](supabase/migrasi-02-keamanan-sesi.sql) dijalankan.
+**Status:** Tahap 2 berjalan. KS-01, KS-02, KS-03, KS-06, KS-07, KS-08, KS-09, KS-10, KS-12, dan KS-13 sudah diperbaiki. Perbaikan KS-01, KS-03, dan KS-13 baru aktif setelah [`supabase/migrasi-02-keamanan-sesi.sql`](supabase/migrasi-02-keamanan-sesi.sql) dijalankan.
 
 Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`supabase/audit-keamanan.sql`](supabase/audit-keamanan.sql) di SQL Editor dan bandingkan hasilnya dengan "Harapan" di setiap bagian.
 
@@ -17,17 +17,17 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
 | ID | Area | Judul | Risiko | Status |
 |---|---|---|---|---|
 | KS-01 | API | Kuota harian 3 analisis bisa ditembus | **Tinggi** | Diperbaiki |
-| KS-02 | Autentikasi | *Open redirect* lewat parameter `next` dan `lanjut` | Sedang | Terbuka |
+| KS-02 | Autentikasi | *Open redirect* lewat parameter `next` dan `lanjut` | Sedang | Diperbaiki |
 | KS-03 | API | Sesi analisis tanpa batas waktu dan penyelesaian tidak atomik | Sedang | Diperbaiki |
 | KS-04 | API | Ukuran body permintaan tidak dibatasi | Sedang | Terbuka |
 | KS-05 | Autentikasi | Tidak ada pembatasan percobaan di aplikasi | Sedang | Terbuka |
-| KS-06 | Autentikasi | Cookie sesi tidak `HttpOnly` dan tidak `Secure` | Sedang | Terbuka |
-| KS-07 | Header | Header keamanan belum ada | Sedang | Terbuka |
+| KS-06 | Autentikasi | Cookie sesi tidak `HttpOnly` dan tidak `Secure` | Sedang | Diperbaiki |
+| KS-07 | Header | Header keamanan belum ada | Sedang | Diperbaiki |
 | KS-08 | API | Rentang angka data hasil analisis tidak dibatasi | Rendah | Diperbaiki |
-| KS-09 | Autentikasi | Pendaftaran membocorkan email yang sudah terdaftar | Rendah | Terbuka |
-| KS-10 | Autentikasi | Ubah kata sandi tanpa cek akun aktif dan tanpa kata sandi lama | Rendah | Terbuka |
+| KS-09 | Autentikasi | Pendaftaran membocorkan email yang sudah terdaftar | Rendah | Diperbaiki |
+| KS-10 | Autentikasi | Ubah kata sandi tanpa cek akun aktif dan tanpa kata sandi lama | Rendah | Diperbaiki |
 | KS-11 | API | Tidak ada pemeriksaan `Origin`/`Content-Type` (CSRF) | Rendah | Terbuka |
-| KS-12 | Autentikasi | Alamat tautan email bisa diambil dari header `Host` | Rendah | Terbuka |
+| KS-12 | Autentikasi | Alamat tautan email bisa diambil dari header `Host` | Rendah | Diperbaiki |
 | KS-13 | Database | Hak eksekusi beberapa fungsi belum dicabut | Rendah | Diperbaiki |
 | KS-14 | Unggah MIDI | Batas ukuran dicek setelah seluruh berkas dibaca | Rendah | Terbuka |
 | KS-15 | Logging | Objek galat database dicatat utuh | Rendah | Terbuka |
@@ -91,6 +91,11 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - Uraikan dengan `new URL(nilai, "http://x")` dan pastikan `origin` tidak berubah.
   - Kembalikan `pathname + search + hash` saja.
   - Tambahkan tes untuk ketiga contoh di atas.
+- **Status:** ✅ **Diperbaiki.**
+  - **Fungsi bersama:** `jalurInternal()` di [lib/keamanan.ts](lib/keamanan.ts), dipakai di [app/auth/konfirmasi/route.ts](app/auth/konfirmasi/route.ts) dan [components/auth/FormMasuk.tsx](components/auth/FormMasuk.tsx).
+  - **Cara kerja:** menolak karakter kontrol dan *backslash*, mengurai jalur dengan `new URL()`, dan memastikan asal URL tidak berubah. Yang dikembalikan hanya `pathname + search + hash`. Halaman masuk tetap tidak mengarahkan ke `/admin`.
+  - **Tes:** [tests/keamanan.test.ts](tests/keamanan.test.ts) mencakup `/\evil.com`, `/%09/evil.com`, `/%0A/evil.com`, `//evil.com`, `https://evil.com`, dan `javascript:`. Jalur sah seperti `/dashboard?tab=1` tetap diterima.
+  - **Uji di server:** tautan dengan token sah dan `next=/\evil.com` dialihkan ke `/dashboard`.
 
 ### KS-03 · Sesi analisis tanpa batas waktu dan penyelesaian tidak atomik
 
@@ -155,6 +160,10 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - Tanpa CSP (KS-07), satu celah XSS saja cukup untuk mencuri sesi dan *refresh token*, yang berlaku sampai 400 hari.
 - **Dampak:** Pengambilalihan akun bila ada XSS.
 - **Usulan perbaikan:** Tambahkan `cookieOptions: { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" }` di kedua `createServerClient`. Setelah itu, uji ulang login, keluar, dan tautan email.
+- **Status:** ✅ **Diperbaiki.**
+  - **Opsi cookie:** `OPSI_COOKIE` di [lib/supabase/env.ts](lib/supabase/env.ts) (`httpOnly: true`, `sameSite: "lax"`) dipakai di [lib/supabase/server.ts](lib/supabase/server.ts) dan [proxy.ts](proxy.ts).
+  - **`secure`:** aktif bila produksi **dan** `NEXT_PUBLIC_SITE_URL` memakai `https://`, sehingga Docker di `http://localhost` tetap bisa login di semua browser.
+  - **Uji di server:** login sungguhan mengirim `Set-Cookie` dengan `HttpOnly` dan `SameSite`.
 
 ### KS-07 · Header keamanan belum ada
 
@@ -167,6 +176,12 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - Halaman latihan meminta izin mikrofon, jadi bisa disematkan di situs lain (*clickjacking*).
 - **Dampak:** *Clickjacking*, tidak ada lapisan pertahanan bila ada XSS, dan informasi teknologi server ikut terbuka.
 - **Usulan perbaikan:** Lihat [Usulan header keamanan](#usulan-header-keamanan) di bawah.
+- **Status:** ✅ **Diperbaiki.**
+  - **Header:** [next.config.ts](next.config.ts) memasang CSP, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, dan `Permissions-Policy` sesuai usulan, ditambah `poweredByHeader: false`.
+  - **HSTS dan `upgrade-insecure-requests`:** hanya aktif di produksi HTTPS.
+  - **Mode pengembangan:** CSP juga mengizinkan `'unsafe-eval'` dan `ws:`, yang dibutuhkan *hot reload*.
+  - **Uji di server:** semua header muncul dan `X-Powered-By` tidak lagi dikirim.
+  - **Belum diuji:** halaman latihan di browser sungguhan (putar MIDI, rekam, analisis) belum dicek. Periksa Console DevTools; tidak boleh ada pelanggaran CSP.
 
 ### KS-08 · Rentang angka data hasil analisis tidak dibatasi
 
@@ -205,6 +220,10 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - Pesan login sudah aman: "Email atau kata sandi salah" untuk kedua kasus.
 - **Dampak:** Siapa pun bisa mengecek apakah sebuah email punya akun Nadalaya.
 - **Usulan perbaikan:** Ini pilihan UX. Bila ingin aman, tampilkan pesan yang sama dengan pendaftaran berhasil ("Cek email Anda untuk verifikasi"). Pemilik email asli tetap tahu dari isi emailnya. Bila pesan yang jelas dianggap lebih penting, terima sebagai risiko.
+- **Status:** ✅ **Diperbaiki.**
+  - **Daftar:** [app/api/auth/daftar/route.ts](app/api/auth/daftar/route.ts) menjawab email yang sudah terdaftar dengan `{ perluVerifikasi: true }`, sama seperti pendaftaran baru, sehingga pengguna diarahkan ke halaman "cek email".
+  - **Kirim ulang verifikasi:** route ini kini juga tidak meneruskan galat selain batas permintaan, seperti lupa sandi, agar status email tidak bisa ditebak dari sana.
+  - **Uji di server:** daftar dengan email yang sudah ada membalas 200 `{"perluVerifikasi":true}`.
 
 ### KS-10 · Ubah kata sandi tanpa cek akun aktif dan tanpa kata sandi lama
 
@@ -220,6 +239,10 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
 - **Usulan perbaikan:**
   - Cek `is_aktif` lewat `ambilProfil`.
   - Batasi route ini ke sesi pemulihan: cek klaim `amr` berisi `recovery`/`otp`, atau simpan penanda singkat saat `/auth/konfirmasi` memproses `type=recovery`.
+- **Status:** ✅ **Diperbaiki.**
+  - **Pengecekan baru:** [app/api/auth/atur-ulang-sandi/route.ts](app/api/auth/atur-ulang-sandi/route.ts) mewajibkan akun aktif (`ambilProfil`) dan sesi pemulihan, yaitu klaim `amr` berisi `recovery` atau `otp` yang dibuat ≤ 30 menit lalu (`sesiPemulihan()` di [lib/keamanan.ts](lib/keamanan.ts)).
+  - **Uji di Supabase:** login dengan kata sandi menghasilkan `amr` `password` (ditolak, 401), sedangkan tautan pemulihan menghasilkan `otp` (diterima, 200).
+  - **Catatan:** sesi dari tautan verifikasi pendaftaran juga `otp`, jadi selama 30 menit sesi itu bisa mengganti sandi. Ini setara dengan pemulihan, karena keduanya membuktikan kepemilikan email.
 
 ### KS-11 · Tidak ada pemeriksaan `Origin`/`Content-Type` (CSRF)
 
@@ -243,6 +266,12 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - Supabase menolak alamat yang tidak ada di daftar Redirect URL, jadi dampaknya tertahan selama daftar itu tidak memakai *wildcard* luas.
 - **Dampak:** Tautan verifikasi atau atur ulang sandi bisa mengarah ke domain penyerang bila daftar Redirect URL terlalu longgar.
 - **Usulan perbaikan:** Wajibkan `NEXT_PUBLIC_SITE_URL` di produksi (gagal saat start bila kosong), dan pastikan daftar Redirect URL di Supabase hanya berisi alamat persis.
+- **Status:** ✅ **Diperbaiki.**
+  - **Alamat situs:** `alamatSitus()` di [lib/keamanan.ts](lib/keamanan.ts) tidak lagi membaca header `Host`. Di pengembangan nilai bawaannya `http://localhost:3000`, sedangkan di produksi `NEXT_PUBLIC_SITE_URL` wajib berupa URL http(s) lengkap.
+  - **Cek saat start:** [instrumentation.ts](instrumentation.ts) memeriksanya saat server start (bukan saat build). Saya uji: `next start` tanpa variabel ini gagal dengan pesan "NEXT_PUBLIC_SITE_URL wajib diisi di produksi".
+  - **Docker Compose:** memakai `http://localhost:3000` bila variabel kosong.
+  - **README:** contoh `.env.local` sudah memuat variabel ini.
+  - **Tetap periksa:** daftar Redirect URL di Supabase harus berisi alamat persis.
 
 ### KS-13 · Hak eksekusi beberapa fungsi belum dicabut
 
@@ -261,6 +290,7 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - **Pencabutan:** migrasi 02 mencabut hak eksekusi `public`, `anon`, dan `authenticated` dari kelima fungsi ini, juga dari keempat fungsi baru (`mulai_sesi`, `selesaikan_sesi`, `batalkan_sesi`, `batalkan_sesi_kedaluwarsa`).
   - **Pemberian ke `service_role`:** `status_paket_efektif`, `jumlah_sesi_selesai_hari_ini`, `awal_hari_wib`, `mulai_sesi`, `selesaikan_sesi`, dan `batalkan_sesi`.
   - **SECURITY DEFINER:** semua fungsi baru yang SECURITY DEFINER memakai `set search_path = ''`.
+  - **Tambahan setelah audit SQL:** migrasi 02 juga mencabut `TRUNCATE`, `TRIGGER`, dan `REFERENCES` dari `authenticated` di kelima tabel, serta hak eksekusi `set_updated_at`.
   - **Verifikasi:** jalankan bagian 5 dan 6 di [supabase/audit-keamanan.sql](supabase/audit-keamanan.sql). Kolom `anon_boleh` dan `authenticated_boleh` harus `false` untuk semua fungsi.
 
 ### KS-14 · Batas ukuran unggah MIDI dicek setelah seluruh berkas dibaca
@@ -398,8 +428,7 @@ Setelah diterapkan, uji dengan DevTools Console: tidak boleh ada pelanggaran CSP
 ## Urutan perbaikan yang disarankan
 
 1. ~~**KS-01 + KS-03:** fungsi atomik `mulai_sesi`/`selesaikan_sesi` dan batas 15 menit.~~ Selesai (bersama KS-08 dan KS-13).
-2. **KS-02:** satu fungsi `jalurInternal()` beserta tes.
-3. **KS-06 + KS-07:** cookie `HttpOnly`/`Secure` dan header keamanan. Uji di browser setelahnya.
-4. **KS-04 + KS-11 + KS-14:** batas ukuran body dan pemeriksaan `Content-Type`/`Origin` di `bacaJson`/`rute`.
-5. **KS-05:** pembatas percobaan.
-6. **KS-10, KS-12, KS-15:** perbaikan kecil. KS-09 opsional.
+2. ~~**KS-02, KS-06, KS-07:** jalur internal, cookie, dan header keamanan.~~ Selesai (bersama KS-09, KS-10, KS-12).
+3. **KS-04 + KS-11 + KS-14:** batas ukuran body dan pemeriksaan `Content-Type`/`Origin` di `bacaJson`/`rute`.
+4. **KS-05:** pembatas percobaan.
+5. **KS-15:** perbaikan kecil.

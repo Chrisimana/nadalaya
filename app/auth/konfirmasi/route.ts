@@ -1,18 +1,15 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+import { jalurInternal } from "@/lib/keamanan";
 import { ambilProfil } from "@/lib/server/pengguna";
 import { buatKlienServer } from "@/lib/supabase/server";
 
 const JENIS_OTP: EmailOtpType[] = ["signup", "invite", "magiclink", "recovery", "email_change", "email"];
 const HALAMAN_ATUR_ULANG = "/atur-ulang-kata-sandi";
 
-function jalurAman(next: string | null) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
-}
-
 export async function GET(req: NextRequest) {
   const { searchParams, origin } = req.nextUrl;
-  const tujuan = jalurAman(searchParams.get("next"));
+  const tujuan = jalurInternal(searchParams.get("next"));
   const jenis = searchParams.get("type");
   const pemulihan = tujuan === HALAMAN_ATUR_ULANG || jenis === "recovery";
   const alihkan = (jalur: string) => NextResponse.redirect(new URL(jalur, origin));

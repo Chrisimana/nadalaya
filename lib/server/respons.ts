@@ -53,7 +53,3 @@ export function wajibUuid(nilai: unknown, nama = "ID"): string {
   }
   return nilai;
 }
-
-export function alamatSitus(req: Request) {
-  return (process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin).replace(/\/$/, "");
-}
