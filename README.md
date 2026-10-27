@@ -89,6 +89,7 @@
 | `npm run lint` | Pemeriksaan kode |
 | `npm test` | Uji analisis nada tanpa mikrofon |
 | `npm run buat-midi` | Membuat ulang berkas MIDI contoh |
+| `npm run salin-font` | Menyalin font notasi VexFlow ke `public/fonts/vexflow` (setelah memperbarui paket vexflow) |
 
 ## Menjalankan dengan Docker
 

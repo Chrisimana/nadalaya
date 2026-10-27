@@ -6,6 +6,7 @@ import { Alert } from "@/components/ui/Alert";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { kunciVexflow } from "@/lib/audio/nada";
 import { susunBirama, type TokenNotasi } from "@/lib/audio/notasi";
+import { muatVexflow } from "@/lib/audio/vexflow";
 import type { NadaAcuan } from "@/lib/types";
 
 const WARNA_NOT = "#2e2a6b";
@@ -46,8 +47,7 @@ export function PanelNotasi({ nada, tempo = 80, indeksAktif = null }: Props) {
 
     (async () => {
       try {
-        const VF = await import("vexflow/bravura");
-        await document.fonts.ready;
+        const VF = await muatVexflow();
         if (batal) return;
         const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental, Beam, StaveTie } = VF;
 

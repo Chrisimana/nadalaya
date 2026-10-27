@@ -199,7 +199,17 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - **HSTS dan `upgrade-insecure-requests`:** hanya aktif di produksi HTTPS.
   - **Mode pengembangan:** CSP juga mengizinkan `'unsafe-eval'` dan `ws:`, yang dibutuhkan *hot reload*.
   - **Uji di server:** semua header muncul dan `X-Powered-By` tidak lagi dikirim.
-  - **Belum diuji:** halaman latihan di browser sungguhan (putar MIDI, rekam, analisis) belum dicek. Periksa Console DevTools; tidak boleh ada pelanggaran CSP.
+  - **Perbaikan lanjutan: font notasi.**
+    - **Masalah:** setelah header ini aktif, kepala not dan kunci G VexFlow tampil sebagai kotak kosong.
+    - **Penyebab:** entry `vexflow/bravura` menanam font Bravura dan Academico sebagai *data URL* (`data:font/woff2;base64,…`) dan memuatnya lewat `FontFace`, sehingga diblokir `font-src 'self'`.
+    - **Perbaikan:** font kini disajikan dari server sendiri (`public/fonts/vexflow/`, diekstrak dari paket oleh `npm run salin-font`). Halaman memakai entry `vexflow/core`, dan `muatVexflow()` di [lib/audio/vexflow.ts](lib/audio/vexflow.ts) menunggu `Font.load()` selesai sebelum notasi digambar.
+    - **CSP:** `font-src` tetap `'self'`, tanpa `data:` dan tanpa CDN.
+  - **Penyesuaian:** `script-src` ditambah `'wasm-unsafe-eval'`. Pustaka `long` milik TensorFlow.js mencoba membuat modul WebAssembly saat analisis dan memicu pelanggaran CSP (fungsinya tetap jalan lewat cadangan JavaScript). Direktif ini hanya mengizinkan kompilasi WebAssembly, bukan `eval` JavaScript, dan tidak membuka sumber luar.
+  - **Uji browser** (Edge headless terhadap image Docker, akun uji Premium sementara):
+    - Keenam materi (tangga nada, interval, melodi) menampilkan kunci G, kepala not, tangkai, dan garis bantu.
+    - Font sudah berstatus termuat saat notasi pertama kali digambar, termasuk saat pindah materi.
+    - Putar acuan, rekam (mikrofon palsu berisi tangga nada Do mayor sintetis), dan analisis berjalan sampai skor 100.
+    - Tidak ada pelanggaran CSP maupun galat console.
 
 ### KS-08 · Rentang angka data hasil analisis tidak dibatasi
 
@@ -369,7 +379,8 @@ Kebutuhan aplikasi yang sudah saya periksa:
 |---|---|---|
 | Berkas MIDI | `fetch` ke *signed URL* Supabase Storage | `connect-src` |
 | Model CREPE | `/models/crepe` (same-origin) | `connect-src 'self'` |
-| TensorFlow.js | *backend* WebGL lalu CPU; tidak memakai WASM | `'wasm-unsafe-eval'` tidak perlu |
+| TensorFlow.js | *backend* WebGL lalu CPU; pustaka `long`-nya mencoba WebAssembly | `script-src 'wasm-unsafe-eval'` |
+| Font notasi VexFlow | `/fonts/vexflow/*.woff2` (same-origin) | `font-src 'self'` |
 | Tone.js | `Worker` dari `blob:` | `worker-src blob:` |
 | Pemutaran rekaman | `URL.createObjectURL` | `media-src blob:` |
 | Font | `next/font` di-*host* sendiri | `font-src 'self'` |
@@ -381,7 +392,7 @@ const produksi = process.env.NODE_ENV === "production";
 
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${produksi ? "" : " 'unsafe-eval'"} blob:`,
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${produksi ? "" : " 'unsafe-eval'"} blob:`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",

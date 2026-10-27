@@ -74,6 +74,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // Lewati API (memvalidasi sesi sendiri), tautan email, aset statis, dan berkas.
-    "/((?!api|auth|models|_next/static|_next/image|icon.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|mid)$).*)",
+    "/((?!api|auth|models|_next/static|_next/image|icon.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|mid|woff2)$).*)",
   ],
 };

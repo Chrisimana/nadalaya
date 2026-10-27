@@ -8,7 +8,8 @@ const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const csp = [
   "default-src 'self'",
   // Skrip inline Next.js; PPR tidak mendukung CSP berbasis nonce.
-  `script-src 'self' 'unsafe-inline' blob:${produksi ? "" : " 'unsafe-eval'"}`,
+  // 'wasm-unsafe-eval' hanya untuk WebAssembly (dicoba pustaka long milik TensorFlow.js), bukan eval JavaScript.
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:${produksi ? "" : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
