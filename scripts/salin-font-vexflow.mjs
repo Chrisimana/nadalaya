@@ -1,5 +1,6 @@
 // Menyalin font musik VexFlow (yang di paket tertanam sebagai data URL) ke public/fonts/vexflow
 // agar disajikan dari server sendiri. Jalankan ulang setelah memperbarui paket vexflow.
+// Berkas LICENSE-*.txt di folder tujuan (SIL OFL 1.1) wajib tetap disertakan bersama font.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";

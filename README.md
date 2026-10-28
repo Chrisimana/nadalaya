@@ -132,6 +132,10 @@ public/models/  Model CREPE untuk TensorFlow.js
 tests/          Uji otomatis analisis nada
 ```
 
+## Lisensi Pihak Ketiga
+
+Font notasi di `public/fonts/vexflow/` (Bravura dan Academico, © Steinberg Media Technologies GmbH) berlisensi **SIL Open Font License 1.1**. Teks lisensinya ada di folder yang sama (`LICENSE-Bravura.txt`, `LICENSE-Academico.txt`) dan wajib ikut disertakan bila font didistribusikan ulang.
+
 ## Progres Fitur
 
 | No | Fitur | Status |
