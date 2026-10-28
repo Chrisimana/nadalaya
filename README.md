@@ -16,6 +16,8 @@
 - **Paket Gratis:** kuota 3 analisis per hari.
 - **Paket Premium:** membuka seluruh materi, riwayat latihan, dan grafik progres.
 
+Belum familier dengan istilah musik seperti tangga nada, interval, oktaf, atau cent? Lihat [docs/GLOSARIUM.md](docs/GLOSARIUM.md).
+
 ## Fitur AI
 
 | Komponen | Fungsi |
