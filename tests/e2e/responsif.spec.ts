@@ -5,7 +5,7 @@ import { HALAMAN_PUBLIK } from "./halaman";
 
 // NFR-13: tanpa scroll horizontal pada lebar 360–1920 px.
 const LEBAR = [360, 768, 1280, 1920];
-const FOLDER = join(process.cwd(), "docs", "pengujian", "tangkapan");
+const FOLDER = join(process.cwd(), "tests", "e2e", "tangkapan");
 
 test.beforeAll(() => mkdirSync(FOLDER, { recursive: true }));
 

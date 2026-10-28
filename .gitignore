@@ -38,9 +38,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/docs/SDD _11241022.pdf
-/docs/SRS_11241022.pdf
+/docs/spesifikasi/*.pdf
 
 # hasil Playwright
+/tests/e2e/tangkapan/
 /tests/e2e/.hasil/
 /playwright-report/

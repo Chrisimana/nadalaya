@@ -130,14 +130,14 @@ supabase/       schema.sql, seed.sql, dan berkas migrasi
 scripts/        Pembuat berkas MIDI contoh dan hasilnya (scripts/midi/)
 public/models/  Model CREPE untuk TensorFlow.js
 tests/          Uji otomatis analisis nada
-docs/           Dokumentasi, termasuk docs/agentic-sdlc/
+docs/           Dokumen: agentic SDLC, audit keamanan, rencana uji, spesifikasi
 ```
 
 ## Agentic SDLC
 
 Nadalaya dikembangkan dengan bantuan AI agent: pengembang memutuskan dan menguji, sedangkan agent melaksanakan dan meninjau.
 
-- [docs/agentic-sdlc/README.md](docs/agentic-sdlc/README.md): peran setiap aktor, alur per tahap SDLC, cara verifikasi, dan jejak artefak.
+- [docs/AGENTIC-SDLC.md](docs/AGENTIC-SDLC.md): peran setiap aktor, alur per tahap SDLC, cara verifikasi, dan jejak artefak.
 - [AGENTS.md](AGENTS.md): panduan kerja untuk AI agent di repo ini.
 
 ## Lisensi Pihak Ketiga

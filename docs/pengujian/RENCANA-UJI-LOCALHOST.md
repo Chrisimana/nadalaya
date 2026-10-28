@@ -1,19 +1,21 @@
-# Rencana Uji Nadalaya
+# Rencana Uji Nadalaya (Localhost)
 
 Rencana pengujian menyeluruh untuk prototype Nadalaya, terdiri atas:
 
 1. **Uji fungsional black-box** per use case. Kolom "Hasil aktual" dan "Status" diisi penguji.
 2. **Uji kebutuhan non-fungsional**, sebagian otomatis dan sebagian manual.
 
+Semua pengujian di dokumen ini dijalankan di **http://localhost:3000**, baik dengan `npm run dev` maupun `docker compose up --build`. Uji yang membutuhkan HTTPS atau hosting publik ditandai **Ditunda sampai deploy** dan dirangkum di bagian [Ditunda sampai Deploy](#ditunda-sampai-deploy).
+
 ## Persiapan
 
 | Kebutuhan | Keterangan |
 |---|---|
-| Lingkungan | `npm run dev` (pengembangan) atau `docker compose up --build` (produksi) |
+| Lingkungan | http://localhost:3000 dengan `npm run dev` (pengembangan) atau `docker compose up --build` (produksi) |
 | Database | Migrasi 01–04 sudah dijalankan di Supabase |
 | Akun uji | Satu akun **Gratis**, satu akun **Premium** atau uji coba aktif, satu akun **admin**, dan satu akun yang akan **dinonaktifkan** |
-| Perangkat | Laptop dengan mikrofon dan headphone; browser Chrome, Edge, dan ponsel Android dengan Chrome |
-| Pengisian status | **Lolos**, **Gagal** (tulis temuan di "Hasil aktual"), atau **Ditunda** |
+| Perangkat | Laptop dengan mikrofon dan headphone; browser Chrome, Edge, dan ponsel Android dengan Chrome (uji ponsel: **Ditunda sampai deploy**) |
+| Pengisian status | **Lolos**, **Gagal** (tulis temuan di "Hasil aktual"), **Ditunda**, atau **Ditunda sampai deploy** |
 
 ## 1. Uji Fungsional (Black-Box)
 
@@ -215,14 +217,14 @@ Rencana pengujian menyeluruh untuk prototype Nadalaya, terdiri atas:
 | NFR-05 | RLS dan akses admin | Manual + otomatis (sebagian) | [supabase/audit-keamanan.sql](../../supabase/audit-keamanan.sql); TC-14-04, TC-20-02, TC-20-03 | – | |
 | NFR-06 | Webhook Midtrans | – | – | – | Ditunda |
 | NFR-07 | Rekaman tidak diunggah | Otomatis + manual | [tests/nfr.test.ts](../../tests/nfr.test.ts); tab Network DevTools | Lolos (otomatis) | |
-| NFR-08 | Uptime ≥ 95% per bulan | – | Perlu hosting publik | – | Ditunda |
+| NFR-08 | Uptime ≥ 95% per bulan | – | Perlu hosting publik | – | Ditunda sampai deploy |
 | NFR-09 | Kegagalan analisis jelas dan tidak mengurangi kuota | Otomatis (sebagian) + manual | [tests/nfr.test.ts](../../tests/nfr.test.ts); TC-11-04, TC-12-02, TC-12-03 | Lolos (otomatis) | |
 | NFR-10 | Latihan pertama ≤ 5 menit tanpa bantuan | Manual | Checklist di bawah | – | |
 | NFR-11 | Bahasa Indonesia | Otomatis (sebagian) + manual | [tests/e2e/bahasa.spec.ts](../../tests/e2e/bahasa.spec.ts), [tests/nfr.test.ts](../../tests/nfr.test.ts) | Lolos untuk 8 halaman publik | |
-| NFR-12 | Chrome, Edge, Firefox, Chrome Android | Manual | Checklist di bawah | – | |
-| NFR-13 | Tanpa scroll horizontal 360–1920 px | Otomatis | [tests/e2e/responsif.spec.ts](../../tests/e2e/responsif.spec.ts), tangkapan di [tangkapan/](tangkapan/) | **Gagal:** `/harga` pada 360 px melebar menjadi 595 px (tabel perbandingan). Tujuh halaman lain lolos. | Gagal |
+| NFR-12 | Chrome, Edge, Firefox, Chrome Android | Manual | Checklist di bawah | – | Desktop: di localhost; Chrome Android: Ditunda sampai deploy |
+| NFR-13 | Tanpa scroll horizontal 360–1920 px | Otomatis | [tests/e2e/responsif.spec.ts](../../tests/e2e/responsif.spec.ts), tangkapan di [tests/e2e/tangkapan/](../../tests/e2e/tangkapan/) | **Gagal:** `/harga` pada 360 px melebar menjadi 595 px (tabel perbandingan). Tujuh halaman lain lolos. | Gagal |
 | NFR-14 | Dibangun dan dijalankan dengan satu perintah | Manual | `docker compose up --build` | Pernah lolos (beranda, model CREPE, dan font dapat diakses) | |
-| NFR-15 | 20 pengguna aktif bersamaan | Manual | Checklist di bawah | – | Ditunda (perlu hosting) |
+| NFR-15 | 20 pengguna aktif bersamaan | Manual | Checklist di bawah | – | Ditunda sampai deploy |
 
 ### Cara menjalankan uji otomatis
 
@@ -233,7 +235,7 @@ Rencana pengujian menyeluruh untuk prototype Nadalaya, terdiri atas:
 | `E2E_BASE_URL=http://localhost:3000 npm run test:e2e` | Menguji server yang sudah berjalan, misalnya container Docker. Batas 3 detik NFR-02 hanya ditegakkan dalam mode ini. |
 | `PW_CHANNEL= npm run test:e2e` | Memakai Chromium bawaan Playwright (pasang dulu dengan `npx playwright install chromium`) |
 
-Tangkapan layar NFR-13 tersimpan di [docs/pengujian/tangkapan/](tangkapan/) dengan nama `<halaman>-<lebar>.png`. Ada 8 halaman × 4 lebar, total ±7 MB.
+Tangkapan layar NFR-13 tersimpan di `tests/e2e/tangkapan/` dengan nama `<halaman>-<lebar>.png` (8 halaman × 4 lebar, ±7 MB). Folder ini tidak dilacak Git; jalankan `npm run test:e2e` untuk membuatnya ulang.
 
 ### NFR-01 Waktu Analisis (manual)
 
@@ -288,6 +290,8 @@ Minta 3 orang yang belum pernah memakai Nadalaya mendaftar, memilih materi, mere
 
 Isi dengan Lolos, Gagal, atau keterangan singkat.
 
+Kolom Chrome (Android) **Ditunda sampai deploy**: localhost hanya dapat dibuka dari laptop yang menjalankannya, dan browser ponsel hanya mengizinkan mikrofon lewat HTTPS.
+
 | Fungsi | Chrome (desktop) | Edge (desktop) | Firefox (desktop) | Chrome (Android) |
 |---|---|---|---|---|
 | Daftar, masuk, keluar | | | | |
@@ -317,6 +321,20 @@ Isi dengan Lolos, Gagal, atau keterangan singkat.
 | 20 pengguna menyimpan hasil analisis dalam rentang 1 menit; semua tersimpan, kuota tetap benar | |
 
 Catatan: pembatas percobaan per IP (mis. 20 percobaan masuk per 15 menit) dapat tercapai bila semua penguji memakai jaringan yang sama. Gunakan akun berbeda dan jeda antarpercobaan.
+
+## Ditunda sampai Deploy
+
+Uji berikut tidak dapat atau tidak bermakna dijalankan di localhost, dan dijalankan setelah aplikasi dihosting dengan HTTPS.
+
+| ID | Uji | Alasan ditunda | Status |
+|---|---|---|---|
+| TD-01 | NFR-12: seluruh checklist kompatibilitas di Chrome Android | Localhost tidak dapat dibuka dari ponsel, dan mikrofon di ponsel membutuhkan HTTPS | Ditunda sampai deploy |
+| TD-02 | NFR-02: waktu muat beranda, daftar materi, dan dashboard dari jaringan luar | Waktu muat di localhost tidak mencakup latensi jaringan dan CDN sebenarnya | Ditunda sampai deploy |
+| TD-03 | NFR-08: uptime ≥ 95% per bulan | Membutuhkan hosting publik dan pemantauan | Ditunda sampai deploy |
+| TD-04 | NFR-15: 20 pengguna aktif bersamaan | Membutuhkan server produksi; pembatas percobaan per IP perlu IP klien asli | Ditunda sampai deploy |
+| TD-05 | Cookie sesi bertanda `Secure`, header HSTS, dan `upgrade-insecure-requests` | Ketiganya hanya aktif di produksi HTTPS | Ditunda sampai deploy |
+| TD-06 | Tautan verifikasi email dan atur ulang kata sandi mengarah ke domain produksi | Membutuhkan `NEXT_PUBLIC_SITE_URL` dan Redirect URL Supabase untuk domain publik | Ditunda sampai deploy |
+| TD-07 | Pembatas percobaan per IP memakai IP klien asli dari proxy hosting (`x-forwarded-for`) | Di localhost semua permintaan berasal dari satu IP | Ditunda sampai deploy |
 
 ## 3. Temuan Uji Otomatis
 

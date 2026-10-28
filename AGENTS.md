@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Panduan AI Agent untuk Repo Nadalaya
 
-Berkas ini dibaca oleh Claude Code sebelum bekerja di repo ini. Blok di atas dikelola otomatis oleh `next dev`, jangan diubah. Cara agent dipakai di setiap tahap pengembangan dijelaskan di [docs/agentic-sdlc/README.md](docs/agentic-sdlc/README.md).
+Berkas ini dibaca oleh Claude Code sebelum bekerja di repo ini. Blok di atas dikelola otomatis oleh `next dev`, jangan diubah. Cara agent dipakai di setiap tahap pengembangan dijelaskan di [docs/AGENTIC-SDLC.md](docs/AGENTIC-SDLC.md).
 
 ## Konteks Proyek
 
@@ -44,8 +44,8 @@ supabase/         schema.sql, seed.sql, migrasi-NN-*.sql, audit-keamanan.sql
 scripts/          Pembuat MIDI contoh dan penyalin font VexFlow
 public/models/    Model CREPE
 public/fonts/     Font notasi VexFlow beserta lisensinya (SIL OFL 1.1)
-tests/            Tes otomatis (audio sintetis, DTW, validasi, keamanan)
-docs/             Dokumentasi; docs/agentic-sdlc/ untuk catatan agentic SDLC
+tests/            Tes otomatis (audio sintetis, DTW, validasi, keamanan); tests/e2e/ untuk Playwright
+docs/             Dokumen (.md dan PDF): AGENTIC-SDLC.md, AUDIT-KEAMANAN.md, pengujian/, spesifikasi/ (SRS dan SDD, tidak ikut repo)
 ```
 
 ## Perintah
@@ -75,5 +75,5 @@ docs/             Dokumentasi; docs/agentic-sdlc/ untuk catatan agentic SDLC
 6. **Bahasa.** Teks antarmuka dan pesan galat memakai Bahasa Indonesia baku.
 7. **Komentar kode** singkat dan hanya yang penting. Jangan menulis rujukan nomor kebutuhan di kode maupun README.
 8. **Pekerjaan berisiko** (audit, perubahan keamanan, perubahan besar) dimulai dengan laporan atau rencana. Kode baru diubah setelah pengembang menyetujui.
-9. **Keamanan yang sudah diterapkan jangan dilonggarkan tanpa alasan tertulis.** Lihat [AUDIT-KEAMANAN.md](AUDIT-KEAMANAN.md). Contohnya CSP, cookie `HttpOnly`, pemeriksaan `Origin`, batas ukuran body, dan pembatas percobaan.
+9. **Keamanan yang sudah diterapkan jangan dilonggarkan tanpa alasan tertulis.** Lihat [docs/AUDIT-KEAMANAN.md](docs/AUDIT-KEAMANAN.md). Contohnya CSP, cookie `HttpOnly`, pemeriksaan `Origin`, batas ukuran body, dan pembatas percobaan.
 10. **Next.js 16.** Baca panduan di `node_modules/next/dist/docs/` sebelum memakai API Next.js yang belum pernah dipakai di repo ini.

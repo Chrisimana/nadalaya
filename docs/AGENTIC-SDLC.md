@@ -1,6 +1,6 @@
 # Agentic SDLC Nadalaya
 
-Catatan tentang cara AI agent dipakai di setiap tahap siklus pengembangan Nadalaya, siapa yang mengambil keputusan, dan bagaimana hasilnya diverifikasi. Panduan teknis untuk agent yang bekerja di repo ini ada di [AGENTS.md](../../AGENTS.md).
+Catatan tentang cara AI agent dipakai di setiap tahap siklus pengembangan Nadalaya, siapa yang mengambil keputusan, dan bagaimana hasilnya diverifikasi. Panduan teknis untuk agent yang bekerja di repo ini ada di [AGENTS.md](../AGENTS.md).
 
 ## 1. Ringkasan
 
@@ -29,7 +29,7 @@ Setiap tahap kerja berakhir dengan *quality gate* otomatis (`npm run build`, `np
 | Peran agent | Claude mengusulkan cakupan dan urutan kerja |
 | Keputusan manusia | Memilih 10 fitur inti dari 27 fitur/use case. Menetapkan urutan front-end → back-end/database (Supabase) → analisis nada. |
 | Artefak | Rencana tahapan dan prompt per tahap |
-| Verifikasi | Progres fitur dicatat di bagian "Progres Fitur" [README.md](../../README.md) |
+| Verifikasi | Progres fitur dicatat di bagian "Progres Fitur" [README.md](../README.md) |
 
 ### b. Implementasi Bertahap
 
@@ -53,20 +53,20 @@ Setiap baris di bawah adalah uji manual yang dilakukan pengembang setelah hasil 
 | Tujuan | Analisis nada, validasi, dan keamanan berperilaku sesuai harapan tanpa perlu mikrofon |
 | Peran agent | Menulis tes Vitest dan menjalankannya pada setiap perubahan |
 | Keputusan manusia | Menetapkan ambang penerimaan (mis. nada tepat ≥ 80, geser 1 semiton ≤ 50) dan skenario yang wajib dites |
-| Artefak | [tests/](../../tests/): 7 berkas, 110 tes saat dokumen ini ditulis |
+| Artefak | [tests/](../tests/): 7 berkas, 110 tes saat dokumen ini ditulis |
 | Verifikasi | `npm test` dan uji manual pengembang di browser dengan mikrofon |
 
 Cakupan tes otomatis:
 
 | Berkas | Cakupan |
 |---|---|
-| [analisis.test.ts](../../tests/analisis.test.ts) | CREPE dengan audio sintetis: nada tepat ≥ 80, geser 1 semiton ≤ 50, beda oktaf, diapit nada acak, lonjakan oktaf, 1,3× lebih cepat, 0,8× lebih lambat, hening |
-| [dtw-skor.test.ts](../../tests/dtw-skor.test.ts) | Aturan skor, DTW, subsequence (rekaman 49 detik), tempo, jeda tanpa suara, pembersihan lonjakan, notasi, waktu analisis rekaman 30 detik |
-| [validasi-midi.test.ts](../../tests/validasi-midi.test.ts) | Validasi berkas MIDI unggahan admin |
-| [sesi-analisis.test.ts](../../tests/sesi-analisis.test.ts) | Validasi rentang data hasil analisis dan terjemahan galat database |
-| [keamanan.test.ts](../../tests/keamanan.test.ts) | *Open redirect*, sesi pemulihan kata sandi, alamat situs |
-| [permintaan.test.ts](../../tests/permintaan.test.ts) | Batas ukuran body, `Content-Type`/`Origin`, IP klien, pembatas percobaan, log galat |
-| [status-paket.test.ts](../../tests/status-paket.test.ts) | Sisa masa aktif paket dan hak uji coba |
+| [analisis.test.ts](../tests/analisis.test.ts) | CREPE dengan audio sintetis: nada tepat ≥ 80, geser 1 semiton ≤ 50, beda oktaf, diapit nada acak, lonjakan oktaf, 1,3× lebih cepat, 0,8× lebih lambat, hening |
+| [dtw-skor.test.ts](../tests/dtw-skor.test.ts) | Aturan skor, DTW, subsequence (rekaman 49 detik), tempo, jeda tanpa suara, pembersihan lonjakan, notasi, waktu analisis rekaman 30 detik |
+| [validasi-midi.test.ts](../tests/validasi-midi.test.ts) | Validasi berkas MIDI unggahan admin |
+| [sesi-analisis.test.ts](../tests/sesi-analisis.test.ts) | Validasi rentang data hasil analisis dan terjemahan galat database |
+| [keamanan.test.ts](../tests/keamanan.test.ts) | *Open redirect*, sesi pemulihan kata sandi, alamat situs |
+| [permintaan.test.ts](../tests/permintaan.test.ts) | Batas ukuran body, `Content-Type`/`Origin`, IP klien, pembatas percobaan, log galat |
+| [status-paket.test.ts](../tests/status-paket.test.ts) | Sisa masa aktif paket dan hak uji coba |
 
 Contoh temuan uji manual pengembang yang kemudian diperbaiki agent:
 
@@ -81,7 +81,7 @@ Contoh temuan uji manual pengembang yang kemudian diperbaiki agent:
 | Aspek | Isi |
 |---|---|
 | Tujuan | Menutup celah sebelum aplikasi dibuka untuk publik |
-| Peran agent | Claude Code mengaudit kode, konfigurasi, SQL, riwayat git, dependensi, dan Docker. Hasilnya [AUDIT-KEAMANAN.md](../../AUDIT-KEAMANAN.md): 15 temuan (1 Tinggi, 6 Sedang, 8 Rendah). Agent juga menyusun [supabase/audit-keamanan.sql](../../supabase/audit-keamanan.sql) berisi query hanya-baca. |
+| Peran agent | Claude Code mengaudit kode, konfigurasi, SQL, riwayat git, dependensi, dan Docker. Hasilnya [AUDIT-KEAMANAN.md](AUDIT-KEAMANAN.md): 15 temuan (1 Tinggi, 6 Sedang, 8 Rendah). Agent juga menyusun [supabase/audit-keamanan.sql](../supabase/audit-keamanan.sql) berisi query hanya-baca. |
 | Keputusan manusia | Menyetujui perbaikan dalam 3 tahap; menerima risiko yang tersisa (skor dihitung di klien, pembatas percobaan di memori, CSP `'unsafe-inline'`); menjalankan migrasi dan query audit di database sungguhan |
 | Artefak | Laporan audit; migrasi `migrasi-02` s.d. `migrasi-04`; tes keamanan |
 | Verifikasi | Pengembang menjalankan `audit-keamanan.sql` dan membandingkannya dengan "Harapan" di setiap bagian. Hak akses tambahan (TRUNCATE/TRIGGER/REFERENCES dan `set_updated_at`) kemudian dicabut. Jadwal harian `pg_cron` untuk paket kedaluwarsa juga ditambahkan. |
@@ -117,14 +117,14 @@ Prompt berikut diparafrasekan dan diringkas.
 
 | Artefak | Isi |
 |---|---|
-| [README.md](../../README.md) | Fitur, cara menjalankan (lokal dan Docker), progres fitur |
-| [AGENTS.md](../../AGENTS.md) | Panduan kerja AI agent di repo ini |
-| [AUDIT-KEAMANAN.md](../../AUDIT-KEAMANAN.md) | Laporan audit keamanan dan status perbaikan |
-| [supabase/schema.sql](../../supabase/schema.sql), [seed.sql](../../supabase/seed.sql) | Skema awal dan data contoh |
-| [supabase/migrasi-01-uji-coba.sql](../../supabase/migrasi-01-uji-coba.sql) s.d. [migrasi-04-bucket-midi.sql](../../supabase/migrasi-04-bucket-midi.sql) | Migrasi bertahap |
-| [supabase/audit-keamanan.sql](../../supabase/audit-keamanan.sql) | Query hanya-baca untuk memverifikasi database |
-| [tests/](../../tests/) | Tes otomatis |
-| [Dockerfile](../../Dockerfile), [docker-compose.yml](../../docker-compose.yml) | Image dan perintah Docker |
+| [README.md](../README.md) | Fitur, cara menjalankan (lokal dan Docker), progres fitur |
+| [AGENTS.md](../AGENTS.md) | Panduan kerja AI agent di repo ini |
+| [AUDIT-KEAMANAN.md](AUDIT-KEAMANAN.md) | Laporan audit keamanan dan status perbaikan |
+| [supabase/schema.sql](../supabase/schema.sql), [seed.sql](../supabase/seed.sql) | Skema awal dan data contoh |
+| [supabase/migrasi-01-uji-coba.sql](../supabase/migrasi-01-uji-coba.sql) s.d. [migrasi-04-bucket-midi.sql](../supabase/migrasi-04-bucket-midi.sql) | Migrasi bertahap |
+| [supabase/audit-keamanan.sql](../supabase/audit-keamanan.sql) | Query hanya-baca untuk memverifikasi database |
+| [tests/](../tests/) | Tes otomatis |
+| [Dockerfile](../Dockerfile), [docker-compose.yml](../docker-compose.yml) | Image dan perintah Docker |
 
 ## 7. Risiko dan Batasan Penggunaan AI
 
