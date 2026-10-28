@@ -53,7 +53,7 @@ export function TabelNada({
 }) {
   const meleset = new Map(nadaMeleset.map((m) => [m.urutan, m]));
   return (
-    <div className="overflow-x-auto rounded-xl border border-garis">
+    <div className="relative overflow-x-auto rounded-xl border border-garis">
       <table className="w-full text-left text-sm">
         <thead className="bg-nada-50/60 text-xs tracking-wide text-redup uppercase">
           <tr>

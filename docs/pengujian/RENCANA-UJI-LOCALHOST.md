@@ -222,7 +222,7 @@ Semua pengujian di dokumen ini dijalankan di **http://localhost:3000**, baik den
 | NFR-10 | Latihan pertama ≤ 5 menit tanpa bantuan | Manual | Checklist di bawah | – | |
 | NFR-11 | Bahasa Indonesia | Otomatis (sebagian) + manual | [tests/e2e/bahasa.spec.ts](../../tests/e2e/bahasa.spec.ts), [tests/nfr.test.ts](../../tests/nfr.test.ts) | Lolos untuk 8 halaman publik | |
 | NFR-12 | Chrome, Edge, Firefox, Chrome Android | Manual | Checklist di bawah | – | Desktop: di localhost; Chrome Android: Ditunda sampai deploy |
-| NFR-13 | Tanpa scroll horizontal 360–1920 px | Otomatis | [tests/e2e/responsif.spec.ts](../../tests/e2e/responsif.spec.ts), tangkapan di [tests/e2e/tangkapan/](../../tests/e2e/tangkapan/) | **Gagal:** `/harga` pada 360 px melebar menjadi 595 px (tabel perbandingan). Tujuh halaman lain lolos. | Gagal |
+| NFR-13 | Tanpa scroll horizontal 360–1920 px | Otomatis | [tests/e2e/responsif.spec.ts](../../tests/e2e/responsif.spec.ts), tangkapan di [tests/e2e/tangkapan/](../../tests/e2e/tangkapan/) | Lolos untuk 8 halaman publik × 4 lebar, setelah TM-01 diperbaiki | Lolos |
 | NFR-14 | Dibangun dan dijalankan dengan satu perintah | Manual | `docker compose up --build` | Pernah lolos (beranda, model CREPE, dan font dapat diakses) | |
 | NFR-15 | 20 pengguna aktif bersamaan | Manual | Checklist di bawah | – | Ditunda sampai deploy |
 
@@ -340,4 +340,4 @@ Uji berikut tidak dapat atau tidak bermakna dijalankan di localhost, dan dijalan
 
 | ID | Sumber | Temuan | Usulan | Status |
 |---|---|---|---|---|
-| TM-01 | NFR-13, `responsif.spec.ts` | Halaman `/harga` pada lebar 360 px melebar menjadi 595 px. Tabel perbandingan hak akses (`min-w-[640px]` di `components/publik/TabelPerbandingan.tsx`) membuat seluruh halaman dapat digulir ke samping, walaupun pembungkusnya sudah `overflow-x-auto`. | Batasi lebar pembungkus tabel (mis. `min-w-0`/`max-w-full` pada elemen induk) agar hanya tabel yang dapat digulir, lalu jalankan ulang `npm run test:e2e`. | Terbuka |
+| TM-01 | NFR-13, `responsif.spec.ts` | Halaman `/harga` pada lebar 360 px melebar menjadi 595 px. Penyebabnya 15 label pembaca layar (`sr-only`, `position: absolute`) di sel tabel perbandingan: pembungkus `overflow-x-auto` tidak `relative`, sehingga elemen absolut itu diposisikan terhadap halaman dan lolos dari wadah gulirnya. | Pembungkus tabel diberi `relative` (`components/publik/TabelPerbandingan.tsx`), begitu juga tujuh wadah gulir lain dengan pola yang sama (tabel admin, riwayat, nada meleset, filter materi). Diagnosis di `responsif.spec.ts` kini melaporkan elemen absolut yang lolos dari wadah gulir. `npm run test:e2e`: 17 lolos. | Diperbaiki |

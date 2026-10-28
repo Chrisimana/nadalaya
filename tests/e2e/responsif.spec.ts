@@ -19,9 +19,16 @@ for (const { jalur, nama } of HALAMAN_PUBLIK) {
       const ukuran = await page.evaluate(() => {
         const lebarDokumen = document.documentElement.scrollWidth;
         const lebarLayar = document.documentElement.clientWidth;
-        // Elemen yang melewati tepi kanan, untuk membantu mencari penyebab.
+        // Elemen yang melebarkan halaman: tidak berada di wadah gulir, atau absolut sehingga lolos darinya.
+        const dalamWadahGulir = (el: Element) => {
+          for (let p = el.parentElement; p; p = p.parentElement) {
+            if (["auto", "scroll", "hidden", "clip"].includes(getComputedStyle(p).overflowX)) return true;
+          }
+          return false;
+        };
         const pelanggar = [...document.querySelectorAll("body *")]
           .filter((el) => el.getBoundingClientRect().right > lebarLayar + 1)
+          .filter((el) => !dalamWadahGulir(el) || ["absolute", "fixed"].includes(getComputedStyle(el).position))
           .slice(0, 5)
           .map((el) => `${el.tagName.toLowerCase()}.${String(el.className).split(" ").slice(0, 3).join(".")}`);
         return { lebarDokumen, lebarLayar, pelanggar };

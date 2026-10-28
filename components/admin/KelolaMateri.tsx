@@ -140,7 +140,7 @@ export function KelolaMateri({ disimpan }: { disimpan?: keyof typeof PESAN_DISIM
       )}
 
       {tersaring.length > 0 && (
-        <div className="overflow-x-auto rounded-2xl border border-garis bg-white">
+        <div className="relative overflow-x-auto rounded-2xl border border-garis bg-white">
           <table className="w-full min-w-[820px] text-sm">
             <thead className="border-b border-garis bg-nada-50/60 text-left text-xs tracking-wide text-redup uppercase">
               <tr>

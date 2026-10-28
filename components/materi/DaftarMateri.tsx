@@ -129,7 +129,7 @@ export function DaftarMateri() {
       {adaMateri && (
         <div className="flex flex-col gap-3">
           <div
-            className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+            className="relative -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
             role="group"
             aria-label="Saring berdasarkan jenis"
           >
@@ -143,7 +143,7 @@ export function DaftarMateri() {
             ))}
           </div>
           <div
-            className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+            className="relative -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
             role="group"
             aria-label="Saring berdasarkan tingkat"
           >

@@ -31,7 +31,7 @@ export function TabelPerbandingan() {
   const indeksUnggulan = DAFTAR_PAKET.findIndex((p) => p.unggulan);
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-garis bg-white">
+    <div className="relative overflow-x-auto rounded-2xl border border-garis bg-white">
       <table className="w-full min-w-[640px] text-sm">
         <caption className="sr-only">
           Perbandingan hak akses paket Gratis, Uji Coba Premium, Premium, dan
