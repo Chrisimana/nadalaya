@@ -4,7 +4,7 @@ import * as tf from "@tensorflow/tfjs";
 import { bacaMidi } from "@/lib/audio/midi";
 import { bungkusModel, LAJU_SAMPEL, type ModelCrepe } from "@/lib/audio/crepe";
 import { midiKeHz } from "@/lib/audio/nada";
-import type { NadaAcuan } from "@/lib/types";
+import type { NadaAcuan, TitikPitch } from "@/lib/types";
 
 const FOLDER_MODEL = join(process.cwd(), "public", "models", "crepe");
 
@@ -25,6 +25,25 @@ export async function muatCrepeNode(): Promise<ModelCrepe> {
 
 export function nadaDariMidi(berkas: string): NadaAcuan[] {
   return bacaMidi(readFileSync(join(process.cwd(), "scripts", "midi", berkas))).nada;
+}
+
+/** Kontur 100 bingkai/detik langsung dari nada acuan, tanpa CREPE. */
+export function konturSintetis(
+  nada: NadaAcuan[],
+  opsi: { geser?: number; tempo?: number; jitter?: number; awal?: number; jeda?: number } = {},
+): TitikPitch[] {
+  // tempo = pengali durasi (0,77 = lebih cepat); jeda = detik tanpa suara di awal tiap nada.
+  const { geser = 0, tempo = 1, jitter = 0, awal = 0.5, jeda = 0 } = opsi;
+  const akhir = Math.max(...nada.map((n) => n.waktu + n.durasi)) * tempo + 2 * awal;
+  const hasil: TitikPitch[] = [];
+  for (let f = 0; f < akhir * 100; f++) {
+    const t = f / 100;
+    const asli = (t - awal) / tempo;
+    const n = nada.find((x) => asli >= x.waktu && asli < x.waktu + x.durasi);
+    const bersuara = n && (asli - n.waktu) * tempo >= jeda;
+    hasil.push({ waktu: t, midi: bersuara ? n.midi + geser + (f % 2 ? jitter : -jitter) : null });
+  }
+  return hasil;
 }
 
 export type Segmen = { midi: number; mulai: number; durasi: number };

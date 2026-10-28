@@ -7,6 +7,7 @@ import { daftarMeleset, deviasiPerNada, konturSelaras, skorAkhir } from "./skor"
 export type TahapAnalisis = "memuat_model" | "menganalisis";
 
 export const MIN_RASIO_BERSUARA = 0.2;
+export const BATAS_WAKTU_ANALISIS_DETIK = 15;
 const MIN_PORSI_DURASI_ACUAN = 0.3;
 
 export function durasiAcuan(acuan: NadaAcuan[]) {
@@ -61,10 +62,14 @@ export async function jalankanAnalisis({
   const hasil = analisisKontur(kontur, acuan);
   const t3 = performance.now();
 
-  console.info(
-    `[analisis] rekaman ${(audio.length / 16000).toFixed(1)} dtk · model ${((t1 - t0) / 1000).toFixed(1)} dtk · ` +
-      `CREPE ${((t2 - t1) / 1000).toFixed(1)} dtk · DTW+skor ${((t3 - t2) / 1000).toFixed(2)} dtk · ` +
-      `total ${((t3 - t0) / 1000).toFixed(1)} dtk`,
-  );
+  // Pencatatan waktu untuk uji NFR-01, hanya di mode pengembangan.
+  if (process.env.NODE_ENV !== "production") {
+    const total = (t3 - t0) / 1000;
+    console.info(
+      `[analisis] rekaman ${(audio.length / 16000).toFixed(1)} dtk · model ${((t1 - t0) / 1000).toFixed(1)} dtk · ` +
+        `CREPE ${((t2 - t1) / 1000).toFixed(1)} dtk · DTW+skor ${((t3 - t2) / 1000).toFixed(2)} dtk · ` +
+        `total ${total.toFixed(1)} dtk (${total <= BATAS_WAKTU_ANALISIS_DETIK ? "memenuhi" : "MELEBIHI"} batas ${BATAS_WAKTU_ANALISIS_DETIK} dtk)`,
+    );
+  }
   return hasil;
 }

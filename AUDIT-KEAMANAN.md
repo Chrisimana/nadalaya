@@ -1,4 +1,4 @@
-# Audit Keamanan NadalayaDiperbaiki |Diperbaiki |Diperbaiki |Diperbaiki |Diperbaiki |Diperbaiki |
+# Audit Keamanan Nadalaya
 
 **Tanggal:** 27 Oktober 2026
 **Cakupan:** kode di repositori (API route, autentikasi, proxy, konfigurasi, SQL, Docker), hasil `npm run build`, riwayat git, dan `npm audit`.

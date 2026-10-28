@@ -5,26 +5,8 @@ import { deretAcuan, dtw, geserOktaf, lebarPitaBawaan, turunkanResolusi } from "
 import { bersihkanKontur, hapusLonjakanSingkat } from "@/lib/audio/kontur";
 import { susunBirama } from "@/lib/audio/notasi";
 import { skorAkhir, skorNada } from "@/lib/audio/skor";
-import type { NadaAcuan, TitikPitch } from "@/lib/types";
-import { nadaDariMidi } from "./bantuan";
-
-function konturSintetis(
-  nada: NadaAcuan[],
-  opsi: { geser?: number; tempo?: number; jitter?: number; awal?: number; jeda?: number } = {},
-): TitikPitch[] {
-  // tempo = pengali durasi (0,77 = lebih cepat); jeda = detik tanpa suara di awal tiap nada.
-  const { geser = 0, tempo = 1, jitter = 0, awal = 0.5, jeda = 0 } = opsi;
-  const akhir = Math.max(...nada.map((n) => n.waktu + n.durasi)) * tempo + 2 * awal;
-  const hasil: TitikPitch[] = [];
-  for (let f = 0; f < akhir * 100; f++) {
-    const t = f / 100;
-    const asli = (t - awal) / tempo;
-    const n = nada.find((x) => asli >= x.waktu && asli < x.waktu + x.durasi);
-    const bersuara = n && (asli - n.waktu) * tempo >= jeda;
-    hasil.push({ waktu: t, midi: bersuara ? n.midi + geser + (f % 2 ? jitter : -jitter) : null });
-  }
-  return hasil;
-}
+import type { TitikPitch } from "@/lib/types";
+import { konturSintetis, nadaDariMidi } from "./bantuan";
 
 const doMayor = nadaDariMidi("do-mayor.mid");
 

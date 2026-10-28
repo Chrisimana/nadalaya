@@ -40,3 +40,7 @@ next-env.d.ts
 
 /docs/SDD _11241022.pdf
 /docs/SRS_11241022.pdf
+
+# hasil Playwright
+/tests/e2e/.hasil/
+/playwright-report/
