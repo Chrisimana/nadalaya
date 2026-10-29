@@ -1,26 +1,31 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { jalurInternal } from "@/lib/keamanan";
+import {
+  alasanGagal,
+  alurKonfirmasi,
+  halamanBerhasil,
+  halamanGagal,
+  HALAMAN_TERVERIFIKASI_PERLU_MASUK,
+} from "@/lib/konfirmasi";
 import { ambilProfil } from "@/lib/server/pengguna";
 import { buatKlienServer } from "@/lib/supabase/server";
 
 const JENIS_OTP: EmailOtpType[] = ["signup", "invite", "magiclink", "recovery", "email_change", "email"];
-const HALAMAN_ATUR_ULANG = "/atur-ulang-kata-sandi";
 
 export async function GET(req: NextRequest) {
   const { searchParams, origin } = req.nextUrl;
   const tujuan = jalurInternal(searchParams.get("next"));
-  const jenis = searchParams.get("type");
-  const pemulihan = tujuan === HALAMAN_ATUR_ULANG || jenis === "recovery";
+  const alur = alurKonfirmasi(searchParams.get("type"), tujuan);
   const alihkan = (jalur: string) => NextResponse.redirect(new URL(jalur, origin));
-  const gagal = () =>
-    alihkan(pemulihan ? `${HALAMAN_ATUR_ULANG}?galat=kedaluwarsa` : "/masuk?verifikasi=gagal");
+  const gagal = (kode?: string | null) => alihkan(halamanGagal(alur, alasanGagal(kode)));
 
   // Supabase menambahkan error_code (mis. otp_expired) bila tautan tidak berlaku.
-  if (searchParams.get("error_code") || searchParams.get("error")) return gagal();
+  if (searchParams.get("error_code") || searchParams.get("error")) return gagal(searchParams.get("error_code"));
 
   const supabase = await buatKlienServer();
   const tokenHash = searchParams.get("token_hash");
+  const jenis = searchParams.get("type");
   const kode = searchParams.get("code");
 
   if (tokenHash && jenis && JENIS_OTP.includes(jenis as EmailOtpType)) {
@@ -28,11 +33,12 @@ export async function GET(req: NextRequest) {
       type: jenis as EmailOtpType,
       token_hash: tokenHash,
     });
-    if (error) return gagal();
+    if (error) return gagal(error.code);
   } else if (kode) {
     const { error } = await supabase.auth.exchangeCodeForSession(kode);
     if (error) {
-      return pemulihan ? gagal() : alihkan("/masuk?verifikasi=berhasil");
+      // Email sudah diverifikasi Supabase sebelum mengalihkan; sesi gagal dibuat (mis. dibuka di browser lain).
+      return alur === "pemulihan" ? gagal(error.code) : alihkan(HALAMAN_TERVERIFIKASI_PERLU_MASUK);
     }
   } else {
     return gagal();
@@ -47,6 +53,5 @@ export async function GET(req: NextRequest) {
     return alihkan(profil ? "/masuk?galat=nonaktif" : "/masuk?verifikasi=berhasil");
   }
 
-  if (pemulihan) return alihkan(HALAMAN_ATUR_ULANG);
-  return alihkan(profil.peran === "admin" && tujuan === "/dashboard" ? "/admin" : tujuan);
+  return alihkan(halamanBerhasil(alur, tujuan, profil.peran));
 }

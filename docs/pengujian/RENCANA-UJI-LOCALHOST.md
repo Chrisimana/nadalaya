@@ -2,10 +2,10 @@
 
 Rencana pengujian menyeluruh untuk prototype Nadalaya, terdiri atas:
 
-1. **Uji fungsional black-box** per use case. Kolom "Hasil aktual" dan "Status" diisi penguji.
+1. **Uji fungsional black-box** per use case. Kolom "Hasil aktual" dan "Status" diisi penguji/pengembang.
 2. **Uji kebutuhan non-fungsional**, sebagian otomatis dan sebagian manual.
 
-Semua pengujian di dokumen ini dijalankan di **http://localhost:3000**, baik dengan `npm run dev` maupun `docker compose up --build`. Uji yang membutuhkan HTTPS atau hosting publik ditandai **Ditunda sampai deploy** dan dirangkum di bagian [Ditunda sampai Deploy](#ditunda-sampai-deploy).
+Semua pengujian di dokumen ini dijalankan di **http://localhost:3000**, baik dengan `npm run dev` maupun `docker compose up --build`.
 
 ## Persiapan
 
@@ -13,9 +13,9 @@ Semua pengujian di dokumen ini dijalankan di **http://localhost:3000**, baik den
 |---|---|
 | Lingkungan | http://localhost:3000 dengan `npm run dev` (pengembangan) atau `docker compose up --build` (produksi) |
 | Database | Migrasi 01–04 sudah dijalankan di Supabase |
-| Akun uji | Satu akun **Gratis**, satu akun **Premium** atau uji coba aktif, satu akun **admin**, dan satu akun yang akan **dinonaktifkan** |
-| Perangkat | Laptop dengan mikrofon dan headphone; browser Chrome, Edge, dan ponsel Android dengan Chrome (uji ponsel: **Ditunda sampai deploy**) |
-| Pengisian status | **Lolos**, **Gagal** (tulis temuan di "Hasil aktual"), **Ditunda**, atau **Ditunda sampai deploy** |
+| Akun uji | Satu akun Gratis, satu akun Premium atau uji coba aktif, satu akun admin, dan satu akun yang akan dinonaktifkan |
+| Perangkat | Laptop dengan mikrofon dan headphone di browser Chrome, Edge. |
+| Pengisian status | **Lolos** atau **Gagal** dan tulis temuan di "Hasil aktual" |
 
 ## 1. Uji Fungsional (Black-Box)
 
@@ -28,6 +28,14 @@ Semua pengujian di dokumen ini dijalankan di **http://localhost:3000**, baik den
 | TC-01-03 | UC-01 | Kata sandi kurang dari 8 karakter | Isi kata sandi 7 karakter | Pesan "Kata sandi minimal 8 karakter." di kolom kata sandi; data tidak dikirim | | |
 | TC-01-04 | UC-01 | Input tidak valid | Kosongkan nama, isi email `nama@`, lalu tekan Daftar | Pesan pada kolom terkait ("Nama wajib diisi.", "Format email tidak valid. …") | | |
 | TC-01-05 | UC-01 | Pendaftaran berulang | Kirim pendaftaran dengan email yang sama 4 kali dalam 1 jam | Percobaan ke-4 ditolak: "Terlalu banyak percobaan. Silakan coba lagi dalam … ." | | |
+| TC-01-06 | UC-01 | Membuka tautan verifikasi yang sah | Setelah TC-01-01, buka tautan verifikasi di email | Diarahkan ke `/auth/terverifikasi` dengan judul "Email Anda berhasil diverifikasi" dan tombol "Masuk ke Dashboard"; tidak langsung ke dashboard | | |
+| TC-01-07 | UC-01 | Lanjut setelah verifikasi | Pada halaman terverifikasi, tekan "Masuk ke Dashboard" | Dashboard terbuka tanpa diminta masuk lagi; akun berstatus Gratis | | |
+| TC-01-08 | UC-01 | Halaman terverifikasi saat sudah masuk | Dalam keadaan sudah masuk, buka `http://localhost:3000/auth/terverifikasi` | Halaman tetap tampil; tidak dialihkan ke dashboard | | |
+| TC-01-09 | UC-01 | Tautan verifikasi dipakai ulang atau kedaluwarsa | Buka lagi tautan verifikasi dari TC-01-06 | Diarahkan ke `/auth/verifikasi-gagal` dengan judul "Tautan verifikasi tidak berlaku", penjelasan bahwa tautan sudah kedaluwarsa atau sudah pernah dipakai, formulir kirim ulang, dan tautan Masuk | | |
+| TC-01-10 | UC-01 | Tautan verifikasi tidak lengkap | Buka tautan verifikasi yang dipotong sebagian (mis. hapus beberapa karakter terakhir `token_hash`), lalu buka `/auth/konfirmasi` tanpa parameter | Keduanya diarahkan ke halaman "Tautan verifikasi tidak berlaku" dengan penjelasan yang sesuai; tidak ada galat 500 | | |
+| TC-01-11 | UC-01 | Kirim ulang dari halaman galat | Di halaman galat, isi email akun yang belum diverifikasi, lalu tekan "Kirim Ulang Email Verifikasi" | Pesan bahwa tautan baru telah dikirim bila email terdaftar dan belum diverifikasi; tombol terkunci 60 detik; email baru diterima dan tautannya berlaku | | |
+| TC-01-12 | UC-01 | Input tidak valid di halaman galat | Kosongkan kolom email atau isi `nama@`, lalu tekan kirim ulang | Pesan "Email wajib diisi." / "Format email tidak valid. …"; tidak ada permintaan ke server | | |
+| TC-01-13 | UC-01 | Tautan dibuka di browser lain | Daftar di browser A, lalu buka tautan verifikasi di browser B | Bila sesi tidak dapat dibuat di browser B: halaman terverifikasi dengan tombol "Ke Halaman Masuk"; masuk dengan email dan kata sandi berhasil | | |
 
 ### UC-02 Masuk ke Sistem
 
@@ -51,6 +59,7 @@ Semua pengujian di dokumen ini dijalankan di **http://localhost:3000**, baik den
 | TC-03-03 | UC-03 | Tautan kedaluwarsa atau sudah dipakai | Buka tautan yang sama untuk kedua kalinya | Pesan tautan tidak berlaku dan ajakan meminta tautan baru | | |
 | TC-03-04 | UC-03 | Tanpa tautan pemulihan | Dalam keadaan masuk biasa, buka `/atur-ulang-kata-sandi` dan kirim kata sandi baru | Ditolak: "Tautan atur ulang kata sandi sudah tidak berlaku." | | |
 | TC-03-05 | UC-03 | Kata sandi baru tidak valid | Isi kata sandi baru 5 karakter | Pesan "Kata sandi minimal 8 karakter." | | |
+| TC-03-06 | UC-03 | Alur pemulihan tidak ikut berubah | Buka tautan atur ulang kata sandi yang sah, lalu tautan yang sama untuk kedua kalinya | Tautan sah membuka `/atur-ulang-kata-sandi` (bukan halaman terverifikasi); tautan kedua menampilkan pesan tautan tidak berlaku di halaman atur ulang | | |
 
 ### UC-04 Keluar dari Sistem
 
