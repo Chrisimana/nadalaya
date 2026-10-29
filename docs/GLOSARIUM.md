@@ -4,7 +4,7 @@ Daftar istilah yang muncul di Nadalaya, dijelaskan untuk pembaca yang belum pern
 
 ## Daftar Isi
 
-1. [Musik dan Vokal](#1-musik-dan-vokal)
+1. [Musik dan Vokal](#1-musik-dan-vokal) ·
    [Birama](#birama) ·
    [Cent](#cent) ·
    [Garis bantu](#garis-bantu) ·
@@ -31,7 +31,7 @@ Daftar istilah yang muncul di Nadalaya, dijelaskan untuk pembaca yang belum pern
    [Tangga nada mayor](#tangga-nada-mayor) ·
    [Tangga nada minor](#tangga-nada-minor) ·
    [Tempo](#tempo)
-2. [Fitur Latihan](#2-fitur-latihan)
+2. [Fitur Latihan](#2-fitur-latihan) ·
    [Acuan (nada acuan)](#acuan-nada-acuan) ·
    [Analisis](#analisis) ·
    [Grafik nada](#grafik-nada) ·
@@ -48,7 +48,7 @@ Daftar istilah yang muncul di Nadalaya, dijelaskan untuk pembaca yang belum pern
    [Skor akurasi](#skor-akurasi) ·
    [Tabel nada](#tabel-nada) ·
    [Tingkat kesulitan](#tingkat-kesulitan)
-3. [Akun dan Langganan](#3-akun-dan-langganan)
+3. [Akun dan Langganan](#3-akun-dan-langganan) ·
    [Akun nonaktif](#akun-nonaktif) ·
    [Atur ulang kata sandi](#atur-ulang-kata-sandi) ·
    [Hak akses](#hak-akses) ·
@@ -65,7 +65,7 @@ Daftar istilah yang muncul di Nadalaya, dijelaskan untuk pembaca yang belum pern
    [Uji Coba Premium](#uji-coba-premium) ·
    [Verifikasi email](#verifikasi-email) ·
    [Virtual Account](#virtual-account)
-4. [Menu, Tombol, dan Halaman](#4-menu-tombol-dan-halaman)
+4. [Menu, Tombol, dan Halaman](#4-menu-tombol-dan-halaman) ·
    [Beranda](#beranda) ·
    [Dashboard](#dashboard) ·
    [Harga](#harga) ·
