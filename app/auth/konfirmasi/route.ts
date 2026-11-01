@@ -6,7 +6,7 @@ import {
   alurKonfirmasi,
   halamanBerhasil,
   halamanGagal,
-  HALAMAN_TERVERIFIKASI_PERLU_MASUK,
+  HALAMAN_VERIFIKASI_BERHASIL,
 } from "@/lib/konfirmasi";
 import { ambilProfil } from "@/lib/server/pengguna";
 import { buatKlienServer } from "@/lib/supabase/server";
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(kode);
     if (error) {
       // Email sudah diverifikasi Supabase sebelum mengalihkan; sesi gagal dibuat (mis. dibuka di browser lain).
-      return alur === "pemulihan" ? gagal(error.code) : alihkan(HALAMAN_TERVERIFIKASI_PERLU_MASUK);
+      return alur === "pemulihan" ? gagal(error.code) : alihkan(HALAMAN_VERIFIKASI_BERHASIL);
     }
   } else {
     return gagal();
@@ -50,8 +50,11 @@ export async function GET(req: NextRequest) {
   const profil = uid ? await ambilProfil(uid) : null;
   if (!profil || !profil.is_aktif) {
     await supabase.auth.signOut();
-    return alihkan(profil ? "/masuk?galat=nonaktif" : "/masuk?verifikasi=berhasil");
+    return alihkan(profil ? "/masuk?galat=nonaktif" : HALAMAN_VERIFIKASI_BERHASIL);
   }
+
+  // Sesi dari tautan verifikasi diakhiri agar pengguna masuk sendiri dari halaman masuk.
+  if (alur === "verifikasi") await supabase.auth.signOut();
 
   return alihkan(halamanBerhasil(alur, tujuan, profil.peran));
 }

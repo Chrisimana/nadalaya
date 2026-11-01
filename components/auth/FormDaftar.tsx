@@ -5,7 +5,7 @@ import { useState, type FormEvent } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { adalahBelumTersambung, pesanGalat, register } from "@/lib/api";
+import { adalahBelumTersambung, GalatApi, pesanGalat, register } from "@/lib/api";
 import {
   adaGalat,
   MIN_PANJANG_SANDI,
@@ -65,10 +65,15 @@ export function FormDaftar() {
         router.refresh();
       }
     } catch (err) {
-      setGalatServer({
-        pesan: pesanGalat(err),
-        belumTersambung: adalahBelumTersambung(err),
-      });
+      if (err instanceof GalatApi && err.kode === "email_terdaftar") {
+        setGalat((g) => ({ ...g, email: err.message }));
+        document.getElementById("daftar-email")?.focus();
+      } else {
+        setGalatServer({
+          pesan: pesanGalat(err),
+          belumTersambung: adalahBelumTersambung(err),
+        });
+      }
       setMemuat(false);
     }
   }

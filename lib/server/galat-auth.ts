@@ -3,6 +3,8 @@ import "server-only";
 import type { AuthError } from "@supabase/supabase-js";
 import { GalatRute } from "./respons";
 
+export const PESAN_EMAIL_DIGUNAKAN = "Email sudah digunakan. Silakan masuk atau gunakan email lain.";
+
 export function galatAuth(err: AuthError): GalatRute {
   switch (err.code) {
     case "invalid_credentials":
@@ -17,7 +19,7 @@ export function galatAuth(err: AuthError): GalatRute {
     case "email_exists":
       return new GalatRute(
         409,
-        "Email sudah terdaftar. Silakan masuk atau gunakan email lain.",
+        PESAN_EMAIL_DIGUNAKAN,
         "email_terdaftar",
       );
     case "weak_password":

@@ -2,7 +2,7 @@
 
 **Tanggal:** 27 Oktober 2026
 **Cakupan:** kode di repositori (API route, autentikasi, proxy, konfigurasi, SQL, Docker), hasil `npm run build`, riwayat git, dan `npm audit`.
-**Status:** Selesai. Kelima belas temuan sudah diperbaiki; sisa risikonya tercatat di [Risiko yang diterima](#risiko-yang-diterima). Perbaikan KS-01, KS-03, dan KS-13 baru aktif setelah [`supabase/migrasi-02-keamanan-sesi.sql`](../supabase/migrasi-02-keamanan-sesi.sql) dijalankan, dan bagian opsional KS-14 setelah [`supabase/migrasi-04-bucket-midi.sql`](../supabase/migrasi-04-bucket-midi.sql).
+**Status:** Selesai. Empat belas temuan sudah diperbaiki dan satu (KS-09) diterima sebagai risiko; sisa risikonya tercatat di [Risiko yang diterima](#risiko-yang-diterima). Perbaikan KS-01, KS-03, dan KS-13 baru aktif setelah [`supabase/migrasi-02-keamanan-sesi.sql`](../supabase/migrasi-02-keamanan-sesi.sql) dijalankan, dan bagian opsional KS-14 setelah [`supabase/migrasi-04-bucket-midi.sql`](../supabase/migrasi-04-bucket-midi.sql).
 
 Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`supabase/audit-keamanan.sql`](../supabase/audit-keamanan.sql) di SQL Editor dan bandingkan hasilnya dengan "Harapan" di setiap bagian.
 
@@ -24,7 +24,7 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
 | KS-06 | Autentikasi | Cookie sesi tidak `HttpOnly` dan tidak `Secure` | Sedang | Diperbaiki |
 | KS-07 | Header | Header keamanan belum ada | Sedang | Diperbaiki |
 | KS-08 | API | Rentang angka data hasil analisis tidak dibatasi | Rendah | Diperbaiki |
-| KS-09 | Autentikasi | Pendaftaran membocorkan email yang sudah terdaftar | Rendah | Diperbaiki |
+| KS-09 | Autentikasi | Pendaftaran membocorkan email yang sudah terdaftar | Rendah | Diterima |
 | KS-10 | Autentikasi | Ubah kata sandi tanpa cek akun aktif dan tanpa kata sandi lama | Rendah | Diperbaiki |
 | KS-11 | API | Tidak ada pemeriksaan `Origin`/`Content-Type` (CSRF) | Rendah | Diperbaiki |
 | KS-12 | Autentikasi | Alamat tautan email bisa diambil dari header `Host` | Rendah | Diperbaiki |
@@ -248,10 +248,12 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - Pesan login sudah aman: "Email atau kata sandi salah" untuk kedua kasus.
 - **Dampak:** Siapa pun bisa mengecek apakah sebuah email punya akun Nadalaya.
 - **Usulan perbaikan:** Ini pilihan UX. Bila ingin aman, tampilkan pesan yang sama dengan pendaftaran berhasil ("Cek email Anda untuk verifikasi"). Pemilik email asli tetap tahu dari isi emailnya. Bila pesan yang jelas dianggap lebih penting, terima sebagai risiko.
-- **Status:** ✅ **Diperbaiki.**
-  - **Daftar:** [app/api/auth/daftar/route.ts](../app/api/auth/daftar/route.ts) menjawab email yang sudah terdaftar dengan `{ perluVerifikasi: true }`, sama seperti pendaftaran baru, sehingga pengguna diarahkan ke halaman "cek email".
-  - **Kirim ulang verifikasi:** route ini kini juga tidak meneruskan galat selain batas permintaan, seperti lupa sandi, agar status email tidak bisa ditebak dari sana.
-  - **Uji di server:** daftar dengan email yang sudah ada membalas 200 `{"perluVerifikasi":true}`.
+- **Status:** ⚖️ **Diterima** (keputusan pengembang setelah uji manual).
+  - **Riwayat:** perbaikan sempat diterapkan, dengan email terdaftar dijawab `{ perluVerifikasi: true }` seperti pendaftaran baru. Uji manual menunjukkan masalah: untuk email yang sudah terverifikasi, Supabase **tidak mengirim email apa pun**. Pengguna diarahkan ke halaman "cek email", menunggu email yang tidak pernah datang, lalu cenderung mendaftar ulang berulang kali. Anggapan di usulan bahwa "pemilik email asli tetap tahu dari isi emailnya" ternyata keliru.
+  - **Keputusan:** kejelasan bagi pengguna diutamakan. [app/api/auth/daftar/route.ts](../app/api/auth/daftar/route.ts) kembali membalas 409 "Email sudah digunakan. Silakan masuk atau gunakan email lain." (sesuai SRS), dan pesan itu tampil di kolom email formulir daftar.
+  - **Tetap seperti perbaikan:** email terdaftar yang **belum** terverifikasi tetap diarahkan ke halaman "cek email", karena Supabase memang mengirim ulang email verifikasinya. Route kirim ulang verifikasi juga tetap tidak membedakan status email; pesannya bersyarat ("Jika email tersebut terdaftar dan belum diverifikasi, …").
+  - **Mitigasi risiko enumerasi:** pembatas percobaan daftar (3 per jam per email, 10 per jam per IP; KS-05) membatasi pengecekan email dalam jumlah besar. Pesan login tetap tidak membedakan email tidak terdaftar dan kata sandi salah.
+  - **Uji di server:** daftar dengan email yang sudah terdaftar dan terverifikasi membalas 409 `{"kode":"email_terdaftar"}`.
 
 ### KS-10 · Ubah kata sandi tanpa cek akun aktif dan tanpa kata sandi lama
 
@@ -439,6 +441,7 @@ Setelah diterapkan, uji dengan DevTools Console: tidak boleh ada pelanggaran CSP
 | **Pembatas percobaan disimpan di memori** (KS-05). | Render paket gratis berjalan sebagai satu *instance*, jadi cukup. | Bila aplikasi berjalan di banyak *instance* atau sering *restart*, pindahkan catatan ke penyimpanan bersama (tabel Supabase atau Redis). Supabase Auth tetap punya batasnya sendiri. |
 | **IP klien dari `x-forwarded-for`** (KS-05). | Satu-satunya sumber IP di belakang proxy Render. | Bila proxy tidak menimpa header ini, penyerang bisa memalsukan IP untuk melewati batas per IP. Batas per email tetap berlaku. Pengguna di balik satu NAT (mis. Wi-Fi kampus) berbagi batas per IP; 20 percobaan masuk per 15 menit dianggap cukup. |
 | **CSP memakai `'unsafe-inline'` untuk skrip** (KS-07). | Partial Prerendering tidak mendukung CSP berbasis *nonce*. | Header lain tetap penuh. Cookie sesi sudah `HttpOnly` (KS-06), jadi XSS tidak bisa membaca token. |
+| **Pendaftaran memberi tahu bila email sudah digunakan** (KS-09). | Respons yang disamarkan membuat pengguna menunggu email verifikasi yang tidak pernah dikirim untuk email yang sudah terverifikasi. | Pembatas percobaan daftar per email dan per IP (KS-05); pesan login tetap umum. |
 | **Signed URL MIDI berlaku 10 menit.** | Cukup untuk memuat acuan dalam satu latihan. | Hanya diberikan setelah hak akses dan kuota diperiksa. |
 
 ---
@@ -471,7 +474,7 @@ Setelah diterapkan, uji dengan DevTools Console: tidak boleh ada pelanggaran CSP
 ## Urutan perbaikan
 
 1. KS-01, KS-03, KS-08, KS-13: kuota dan sesi atomik, validasi rentang, hak eksekusi fungsi.
-2. KS-02, KS-06, KS-07, KS-09, KS-10, KS-12: pengalihan, cookie, header keamanan, alur akun.
+2. KS-02, KS-06, KS-07, KS-09, KS-10, KS-12: pengalihan, cookie, header keamanan, alur akun. KS-09 kemudian dikembalikan dan diterima sebagai risiko.
 3. KS-04, KS-05, KS-11, KS-14, KS-15: batas body, pembatas percobaan, CSRF, unggah MIDI, log.
 
 Semua temuan sudah diperbaiki. Sebelum deploy, jalankan migrasi 02, 03, dan 04, lalu jalankan ulang [supabase/audit-keamanan.sql](../supabase/audit-keamanan.sql) untuk memastikan database sesuai.

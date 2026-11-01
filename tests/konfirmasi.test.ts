@@ -12,9 +12,9 @@ describe("alur tautan email /auth/konfirmasi", () => {
     expect(alurKonfirmasi("magiclink", "/dashboard")).toBe("lainnya");
   });
 
-  it("verifikasi pendaftaran berhasil → halaman terverifikasi, bukan langsung dashboard", () => {
-    expect(halamanBerhasil("verifikasi", "/dashboard", "pengguna")).toBe("/auth/terverifikasi?lanjut=%2Fdashboard");
-    expect(halamanBerhasil("verifikasi", "/dashboard", "admin")).toBe("/auth/terverifikasi?lanjut=%2Fadmin");
+  it("verifikasi pendaftaran berhasil → halaman masuk, bukan langsung dashboard", () => {
+    expect(halamanBerhasil("verifikasi", "/dashboard", "pengguna")).toBe("/masuk?verifikasi=berhasil");
+    expect(halamanBerhasil("verifikasi", "/dashboard", "admin")).toBe("/masuk?verifikasi=berhasil");
   });
 
   it("pemulihan dan ganti email tetap memakai alur lama", () => {

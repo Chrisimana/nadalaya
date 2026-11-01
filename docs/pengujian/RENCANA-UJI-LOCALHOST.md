@@ -23,79 +23,80 @@ Semua pengujian di dokumen ini dijalankan di **http://localhost:3000**, baik den
 
 | ID | UC | Skenario | Langkah | Hasil yang diharapkan | Hasil aktual | Status |
 |---|---|---|---|---|---|---|
-| TC-01-01 | UC-01 | Data valid | Buka `/daftar`, isi nama, email baru, dan kata sandi ≥ 8 karakter, lalu tekan Daftar | Diarahkan ke halaman verifikasi email; email verifikasi diterima; akun baru berstatus Gratis | | |
-| TC-01-02 | UC-01 | Email sudah terdaftar | Daftar dengan email yang sudah dipakai akun lain | Respons sama dengan pendaftaran berhasil (diarahkan ke halaman verifikasi) dan tidak ada akun ganda. *Catatan:* berbeda dari SRS ("Email sudah digunakan") karena keputusan keamanan KS-09. | | |
-| TC-01-03 | UC-01 | Kata sandi kurang dari 8 karakter | Isi kata sandi 7 karakter | Pesan "Kata sandi minimal 8 karakter." di kolom kata sandi; data tidak dikirim | | |
-| TC-01-04 | UC-01 | Input tidak valid | Kosongkan nama, isi email `nama@`, lalu tekan Daftar | Pesan pada kolom terkait ("Nama wajib diisi.", "Format email tidak valid. …") | | |
-| TC-01-05 | UC-01 | Pendaftaran berulang | Kirim pendaftaran dengan email yang sama 4 kali dalam 1 jam | Percobaan ke-4 ditolak: "Terlalu banyak percobaan. Silakan coba lagi dalam … ." | | |
-| TC-01-06 | UC-01 | Membuka tautan verifikasi yang sah | Setelah TC-01-01, buka tautan verifikasi di email | Diarahkan ke `/auth/terverifikasi` dengan judul "Email Anda berhasil diverifikasi" dan tombol "Masuk ke Dashboard"; tidak langsung ke dashboard | | |
-| TC-01-07 | UC-01 | Lanjut setelah verifikasi | Pada halaman terverifikasi, tekan "Masuk ke Dashboard" | Dashboard terbuka tanpa diminta masuk lagi; akun berstatus Gratis | | |
-| TC-01-08 | UC-01 | Halaman terverifikasi saat sudah masuk | Dalam keadaan sudah masuk, buka `http://localhost:3000/auth/terverifikasi` | Halaman tetap tampil; tidak dialihkan ke dashboard | | |
-| TC-01-09 | UC-01 | Tautan verifikasi dipakai ulang atau kedaluwarsa | Buka lagi tautan verifikasi dari TC-01-06 | Diarahkan ke `/auth/verifikasi-gagal` dengan judul "Tautan verifikasi tidak berlaku", penjelasan bahwa tautan sudah kedaluwarsa atau sudah pernah dipakai, formulir kirim ulang, dan tautan Masuk | | |
-| TC-01-10 | UC-01 | Tautan verifikasi tidak lengkap | Buka tautan verifikasi yang dipotong sebagian (mis. hapus beberapa karakter terakhir `token_hash`), lalu buka `/auth/konfirmasi` tanpa parameter | Keduanya diarahkan ke halaman "Tautan verifikasi tidak berlaku" dengan penjelasan yang sesuai; tidak ada galat 500 | | |
-| TC-01-11 | UC-01 | Kirim ulang dari halaman galat | Di halaman galat, isi email akun yang belum diverifikasi, lalu tekan "Kirim Ulang Email Verifikasi" | Pesan bahwa tautan baru telah dikirim bila email terdaftar dan belum diverifikasi; tombol terkunci 60 detik; email baru diterima dan tautannya berlaku | | |
-| TC-01-12 | UC-01 | Input tidak valid di halaman galat | Kosongkan kolom email atau isi `nama@`, lalu tekan kirim ulang | Pesan "Email wajib diisi." / "Format email tidak valid. …"; tidak ada permintaan ke server | | |
-| TC-01-13 | UC-01 | Tautan dibuka di browser lain | Daftar di browser A, lalu buka tautan verifikasi di browser B | Bila sesi tidak dapat dibuat di browser B: halaman terverifikasi dengan tombol "Ke Halaman Masuk"; masuk dengan email dan kata sandi berhasil | | |
+| TC-01-01 | UC-01 | Data valid | Buka `/daftar`, isi nama, email baru, dan kata sandi ≥ 8 karakter, lalu tekan Daftar | Diarahkan ke halaman verifikasi email; email verifikasi diterima; akun baru berstatus Gratis | Sesuai | Lolos |
+| TC-01-02 | UC-01 | Email sudah terdaftar dan terverifikasi | Daftar dengan email yang sudah dipakai akun lain yang sudah aktif | Pesan "Email sudah digunakan. Silakan masuk atau gunakan email lain." di kolom email; tidak diarahkan ke halaman cek email; tidak ada akun ganda | Sesuai | Lolos |
+| TC-01-02b | UC-01 | Email sudah terdaftar tetapi belum diverifikasi | Daftar lagi dengan email yang pernah didaftarkan tetapi belum diverifikasi (tunggu ±1 menit sejak pendaftaran pertama) | Diarahkan ke halaman cek email; email verifikasi baru diterima | Sesuai | Lolos |
+| TC-01-03 | UC-01 | Kata sandi kurang dari 8 karakter | Isi kata sandi 7 karakter | Pesan "Kata sandi minimal 8 karakter." di kolom kata sandi; data tidak dikirim | Sesuai | Lolos |
+| TC-01-04 | UC-01 | Input tidak valid | Kosongkan nama, isi email `nama@`, lalu tekan Daftar | Pesan pada kolom terkait ("Nama wajib diisi.", "Format email tidak valid. …") | Sesuai | Lolos |
+| TC-01-05 | UC-01 | Pendaftaran berulang | Kirim pendaftaran dengan email yang sama 4 kali dalam 1 jam | Percobaan ke-4 ditolak: "Terlalu banyak percobaan. Silakan coba lagi dalam … ." | Sesuai | Lolos |
+| TC-01-06 | UC-01 | Membuka tautan verifikasi yang sah | Setelah TC-01-01, buka tautan verifikasi di email | Diarahkan ke halaman masuk (`/masuk?verifikasi=berhasil`) dengan pemberitahuan "Email berhasil diverifikasi" dan "Akun Anda sudah aktif. Silakan masuk."; tidak langsung ke dashboard | Sesuai | Lolos |
+| TC-01-07 | UC-01 | Masuk setelah verifikasi | Pada halaman masuk dari TC-01-06, isi email dan kata sandi yang didaftarkan, lalu tekan Masuk | Dashboard terbuka; akun berstatus Gratis | Sesuai | Lolos |
+| TC-01-08 | UC-01 | Tidak ada sesi otomatis dari tautan verifikasi | Setelah TC-01-06 dan sebelum masuk, buka `http://localhost:3000/dashboard` | Dialihkan ke halaman masuk (belum masuk otomatis) | Sesuai | Lolos |
+| TC-01-09 | UC-01 | Tautan verifikasi dipakai ulang atau kedaluwarsa | Buka lagi tautan verifikasi dari TC-01-06 | Diarahkan ke `/auth/verifikasi-gagal` dengan judul "Tautan verifikasi tidak berlaku", penjelasan bahwa tautan sudah kedaluwarsa atau sudah pernah dipakai, formulir kirim ulang, dan tautan Masuk | Sesuai | Lolos |
+| TC-01-10 | UC-01 | Tautan verifikasi tidak lengkap | Buka tautan verifikasi yang dipotong sebagian (mis. hapus beberapa karakter terakhir `token_hash`), lalu buka `/auth/konfirmasi` tanpa parameter | Keduanya diarahkan ke halaman "Tautan verifikasi tidak berlaku" dengan penjelasan yang sesuai; tidak ada galat 500 | Sesuai | Lolos |
+| TC-01-11 | UC-01 | Kirim ulang dari halaman galat | Di halaman galat, isi email akun yang belum diverifikasi, lalu tekan "Kirim Ulang Email Verifikasi" | Pesan bahwa tautan baru telah dikirim bila email terdaftar dan belum diverifikasi; tombol terkunci 60 detik; email baru diterima dan tautannya berlaku | Sesuai | Lolos |
+| TC-01-12 | UC-01 | Input tidak valid di halaman galat | Kosongkan kolom email atau isi `nama@`, lalu tekan kirim ulang | Pesan "Email wajib diisi." / "Format email tidak valid. …"; tidak ada permintaan ke server | Sesuai | Lolos |
+| TC-01-13 | UC-01 | Tautan dibuka di browser lain | Daftar di browser A, lalu buka tautan verifikasi di browser B | Browser B menampilkan halaman masuk dengan pemberitahuan "Email berhasil diverifikasi"; masuk dengan email dan kata sandi berhasil | Sesuai | Lolos |
 
 ### UC-02 Masuk ke Sistem
 
 | ID | UC | Skenario | Langkah | Hasil yang diharapkan | Hasil aktual | Status |
 |---|---|---|---|---|---|---|
-| TC-02-01 | UC-02 | Data valid | Masuk dengan akun Gratis | Diarahkan ke `/dashboard` | | |
-| TC-02-02 | UC-02 | Akun admin | Masuk dengan akun admin | Diarahkan ke `/admin` | | |
-| TC-02-03 | UC-02 | Kata sandi salah atau email tidak terdaftar | Masuk dengan kata sandi salah, lalu dengan email yang tidak terdaftar | Keduanya menampilkan pesan yang sama: "Email atau kata sandi salah." | | |
-| TC-02-04 | UC-02 | Email belum diverifikasi | Masuk dengan akun yang belum memverifikasi email | Pesan email belum diverifikasi dan pilihan kirim ulang verifikasi | | |
-| TC-02-05 | UC-02 | Akun nonaktif | Masuk dengan akun yang dinonaktifkan admin | Pesan "Akun Anda telah dinonaktifkan."; tidak masuk | | |
-| TC-02-06 | UC-02 | Percobaan berulang | Masuk dengan kata sandi salah 6 kali dalam 15 menit untuk email yang sama | Percobaan ke-6 ditolak dengan pesan "Terlalu banyak percobaan…" beserta waktu tunggu | | |
-| TC-02-07 | UC-02 | Halaman terlindungi tanpa masuk | Buka `/riwayat` tanpa masuk, lalu masuk | Diarahkan ke `/masuk`; setelah masuk kembali ke `/riwayat` | | |
-| TC-02-08 | UC-02 | Pengalihan ke situs luar | Buka `/masuk?lanjut=/%5Cevil.com`, lalu masuk | Diarahkan ke `/dashboard`, bukan ke situs luar | | |
+| TC-02-01 | UC-02 | Data valid | Masuk dengan akun Gratis | Diarahkan ke `/dashboard` | Sesuai| Lolos|
+| TC-02-02 | UC-02 | Akun admin | Masuk dengan akun admin | Diarahkan ke `/admin` | Sesuai | Lolos |
+| TC-02-03 | UC-02 | Kata sandi salah atau email tidak terdaftar | Masuk dengan kata sandi salah, lalu dengan email yang tidak terdaftar | Keduanya menampilkan pesan yang sama: "Email atau kata sandi salah." | Sesuai | Lolos |
+| TC-02-04 | UC-02 | Email belum diverifikasi | Masuk dengan akun yang belum memverifikasi email | Pesan email belum diverifikasi dan pilihan kirim ulang verifikasi | Sesuai | Lolos |
+| TC-02-05 | UC-02 | Akun nonaktif | Masuk dengan akun yang dinonaktifkan admin | Pesan "Akun Anda telah dinonaktifkan."; tidak masuk | Sesuai | Lolos |
+| TC-02-06 | UC-02 | Percobaan berulang | Masuk dengan kata sandi salah 6 kali dalam 15 menit untuk email yang sama | Percobaan ke-6 ditolak dengan pesan "Terlalu banyak percobaan…" beserta waktu tunggu | Sesaui | Lolos |
+| TC-02-07 | UC-02 | Halaman terlindungi tanpa masuk | Buka `/riwayat` tanpa masuk, lalu masuk | Diarahkan ke `/masuk`; setelah masuk kembali ke `/riwayat` | Sesuai | Lolos |
+| TC-02-08 | UC-02 | Pengalihan ke situs luar | Buka `/masuk?lanjut=/%5Cevil.com`, lalu masuk | Diarahkan ke `/dashboard`, bukan ke situs luar | Sesuai | Lolos |
 
 ### UC-03 Mengatur Ulang Kata Sandi
 
 | ID | UC | Skenario | Langkah | Hasil yang diharapkan | Hasil aktual | Status |
 |---|---|---|---|---|---|---|
-| TC-03-01 | UC-03 | Email terdaftar | Buka `/lupa-kata-sandi`, isi email terdaftar, buka tautan di email, lalu isi kata sandi baru | Kata sandi berubah; diminta masuk ulang dengan kata sandi baru | | |
-| TC-03-02 | UC-03 | Email tidak terdaftar | Isi email yang tidak terdaftar | Pesan umum yang sama seperti TC-03-01 (tidak membocorkan keberadaan akun) | | |
-| TC-03-03 | UC-03 | Tautan kedaluwarsa atau sudah dipakai | Buka tautan yang sama untuk kedua kalinya | Pesan tautan tidak berlaku dan ajakan meminta tautan baru | | |
-| TC-03-04 | UC-03 | Tanpa tautan pemulihan | Dalam keadaan masuk biasa, buka `/atur-ulang-kata-sandi` dan kirim kata sandi baru | Ditolak: "Tautan atur ulang kata sandi sudah tidak berlaku." | | |
-| TC-03-05 | UC-03 | Kata sandi baru tidak valid | Isi kata sandi baru 5 karakter | Pesan "Kata sandi minimal 8 karakter." | | |
-| TC-03-06 | UC-03 | Alur pemulihan tidak ikut berubah | Buka tautan atur ulang kata sandi yang sah, lalu tautan yang sama untuk kedua kalinya | Tautan sah membuka `/atur-ulang-kata-sandi` (bukan halaman terverifikasi); tautan kedua menampilkan pesan tautan tidak berlaku di halaman atur ulang | | |
+| TC-03-01 | UC-03 | Email terdaftar | Buka `/lupa-kata-sandi`, isi email terdaftar, buka tautan di email, lalu isi kata sandi baru | Kata sandi berubah; diminta masuk ulang dengan kata sandi baru | Sesuai | Lolos |
+| TC-03-02 | UC-03 | Email tidak terdaftar | Isi email yang tidak terdaftar | Pesan umum yang sama seperti TC-03-01 (tidak membocorkan keberadaan akun) | Sesuai | Lolos |
+| TC-03-03 | UC-03 | Tautan kedaluwarsa atau sudah dipakai | Buka tautan yang sama untuk kedua kalinya | Pesan tautan tidak berlaku dan ajakan meminta tautan baru | Sesuai | Lolos |
+| TC-03-04 | UC-03 | Tanpa tautan pemulihan | Dalam keadaan masuk biasa, buka `/atur-ulang-kata-sandi` dan kirim kata sandi baru | Ditolak: "Tautan atur ulang kata sandi sudah tidak berlaku." | Sesuai | Lolos |
+| TC-03-05 | UC-03 | Kata sandi baru tidak valid | Isi kata sandi baru 5 karakter | Pesan "Kata sandi minimal 8 karakter." | Sesuai | Lolos |
+| TC-03-06 | UC-03 | Alur pemulihan tidak ikut berubah | Buka tautan atur ulang kata sandi yang sah, lalu tautan yang sama untuk kedua kalinya | Tautan sah membuka `/atur-ulang-kata-sandi` (bukan halaman masuk); tautan kedua menampilkan pesan tautan tidak berlaku di halaman atur ulang | Sesuai | Lolos |
 
 ### UC-04 Keluar dari Sistem
 
 | ID | UC | Skenario | Langkah | Hasil yang diharapkan | Hasil aktual | Status |
 |---|---|---|---|---|---|---|
-| TC-04-01 | UC-04 | Keluar | Pilih Keluar pada menu akun, lalu konfirmasi | Sesi berakhir dan diarahkan ke halaman publik | | |
-| TC-04-02 | UC-04 | Kembali setelah keluar | Setelah keluar, tekan tombol Back browser ke `/dashboard` | Diarahkan ke `/masuk` | | |
+| TC-04-01 | UC-04 | Keluar | Pilih Keluar pada menu akun, lalu konfirmasi | Sesi berakhir dan diarahkan ke halaman publik | Sesuai | Lolos |
+| TC-04-02 | UC-04 | Kembali setelah keluar | Setelah keluar, tekan tombol Back browser ke `/dashboard` | Diarahkan ke `/masuk` | Sesuai | Lolos |
 
 ### UC-05 Mengubah Profil
 
 | ID | UC | Skenario | Langkah | Hasil yang diharapkan | Hasil aktual | Status |
 |---|---|---|---|---|---|---|
-| TC-05-01 | UC-05 | Nama valid | Buka `/profil`, ubah nama, lalu simpan | Nama baru tersimpan dan tampil di menu akun | | |
-| TC-05-02 | UC-05 | Input tidak valid | Isi nama 1 karakter atau kosong | Pesan "Nama minimal 2 karakter." atau "Nama wajib diisi."; tidak tersimpan | | |
+| TC-05-01 | UC-05 | Nama valid | Buka `/profil`, ubah nama, lalu simpan | Nama baru tersimpan dan tampil di menu akun | Sesuai | Lolos |
+| TC-05-02 | UC-05 | Input tidak valid | Isi nama 1 karakter atau kosong | Pesan "Nama minimal 2 karakter." atau "Nama wajib diisi."; tidak tersimpan | Sesuai | Lolos |
 
 ### UC-06 Melihat Daftar Materi
 
 | ID | UC | Skenario | Langkah | Hasil yang diharapkan | Hasil aktual | Status |
 |---|---|---|---|---|---|---|
-| TC-06-01 | UC-06 | Pengguna Gratis | Buka `/materi` | Materi dikelompokkan per jenis dan tingkat; materi Premium bertanda terkunci | | |
-| TC-06-02 | UC-06 | Pengguna Premium | Buka `/materi` dengan akun Premium | Semua materi terbuka | | |
-| TC-06-03 | UC-06 | Gagal memuat | Matikan koneksi, lalu muat ulang `/materi` | Pesan gagal memuat dan tombol Muat Ulang | | |
+| TC-06-01 | UC-06 | Pengguna Gratis | Buka `/materi` | Materi dikelompokkan per jenis dan tingkat; materi Premium bertanda terkunci |  Sesuai | Lolos |
+| TC-06-02 | UC-06 | Pengguna Premium | Buka `/materi` dengan akun Premium | Semua materi terbuka | Sesuai | Lolos|
+| TC-06-03 | UC-06 | Gagal memuat | Matikan koneksi, lalu muat ulang `/materi` | Pesan gagal memuat dan tombol Muat Ulang | Sesuai | Lolos |
 
 ### UC-07 Menyaring Materi
 
 | ID | UC | Skenario | Langkah | Hasil yang diharapkan | Hasil aktual | Status |
 |---|---|---|---|---|---|---|
-| TC-07-01 | UC-07 | Saring jenis dan tingkat | Pilih jenis "Interval" dan tingkat "Dasar" | Hanya materi yang sesuai yang tampil | | |
-| TC-07-02 | UC-07 | Tidak ada hasil | Pilih kombinasi yang tidak memiliki materi | Pesan "Materi tidak ditemukan" | | |
+| TC-07-01 | UC-07 | Saring jenis dan tingkat | Pilih jenis "Interval" dan tingkat "Dasar" | Hanya materi yang sesuai yang tampil | Sesuai | Lolos |
+| TC-07-02 | UC-07 | Tidak ada hasil | Pilih kombinasi yang tidak memiliki materi | Pesan "Materi tidak ditemukan" | Sesuai | Lolos |
 
 ### UC-08 Memilih Materi Latihan
 
 | ID | UC | Skenario | Langkah | Hasil yang diharapkan | Hasil aktual | Status |
 |---|---|---|---|---|---|---|
-| TC-08-01 | UC-08 | Materi gratis | Pengguna Gratis memilih materi tangga nada | Halaman latihan terbuka dengan notasi | | |
-| TC-08-02 | UC-08 | Materi Premium oleh pengguna Gratis | Pengguna Gratis membuka materi interval atau melodi (lewat daftar maupun URL langsung) | Halaman "Materi ini khusus Premium" dengan ajakan beralih ke Premium atau mengaktifkan uji coba; acuan MIDI tidak dimuat | | |
+| TC-08-01 | UC-08 | Materi gratis | Pengguna Gratis memilih materi tangga nada | Halaman latihan terbuka dengan notasi | Sesuai | Lolos |
+| TC-08-02 | UC-08 | Materi Premium oleh pengguna Gratis | Pengguna Gratis membuka materi interval atau melodi (lewat daftar maupun URL langsung) | Halaman "Materi ini khusus Premium" dengan ajakan beralih ke Premium atau mengaktifkan uji coba; acuan MIDI tidak dimuat | Sesuai | Lolos |
 | TC-08-03 | UC-08 | Kuota Gratis habis | Setelah 3 analisis selesai hari ini, buka halaman latihan mana pun | Halaman latihan terblokir: "Kuota analisis hari ini sudah habis" dan waktu kuota diperbarui (00.00 WIB) | | |
 
 ### UC-09 Memeriksa Hak Akses dan Kuota
