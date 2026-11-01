@@ -69,7 +69,7 @@ export function InfoVerifikasiEmail({ email }: { email: string | null }) {
       )}
 
       <div className="flex w-full flex-col gap-3">
-        <Button href="/masuk" lebarPenuh>
+        <Button href="/masuk" prefetch={false} lebarPenuh>
           Ke Halaman Masuk
         </Button>
         {email ? (
@@ -86,7 +86,7 @@ export function InfoVerifikasiEmail({ email }: { email: string | null }) {
           <p className="text-sm text-redup">
             Belum menerima email?{" "}
             <Link
-              href="/daftar"
+              href="/daftar" prefetch={false}
               className="font-semibold text-nada-700 underline-offset-4 hover:underline"
             >
               Daftar ulang

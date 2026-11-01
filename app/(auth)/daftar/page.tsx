@@ -14,7 +14,7 @@ export default function HalamanDaftar() {
         <>
           Sudah punya akun?{" "}
           <Link
-            href="/masuk"
+            href="/masuk" prefetch={false}
             className="font-semibold text-nada-700 underline-offset-4 hover:underline"
           >
             Masuk

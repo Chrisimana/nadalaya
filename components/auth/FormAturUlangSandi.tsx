@@ -84,7 +84,7 @@ export function FormAturUlangSandi({ kedaluwarsa }: { kedaluwarsa?: boolean }) {
         <p className="text-sm leading-relaxed text-redup">
           Silakan masuk dengan kata sandi baru Anda.
         </p>
-        <Button href="/masuk" lebarPenuh className="mt-2">
+        <Button href="/masuk" prefetch={false} lebarPenuh className="mt-2">
           Masuk
         </Button>
       </div>

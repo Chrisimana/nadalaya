@@ -15,20 +15,20 @@ export default function LayoutPublik({ children }: LayoutProps<"/">) {
         tautan={tautanPublik}
         aksi={
           <>
-            <Button href="/masuk" varian="hantu" ukuran="sm">
+            <Button href="/masuk" prefetch={false} varian="hantu" ukuran="sm">
               Masuk
             </Button>
-            <Button href="/daftar" ukuran="sm">
+            <Button href="/daftar" prefetch={false} ukuran="sm">
               Daftar
             </Button>
           </>
         }
         aksiPonsel={
           <>
-            <Button href="/masuk" varian="garis" lebarPenuh>
+            <Button href="/masuk" prefetch={false} varian="garis" lebarPenuh>
               Masuk
             </Button>
-            <Button href="/daftar" lebarPenuh>
+            <Button href="/daftar" prefetch={false} lebarPenuh>
               Daftar
             </Button>
           </>

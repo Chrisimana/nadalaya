@@ -21,6 +21,7 @@ import {
   type MateriLengkap,
 } from "@/lib/types";
 import { durasiAcuan } from "@/lib/audio/analisis";
+import { pramuatModelCrepe } from "@/lib/audio/crepe";
 import { useAnalisis } from "@/lib/audio/useAnalisis";
 import { usePerekam } from "@/lib/audio/usePerekam";
 
@@ -195,6 +196,11 @@ function IsiLatihan({
   useEffect(() => {
     if (selesai) onSelesai();
   }, [selesai, onSelesai]);
+
+  // Model dimuat selama pengguna merekam, bukan saat acuan diputar, agar audio tidak tersendat.
+  useEffect(() => {
+    if (perekam.status === "merekam") pramuatModelCrepe();
+  }, [perekam.status]);
 
   function latihLagi() {
     perekam.ulang();

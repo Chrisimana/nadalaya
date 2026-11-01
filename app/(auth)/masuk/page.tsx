@@ -24,7 +24,7 @@ export default function HalamanMasuk({ searchParams }: PageProps<"/masuk">) {
         <>
           Belum punya akun?{" "}
           <Link
-            href="/daftar"
+            href="/daftar" prefetch={false}
             className="font-semibold text-nada-700 underline-offset-4 hover:underline"
           >
             Daftar

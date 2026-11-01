@@ -14,7 +14,7 @@ export default function HalamanLupaKataSandi() {
         <>
           Ingat kata sandi Anda?{" "}
           <Link
-            href="/masuk"
+            href="/masuk" prefetch={false}
             className="font-semibold text-nada-700 underline-offset-4 hover:underline"
           >
             Masuk

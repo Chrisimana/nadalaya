@@ -74,7 +74,7 @@ export function KartuHarga({ paket }: { paket: InfoPaket }) {
         ))}
       </ul>
       <Button
-        href="/daftar"
+        href="/daftar" prefetch={false}
         varian={unggulan ? "aksen" : "garis"}
         lebarPenuh
         className="mt-6"

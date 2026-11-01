@@ -111,10 +111,10 @@ export default function Beranda() {
               hitungan detik.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button href="/daftar" ukuran="lg">
+              <Button href="/daftar" prefetch={false} ukuran="lg">
                 Daftar
               </Button>
-              <Button href="/masuk" ukuran="lg" varian="garis">
+              <Button href="/masuk" prefetch={false} ukuran="lg" varian="garis">
                 Saya Sudah Punya Akun
               </Button>
             </div>

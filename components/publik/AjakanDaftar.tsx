@@ -16,7 +16,7 @@ export function AjakanDaftar({
           </h2>
           <p className="mt-2 text-nada-200">{deskripsi}</p>
         </div>
-        <Button href="/daftar" varian="aksen" ukuran="lg">
+        <Button href="/daftar" prefetch={false} varian="aksen" ukuran="lg">
           Daftar
         </Button>
       </div>

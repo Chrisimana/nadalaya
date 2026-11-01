@@ -6,6 +6,7 @@ export const LAJU_SAMPEL = 16000;
 export const PANJANG_BINGKAI = 1024;
 export const HOP_BAWAAN = 160;
 export const AMBANG_CONFIDENCE = 0.5;
+export const UKURAN_BATCH = 256;
 const JUMLAH_BIN = 360;
 const URL_MODEL = "/models/crepe/model.json";
 
@@ -84,14 +85,20 @@ export async function deteksiPitch(
   model: ModelCrepe,
   opsi: { hop?: number; ukuranBatch?: number; onProgres?: (rasio: number) => void } = {},
 ): Promise<TitikPitch[]> {
-  const { hop = HOP_BAWAAN, ukuranBatch = 256, onProgres } = opsi;
+  const { hop = HOP_BAWAAN, ukuranBatch = UKURAN_BATCH, onProgres } = opsi;
   const { bingkai, jumlah } = buatBingkai(audio, hop);
   const titik: TitikPitch[] = [];
 
   for (let mulai = 0; mulai < jumlah; mulai += ukuranBatch) {
     const n = Math.min(ukuranBatch, jumlah - mulai);
-    const potongan = bingkai.subarray(mulai * PANJANG_BINGKAI, (mulai + n) * PANJANG_BINGKAI);
-    const aktivasi = await model.prediksi(potongan, n);
+    // Batch terakhir dipad nol agar bentuk tensor selalu sama dan shader WebGL tidak dikompilasi ulang.
+    let potongan = bingkai.subarray(mulai * PANJANG_BINGKAI, (mulai + n) * PANJANG_BINGKAI);
+    if (n < ukuranBatch) {
+      const penuh = new Float32Array(ukuranBatch * PANJANG_BINGKAI);
+      penuh.set(potongan);
+      potongan = penuh;
+    }
+    const aktivasi = await model.prediksi(potongan, potongan.length / PANJANG_BINGKAI);
     for (let j = 0; j < n; j++) {
       const { frekuensi, confidence } = dekodeAktivasi(aktivasi, j * JUMLAH_BIN);
       titik.push({
@@ -134,9 +141,9 @@ export function muatModelCrepe(): Promise<ModelCrepe> {
       }
       await tf.ready();
       const model = await tf.loadLayersModel(URL_MODEL);
-      // Pemanasan agar shader WebGL terkompilasi sebelum analisis sebenarnya.
+      // Pemanasan dengan bentuk batch yang sama agar shader WebGL terkompilasi sebelum analisis sebenarnya.
       const bungkus = bungkusModel(tf, model);
-      await bungkus.prediksi(new Float32Array(PANJANG_BINGKAI), 1);
+      await bungkus.prediksi(new Float32Array(UKURAN_BATCH * PANJANG_BINGKAI), UKURAN_BATCH);
       return bungkus;
     } catch (err) {
       console.error("[crepe] model gagal dimuat", err);
@@ -145,6 +152,11 @@ export function muatModelCrepe(): Promise<ModelCrepe> {
     }
   })();
   return modelDimuat;
+}
+
+/** Memuat dan memanaskan model di latar belakang; galat ditangani lagi saat analisis. */
+export function pramuatModelCrepe() {
+  muatModelCrepe().catch(() => {});
 }
 
 export async function keMono16k(rekaman: Blob): Promise<Float32Array> {

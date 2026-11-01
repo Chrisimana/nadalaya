@@ -51,7 +51,7 @@ export function FormLupaSandi() {
           buka tautan di email tersebut untuk membuat kata sandi baru. Periksa
           juga folder spam.
         </p>
-        <Button href="/masuk" lebarPenuh className="mt-2">
+        <Button href="/masuk" prefetch={false} lebarPenuh className="mt-2">
           Kembali ke Halaman Masuk
         </Button>
       </div>

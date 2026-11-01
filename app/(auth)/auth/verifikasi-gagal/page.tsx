@@ -33,7 +33,7 @@ export default function HalamanVerifikasiGagal({ searchParams }: PageProps<"/aut
       kaki={
         <>
           Sudah terverifikasi?{" "}
-          <Link href="/masuk" className="font-semibold text-nada-700 underline-offset-4 hover:underline">
+          <Link href="/masuk" prefetch={false} className="font-semibold text-nada-700 underline-offset-4 hover:underline">
             Masuk
           </Link>
         </>
