@@ -4,6 +4,27 @@
 
 <h1 align="center">Nadalaya</h1>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/status-dalam%20pengembangan-orange" alt="Status: dalam pengembangan">
+  <img src="https://img.shields.io/badge/tes%20unit-128%20lolos-brightgreen?logo=vitest&logoColor=white" alt="Tes unit: 128 lolos">
+  <img src="https://img.shields.io/badge/tes%20e2e-17%20lolos-brightgreen" alt="Tes e2e: 17 lolos">
+  <img src="https://img.shields.io/badge/audit%20keamanan-14%20diperbaiki-blue" alt="Audit keamanan: 14 diperbaiki">
+  <img src="https://img.shields.io/badge/bahasa-Indonesia-red" alt="Bahasa: Indonesia">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs&logoColor=white" alt="Next.js 16">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React 19">
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" alt="TypeScript 5">
+  <img src="https://img.shields.io/badge/Tailwind%20CSS-4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4">
+  <img src="https://img.shields.io/badge/Supabase-Auth%20%7C%20PostgreSQL-3FCF8E?logo=supabase&logoColor=white" alt="Supabase">
+  <img src="https://img.shields.io/badge/TensorFlow.js-CREPE-FF6F00?logo=tensorflow&logoColor=white" alt="TensorFlow.js CREPE">
+  <img src="https://img.shields.io/badge/Tone.js-15-6B46C1" alt="Tone.js 15">
+  <img src="https://img.shields.io/badge/VexFlow-5-4B5563" alt="VexFlow 5">
+  <img src="https://img.shields.io/badge/Node.js-24.22.1-5FA04E?logo=nodedotjs&logoColor=white" alt="Node.js 24.22.1">
+  <img src="https://img.shields.io/badge/Docker-siap-2496ED?logo=docker&logoColor=white" alt="Docker siap">
+</p>
+
 <p align="center">Website latihan vokal solfeggio dengan analisis nada otomatis untuk persiapan tes keterampilan musik.</p>
 
 ## Fitur Utama
