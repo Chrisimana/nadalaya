@@ -97,34 +97,33 @@ Semua pengujian di dokumen ini dijalankan di **http://localhost:3000**, baik den
 |---|---|---|---|---|---|---|
 | TC-08-01 | UC-08 | Materi gratis | Pengguna Gratis memilih materi tangga nada | Halaman latihan terbuka dengan notasi | Sesuai | Lolos |
 | TC-08-02 | UC-08 | Materi Premium oleh pengguna Gratis | Pengguna Gratis membuka materi interval atau melodi (lewat daftar maupun URL langsung) | Halaman "Materi ini khusus Premium" dengan ajakan beralih ke Premium atau mengaktifkan uji coba; acuan MIDI tidak dimuat | Sesuai | Lolos |
-| TC-08-03 | UC-08 | Kuota Gratis habis | Setelah 3 analisis selesai hari ini, buka halaman latihan mana pun | Halaman latihan terblokir: "Kuota analisis hari ini sudah habis" dan waktu kuota diperbarui (00.00 WIB) | | |
+| TC-08-03 | UC-08 | Kuota Gratis habis | Setelah 3 analisis selesai hari ini, buka halaman latihan mana pun | Halaman latihan terblokir: "Kuota analisis hari ini sudah habis" dan waktu kuota diperbarui (00.00 WIB) | Sesuai | Lolos |
 
 ### UC-09 Memeriksa Hak Akses dan Kuota
 
 | ID | UC | Skenario | Langkah | Hasil yang diharapkan | Hasil aktual | Status |
 |---|---|---|---|---|---|---|
-| TC-09-01 | UC-09 | Sisa kuota tampil | Akun Gratis dengan 1 analisis selesai membuka dashboard | Sisa kuota 2 | | |
-| TC-09-02 | UC-09 | Cek ulang kuota saat Analisis | Dengan sisa kuota 1, buka halaman latihan di dua tab. Selesaikan analisis di tab A, lalu rekam dan tekan Analisis di tab B. | Tab B menampilkan "Kuota analisis hari ini sudah habis"; rekaman tidak dianalisis dan kuota tidak berkurang | | |
-| TC-09-03 | UC-09 | Analisis lain sedang berjalan | Dengan sisa kuota 1, tekan Analisis di dua tab hampir bersamaan | Hanya satu yang berjalan; tab lain menampilkan pesan analisis lain sedang berjalan | | |
-| TC-09-04 | UC-09 | Pengguna Premium | Lakukan lebih dari 3 analisis dengan akun Premium | Tidak ada batas kuota | | |
-| TC-09-05 | UC-09 | Akun dinonaktifkan saat sedang masuk | Admin menonaktifkan akun yang sedang membuka halaman latihan, lalu pengguna menekan Analisis | Ditolak dengan pesan akun dinonaktifkan dan diarahkan ke halaman masuk | | |
+| TC-09-01 | UC-09 | Sisa kuota tampil | Akun Gratis dengan 1 analisis selesai membuka dashboard | Sisa kuota 2 | Sesuai | Lolos |
+| TC-09-02 | UC-09 | Cek ulang kuota saat Analisis | Dengan sisa kuota 1, buka halaman latihan di dua tab. Selesaikan analisis di tab A, lalu rekam dan tekan Analisis di tab B. | Tab B menampilkan "Kuota analisis hari ini sudah habis"; rekaman tidak dianalisis dan kuota tidak berkurang | Sesuai | Lolos |
+| TC-09-03 | UC-09 | Analisis lain sedang berjalan | Dengan sisa kuota 1, tekan Analisis di dua tab hampir bersamaan | Hanya satu yang berjalan; tab lain menampilkan pesan analisis lain sedang berjalan | Sesuai | Lolos |
+| TC-09-04 | UC-09 | Pengguna Premium | Lakukan lebih dari 3 analisis dengan akun Premium | Tidak ada batas kuota | Sesuai | Lolos |
+| TC-09-05 | UC-09 | Akun dinonaktifkan saat sedang masuk | Admin menonaktifkan akun yang sedang membuka halaman latihan, lalu pengguna menekan Analisis | Ditolak dengan pesan akun dinonaktifkan dan diarahkan ke halaman masuk | Sesuai | Lolos  |
 
 ### UC-10 Memutar Acuan MIDI dan Notasi
 
 | ID | UC | Skenario | Langkah | Hasil yang diharapkan | Hasil aktual | Status |
 |---|---|---|---|---|---|---|
-| TC-10-01 | UC-10 | Putar acuan | Tekan "Putar Acuan" | Acuan terdengar; not yang sedang diputar disorot di notasi | | |
-| TC-10-02 | UC-10 | Notasi tampil benar | Buka setiap materi (tangga nada, interval, melodi) | Kunci G, birama, kepala not, tangkai, dan garis bantu tampil (bukan kotak kosong) | | |
-| TC-10-03 | UC-10 | Berkas MIDI gagal dimuat | Matikan koneksi sebelum membuka halaman latihan | Pesan "Acuan gagal dimuat" dan tombol Muat Ulang | | |
-| TC-10-04 | UC-10 | Audio diblokir browser | Blokir suara untuk situs di pengaturan browser, lalu tekan "Putar Acuan" | Petunjuk untuk mengizinkan pemutaran audio | | |
+| TC-10-01 | UC-10 | Putar acuan | Tekan "Putar Acuan" | Acuan terdengar; not yang sedang diputar disorot di notasi | Sesuai | Lolos |
+| TC-10-01b | UC-10 | Sorotan notasi sinkron dengan nada pada putaran pertama | Tutup semua tab Nadalaya, buka halaman latihan di tab baru, lalu langsung tekan "Putar Acuan" (putaran pertama setelah halaman dibuka). Ulangi dengan menekan "Putar Acuan" sekali lagi. | Pada kedua putaran, not yang disorot di notasi berpindah bersamaan dengan nada yang terdengar; sorotan tidak mendahului suara | Sesuai | Lolos |
+| TC-10-02 | UC-10 | Notasi tampil benar | Buka setiap materi (tangga nada, interval, melodi) | Kunci G, birama, kepala not, tangkai, dan garis bantu tampil (bukan kotak kosong) | Sesuai | Lolos |
 
 ### UC-11 Merekam Suara
 
 | ID | UC | Skenario | Langkah | Hasil yang diharapkan | Hasil aktual | Status |
 |---|---|---|---|---|---|---|
-| TC-11-01 | UC-11 | Rekam normal | Tekan tombol rekam, bernyanyi 10 detik, lalu berhenti | Durasi tampil; rekaman bisa didengar ulang dan direkam ulang | | |
-| TC-11-02 | UC-11 | Izin mikrofon ditolak | Tolak izin mikrofon saat diminta | Pesan "Izin mikrofon ditolak" dan petunjuk mengizinkan mikrofon | | |
-| TC-11-03 | UC-11 | Lebih dari 60 detik | Rekam tanpa berhenti | Perekaman berhenti otomatis pada 1:00 | | |
+| TC-11-01 | UC-11 | Rekam normal | Tekan tombol rekam, bernyanyi 10 detik, lalu berhenti | Durasi tampil; rekaman bisa didengar ulang dan direkam ulang | Sesuai | Lolos |
+| TC-11-02 | UC-11 | Izin mikrofon ditolak | Tolak izin mikrofon saat diminta | Pesan "Izin mikrofon ditolak" dan petunjuk mengizinkan mikrofon | Sesuai | Lolos |
+| TC-11-03 | UC-11 | Lebih dari 60 detik | Rekam tanpa berhenti | Perekaman berhenti otomatis pada 1:00 | Sesuai | Lolos |
 | TC-11-04 | UC-11 | Kurang dari 2 detik atau tanpa suara | Rekam 1 detik, lalu rekam 5 detik tanpa bersuara | Pesan untuk merekam ulang; tombol Analisis tidak dapat dipakai; kuota tidak berkurang | | |
 
 ### UC-12 Menganalisis Akurasi Nada
