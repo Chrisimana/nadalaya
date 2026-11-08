@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-dalam%20pengembangan-orange" alt="Status: dalam pengembangan">
-  <img src="https://img.shields.io/badge/tes%20unit-128%20lolos-brightgreen?logo=vitest&logoColor=white" alt="Tes unit: 128 lolos">
+  <img src="https://img.shields.io/badge/tes%20unit-138%20lolos-brightgreen?logo=vitest&logoColor=white" alt="Tes unit: 138 lolos">
   <img src="https://img.shields.io/badge/tes%20e2e-17%20lolos-brightgreen" alt="Tes e2e: 17 lolos">
   <img src="https://img.shields.io/badge/audit%20keamanan-14%20diperbaiki-blue" alt="Audit keamanan: 14 diperbaiki">
   <img src="https://img.shields.io/badge/bahasa-Indonesia-red" alt="Bahasa: Indonesia">
@@ -78,9 +78,9 @@ Belum familier dengan istilah musik seperti tangga nada, interval, oktaf, atau c
 
    `SUPABASE_SECRET_KEY` hanya dipakai di server. Jangan dibagikan dan jangan di-commit.
 
-   `NEXT_PUBLIC_SITE_URL` adalah alamat situs untuk tautan di email. Saat `npm run dev`, nilai bawaannya `http://localhost:3000`. Di produksi (`npm start`, Docker, Render) variabel ini **wajib** diisi; tanpa itu server menolak berjalan.
+   `NEXT_PUBLIC_SITE_URL` adalah alamat situs untuk tautan di email. Saat `npm run dev`, nilai bawaannya `http://localhost:3000`. Di produksi (`npm start`, Docker, Netlify) variabel ini **wajib** diisi; tanpa itu server menolak berjalan.
 
-3. Di Supabase **SQL Editor**, jalankan berurutan: `supabase/schema.sql`, `supabase/seed.sql`, `supabase/migrasi-01-uji-coba.sql`, `supabase/migrasi-02-keamanan-sesi.sql`, `supabase/migrasi-03-jadwal-dan-hak.sql`, lalu `supabase/migrasi-04-bucket-midi.sql`. Migrasi 03 mengaktifkan ekstensi `pg_cron` dan menjadwalkan pembaruan paket kedaluwarsa setiap pukul 00.00 WIB.
+3. Di Supabase **SQL Editor**, jalankan berurutan: `supabase/schema.sql`, `supabase/seed.sql`, `supabase/migrasi-01-uji-coba.sql`, `supabase/migrasi-02-keamanan-sesi.sql`, `supabase/migrasi-03-jadwal-dan-hak.sql`, `supabase/migrasi-04-bucket-midi.sql`, lalu `supabase/migrasi-05-pembatas.sql`. Migrasi 03 mengaktifkan ekstensi `pg_cron` dan menjadwalkan pembaruan paket kedaluwarsa setiap pukul 00.00 WIB. Migrasi 05 menyimpan catatan pembatas percobaan (masuk, daftar, lupa kata sandi, kirim ulang verifikasi, sesi analisis) di database agar berlaku di semua instance server, dan menghapus catatan lama setiap jam. Bila migrasi 05 belum dijalankan, aplikasi tetap berjalan dengan pembatas di memori dan mencatat peringatan di log.
 
 4. Buka **Storage** dan pastikan ada bucket privat bernama `midi`. Bucket ini dibuat oleh `schema.sql`; jika belum ada, buat secara manual. Unggah kelima berkas dari `scripts/midi/` langsung ke bucket tersebut, bukan ke dalam folder.
 
@@ -134,12 +134,33 @@ Belum familier dengan istilah musik seperti tangga nada, interval, oktaf, atau c
 
 Variabel `NEXT_PUBLIC_*` dibaca dari `.env.local` saat build; bila `NEXT_PUBLIC_SITE_URL` kosong, Docker Compose memakai `http://localhost:3000`. Seluruh isi `.env.local` diberikan ke container saat berjalan dan tidak pernah masuk ke image.
 
-**Deploy ke Render (Docker web service):**
+## Deploy ke Netlify
 
-- Isi `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` sebagai environment variable agar tersedia saat build, karena keduanya ditanam ke kode ketika image dibangun.
-- Isi juga `NEXT_PUBLIC_SITE_URL` (**wajib**) dengan alamat situs (misalnya `https://nadalaya.onrender.com`) agar tautan email mengarah ke domain yang benar. Tambahkan alamat yang sama di pengaturan URL Supabase.
-- Isi `SUPABASE_SECRET_KEY` sebagai environment variable biasa. Kunci ini hanya dibaca saat aplikasi berjalan.
-- `PORT` diisi otomatis oleh Render; tidak perlu diatur.
+Netlify mendeteksi Next.js secara otomatis dan memakai versi Node.js dari `.nvmrc` (24.22.1), jadi tidak perlu berkas `netlify.toml`. Docker tetap dipakai untuk lingkungan lokal.
+
+1. Jalankan semua berkas SQL di langkah 3 di atas, termasuk `supabase/migrasi-05-pembatas.sql`. Server Netlify berjalan di banyak instance, jadi pembatas percobaan hanya efektif setelah migrasi ini dijalankan.
+2. Di Netlify, pilih **Add new project → Import an existing project**, lalu hubungkan repo ini. Biarkan perintah build (`npm run build`) dan folder publikasi sesuai deteksi otomatis Netlify.
+3. Buka **Project configuration → Environment variables**, lalu isi:
+
+   | Variabel | Nilai | Keterangan |
+   |---|---|---|
+   | `NEXT_PUBLIC_SUPABASE_URL` | URL proyek Supabase | Ditanam ke kode saat build |
+   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key Supabase | Ditanam ke kode saat build |
+   | `NEXT_PUBLIC_SITE_URL` | Alamat situs, misalnya `https://nadalaya.netlify.app` | **Wajib**; dipakai untuk tautan email, pemeriksaan `Origin`, dan HSTS. Tanpa garis miring di akhir. |
+   | `SUPABASE_SECRET_KEY` | Secret key Supabase | Hanya untuk server. Batasi cakupannya ke **Functions** dan jangan ditandai untuk build. |
+
+   Semua variabel harus diisi sebelum build pertama, karena nilai `NEXT_PUBLIC_*` ditanam saat build. Bila nilainya diubah, jalankan ulang deploy.
+4. Di Supabase, buka **Authentication → URL Configuration**:
+   - Site URL: alamat situs Netlify, misalnya `https://nadalaya.netlify.app`
+   - Redirect URL: `https://nadalaya.netlify.app/auth/konfirmasi`
+
+   Biarkan juga alamat `http://localhost:3000` di daftar Redirect URL agar pengembangan lokal tetap berfungsi.
+5. Setelah deploy, periksa:
+   - Header keamanan muncul di beranda dan aset (`curl -I https://nadalaya.netlify.app/` dan `/models/crepe/model.json`): `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options`.
+   - Membuka `/dashboard` tanpa masuk dialihkan ke `/masuk`.
+   - Analisis pertama berhasil (model CREPE dan font notasi termuat dari `/models` dan `/fonts`).
+
+> Deploy preview Netlify memakai alamat lain (`deploy-preview-…--nadalaya.netlify.app`). Pemeriksaan `Origin` menolak formulir dari alamat yang tidak sama dengan `NEXT_PUBLIC_SITE_URL`, jadi masuk dan daftar hanya berfungsi di alamat produksi.
 
 ## Struktur Folder
 

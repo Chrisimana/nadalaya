@@ -77,9 +77,17 @@ export function wajibAsalSama(req: Request, alamatSitus: () => string) {
 
 const POLA_IP = /^[0-9a-fA-F:.]{2,45}$/;
 
-/** IP klien dari nilai pertama x-forwarded-for (diisi proxy Render); fallback bila kosong atau tidak sah. */
+/**
+ * IP klien: x-nf-client-connection-ip (diisi Netlify), lalu nilai pertama x-forwarded-for dan x-real-ip;
+ * fallback bila kosong atau tidak sah.
+ */
 export function ipKlien(header: Headers): string {
-  for (const nilai of [header.get("x-forwarded-for")?.split(",")[0], header.get("x-real-ip")]) {
+  const kandidat = [
+    header.get("x-nf-client-connection-ip"),
+    header.get("x-forwarded-for")?.split(",")[0],
+    header.get("x-real-ip"),
+  ];
+  for (const nilai of kandidat) {
     const ip = nilai?.trim();
     if (ip && POLA_IP.test(ip)) return ip;
   }

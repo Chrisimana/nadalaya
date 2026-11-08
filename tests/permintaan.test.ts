@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { GalatRute } from "@/lib/galatRute";
-import { batasi, formatTunggu, Pembatas } from "@/lib/pembatas";
+import { batasiDengan, formatTunggu, Pembatas } from "@/lib/pembatas";
 import {
   BATAS_FORM_MIDI,
   bacaTeksTerbatas,
@@ -106,6 +106,12 @@ describe("IP klien", () => {
     expect(ipKlien(new Headers({ "x-forwarded-for": " 2001:db8::1 " }))).toBe("2001:db8::1");
   });
 
+  it("mendahulukan x-nf-client-connection-ip dari Netlify", () => {
+    const header = new Headers({ "x-nf-client-connection-ip": "198.51.100.9", "x-forwarded-for": "203.0.113.7" });
+    expect(ipKlien(header)).toBe("198.51.100.9");
+    expect(ipKlien(new Headers({ "x-nf-client-connection-ip": "bukan-ip", "x-forwarded-for": "203.0.113.7" }))).toBe("203.0.113.7");
+  });
+
   it("nilai kosong atau tidak sah memakai x-real-ip lalu fallback", () => {
     expect(ipKlien(new Headers({ "x-forwarded-for": ", 10.0.0.1", "x-real-ip": "198.51.100.2" }))).toBe("198.51.100.2");
     expect(ipKlien(new Headers({ "x-forwarded-for": "<script>" }))).toBe("tidak-diketahui");
@@ -121,7 +127,7 @@ describe("pembatas percobaan", () => {
 
   it("mengizinkan sampai batas, lalu menolak dengan waktu tunggu", () => {
     const j = jamPalsu();
-    const p = new Pembatas(5, 15 * 60_000, j.jam);
+    const p = new Pembatas("uji-email", 5, 15 * 60_000, j.jam);
     for (let i = 0; i < 5; i++) {
       expect(p.tunggu("a@contoh.com")).toBe(0);
       p.catat("a@contoh.com");
@@ -133,7 +139,7 @@ describe("pembatas percobaan", () => {
 
   it("jendela geser: percobaan lama berhenti dihitung", () => {
     const j = jamPalsu();
-    const p = new Pembatas(2, 60_000, j.jam);
+    const p = new Pembatas("uji", 2, 60_000, j.jam);
     p.catat("k");
     j.maju(30_000);
     p.catat("k");
@@ -144,7 +150,7 @@ describe("pembatas percobaan", () => {
 
   it("kunci berbeda dihitung terpisah dan catatan kedaluwarsa dibersihkan", () => {
     const j = jamPalsu();
-    const p = new Pembatas(1, 1000, j.jam);
+    const p = new Pembatas("uji", 1, 1000, j.jam);
     p.catat("x");
     expect(p.tunggu("y")).toBe(0);
     j.maju(2000);
@@ -152,21 +158,21 @@ describe("pembatas percobaan", () => {
     expect(p.ukuran).toBe(0);
   });
 
-  it("batasi(): 429 dengan pesan dan Retry-After; tidak mencatat bila ditolak", async () => {
+  it("batasiDengan() tanpa penyimpanan bersama: 429 dengan pesan dan Retry-After; tidak mencatat bila ditolak", async () => {
     const j = jamPalsu();
-    const perIp = new Pembatas(20, 15 * 60_000, j.jam);
-    const perEmail = new Pembatas(5, 15 * 60_000, j.jam);
-    for (let i = 0; i < 5; i++) batasi([[perIp, "1.2.3.4"], [perEmail, "a@contoh.com"]]);
+    const perIp = new Pembatas("uji-ip", 20, 15 * 60_000, j.jam);
+    const perEmail = new Pembatas("uji-email", 5, 15 * 60_000, j.jam);
+    for (let i = 0; i < 5; i++) await batasiDengan([[perIp, "1.2.3.4"], [perEmail, "a@contoh.com"]]);
 
-    const galat = await galatDari(() => batasi([[perIp, "1.2.3.4"], [perEmail, "a@contoh.com"]]));
+    const galat = await galatDari(() => batasiDengan([[perIp, "1.2.3.4"], [perEmail, "a@contoh.com"]]));
     expect(galat.status).toBe(429);
     expect(galat.kode).toBe("terlalu_sering");
     expect(galat.message).toBe("Terlalu banyak percobaan. Silakan coba lagi dalam 15 menit.");
     expect(galat.header).toEqual({ "Retry-After": String(15 * 60) });
 
     // Percobaan yang ditolak tidak menghabiskan jatah IP untuk email lain.
-    for (let i = 0; i < 15; i++) batasi([[perIp, "1.2.3.4"], [perEmail, `lain${i}@contoh.com`]]);
-    expect((await galatDari(() => batasi([[perIp, "1.2.3.4"], [perEmail, "baru@contoh.com"]]))).status).toBe(429);
+    for (let i = 0; i < 15; i++) await batasiDengan([[perIp, "1.2.3.4"], [perEmail, `lain${i}@contoh.com`]]);
+    expect((await galatDari(() => batasiDengan([[perIp, "1.2.3.4"], [perEmail, "baru@contoh.com"]]))).status).toBe(429);
   });
 
   it("format waktu tunggu", () => {

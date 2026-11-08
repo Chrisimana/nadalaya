@@ -153,16 +153,16 @@ Database sungguhan di Supabase belum diperiksa langsung. Untuk itu, jalankan [`s
   - Untuk satu *instance*, penyimpanan di memori sudah cukup. Untuk beberapa *instance*, gunakan tabel Supabase atau layanan seperti Upstash.
   - Batasi juga pembuatan sesi, misalnya 20 per jam per pengguna.
 - **Status:** ✅ **Diperbaiki.**
-  - **Pembatas:** pembatas berjendela geser di memori ([lib/pembatas.ts](../lib/pembatas.ts)). Bila ada yang penuh, respons 429 dengan pesan "Terlalu banyak percobaan. Silakan coba lagi dalam N menit." dan header `Retry-After`. Percobaan yang ditolak tidak dihitung.
+  - **Pembatas:** pembatas berjendela geser ([lib/pembatas.ts](../lib/pembatas.ts)). Sejak persiapan deploy ke Netlify, catatannya disimpan di tabel Supabase lewat fungsi atomik `catat_percobaan` ([supabase/migrasi-05-pembatas.sql](../supabase/migrasi-05-pembatas.sql)) agar berlaku di semua instance. Kunci disimpan sebagai hash SHA-256, bukan IP atau email asli. Fungsi hanya dapat dieksekusi `service_role`, dan catatan lebih dari 24 jam dihapus setiap jam lewat `pg_cron`. Bila migrasi belum dijalankan atau database tidak terjangkau, aplikasi memakai pembatas memori dan mencatat peringatan di log. Bila ada yang penuh, respons 429 dengan pesan "Terlalu banyak percobaan. Silakan coba lagi dalam N menit." dan header `Retry-After`. Percobaan yang ditolak tidak dihitung.
 
     | Route | Per email | Per IP |
     |---|---|---|
     | Masuk | 5 / 15 menit | 20 / 15 menit |
     | Daftar, lupa sandi, kirim ulang verifikasi | 3 / jam | 10 / jam |
     | Mulai sesi analisis | 20 / jam per pengguna | – |
-  - **IP klien:** nilai pertama `x-forwarded-for`, lalu `x-real-ip`, lalu kunci bersama "tidak-diketahui". Nilainya harus berbentuk IP.
+  - **IP klien:** `x-nf-client-connection-ip` (diisi Netlify), lalu nilai pertama `x-forwarded-for`, lalu `x-real-ip`, lalu kunci bersama "tidak-diketahui". Nilainya harus berbentuk IP.
   - **Uji di container Docker:** percobaan ke-6 untuk satu email ditolak 429 (`Retry-After: 897`), sedangkan email lain dari IP yang sama tetap dilayani.
-  - **Sisa risiko:** lihat [Risiko yang diterima](#risiko-yang-diterima). Pembatas hanya berlaku per *instance*, dan `x-forwarded-for` bisa dipalsukan bila proxy di depannya tidak menimpanya.
+  - **Sisa risiko:** lihat [Risiko yang diterima](#risiko-yang-diterima). Tanpa migrasi 05, pembatas hanya berlaku per *instance*. Di luar Netlify, header IP bisa dipalsukan bila proxy di depannya tidak menimpanya.
 
 ### KS-06 · Cookie sesi tidak `HttpOnly` dan tidak `Secure`
 
@@ -438,8 +438,8 @@ Setelah diterapkan, uji dengan DevTools Console: tidak boleh ada pelanggaran CSP
 |---|---|---|
 | **Skor bisa dipalsukan.** Skor dan kontur dihitung di browser (CREPE + DTW), sehingga pengguna yang paham bisa mengirim skor 100. | Analisis di browser adalah keputusan desain: rekaman tidak pernah diunggah ke server, demi privasi dan biaya. | Server memastikan sesi milik pengguna, berstatus `dimulai`, satu hasil per sesi, dan skor 0–100. Usulan KS-01 dan KS-03 menambah batas 15 menit dan kuota atomik. Skor hanya memengaruhi riwayat milik pengguna itu sendiri dan statistik admin. |
 | **Access token tetap berlaku sampai kedaluwarsa** (±1 jam) setelah keluar. | Sifat JWT Supabase. | Akun nonaktif tetap ditolak karena setiap API membaca `is_aktif` dari database, dan admin juga memblokir akun di Supabase Auth. |
-| **Pembatas percobaan disimpan di memori** (KS-05). | Render paket gratis berjalan sebagai satu *instance*, jadi cukup. | Bila aplikasi berjalan di banyak *instance* atau sering *restart*, pindahkan catatan ke penyimpanan bersama (tabel Supabase atau Redis). Supabase Auth tetap punya batasnya sendiri. |
-| **IP klien dari `x-forwarded-for`** (KS-05). | Satu-satunya sumber IP di belakang proxy Render. | Bila proxy tidak menimpa header ini, penyerang bisa memalsukan IP untuk melewati batas per IP. Batas per email tetap berlaku. Pengguna di balik satu NAT (mis. Wi-Fi kampus) berbagi batas per IP; 20 percobaan masuk per 15 menit dianggap cukup. |
+| **Pembatas percobaan jatuh ke memori bila penyimpanan bersama tidak tersedia** (KS-05). | Login dan pendaftaran tetap berjalan walaupun migrasi 05 belum dijalankan atau database sesaat tidak terjangkau. | Peringatan dicatat di log. Di Netlify yang berjalan di banyak *instance*, batas memori hanya berlaku per *instance*, jadi migrasi 05 wajib dijalankan sebelum deploy. Supabase Auth tetap punya batasnya sendiri. |
+| **IP klien dari header proxy** (KS-05). | Di Netlify, `x-nf-client-connection-ip` diisi oleh Netlify; `x-forwarded-for` hanya cadangan. | Di lingkungan tanpa proxy (mis. Docker lokal), header ini bisa dipalsukan untuk melewati batas per IP. Batas per email tetap berlaku. Pengguna di balik satu NAT (mis. Wi-Fi kampus) berbagi batas per IP; 20 percobaan masuk per 15 menit dianggap cukup. |
 | **CSP memakai `'unsafe-inline'` untuk skrip** (KS-07). | Partial Prerendering tidak mendukung CSP berbasis *nonce*. | Header lain tetap penuh. Cookie sesi sudah `HttpOnly` (KS-06), jadi XSS tidak bisa membaca token. |
 | **Pendaftaran memberi tahu bila email sudah digunakan** (KS-09). | Respons yang disamarkan membuat pengguna menunggu email verifikasi yang tidak pernah dikirim untuk email yang sudah terverifikasi. | Pembatas percobaan daftar per email dan per IP (KS-05); pesan login tetap umum. |
 | **Signed URL MIDI berlaku 10 menit.** | Cukup untuk memuat acuan dalam satu latihan. | Hanya diberikan setelah hak akses dan kuota diperiksa. |

@@ -1,4 +1,5 @@
-import { batasi, PEMBATAS } from "@/lib/pembatas";
+import { PEMBATAS } from "@/lib/pembatas";
+import { batasi } from "@/lib/server/pembatas";
 import { ipKlien } from "@/lib/permintaan";
 import { galatAuth } from "@/lib/server/galat-auth";
 import { ambilProfil, kePengguna, PESAN_NONAKTIF, segarkanPaket } from "@/lib/server/pengguna";
@@ -14,7 +15,7 @@ export const POST = rute(async (req: Request) => {
     throw new GalatRute(400, Object.values(galat)[0] ?? "Data tidak valid.", "data_tidak_valid");
   }
 
-  batasi([
+  await batasi([
     [PEMBATAS.masukIp, ipKlien(req.headers)],
     [PEMBATAS.masukEmail, data.email],
   ]);
@@ -38,4 +39,5 @@ export const POST = rute(async (req: Request) => {
   }
 
   return Response.json({ pengguna: kePengguna(await segarkanPaket(profil)) });
+  
 });

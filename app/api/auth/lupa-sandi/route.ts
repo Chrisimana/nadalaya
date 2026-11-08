@@ -1,5 +1,6 @@
 import { alamatSitus } from "@/lib/keamanan";
-import { batasi, PEMBATAS } from "@/lib/pembatas";
+import { PEMBATAS } from "@/lib/pembatas";
+import { batasi } from "@/lib/server/pembatas";
 import { ipKlien } from "@/lib/permintaan";
 import { galatAuth } from "@/lib/server/galat-auth";
 import { bacaJson, GalatRute, rute, teks } from "@/lib/server/respons";
@@ -12,7 +13,7 @@ export const POST = rute(async (req: Request) => {
   const galat = validasiEmail(email);
   if (galat) throw new GalatRute(400, galat, "data_tidak_valid");
 
-  batasi([
+  await batasi([
     [PEMBATAS.lupaSandiIp, ipKlien(req.headers)],
     [PEMBATAS.lupaSandiEmail, email],
   ]);
