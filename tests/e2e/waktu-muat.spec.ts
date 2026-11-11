@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 // NFR-02: halaman utama termuat ≤ 3 detik pada koneksi 10 Mbps.
-// Batas hanya ditegakkan terhadap build produksi (E2E_BASE_URL); di mode pengembangan waktu hanya dicatat.
+// Batas hanya ditegakkan terhadap build produksi (BASE_URL atau E2E_BASE_URL); di mode pengembangan waktu hanya dicatat.
 const BATAS_MS = 3000;
-const PRODUKSI = !!process.env.E2E_BASE_URL;
+const PRODUKSI = !!(process.env.BASE_URL || process.env.E2E_BASE_URL);
 
 test("waktu muat beranda pada 10 Mbps", async ({ page, browserName }) => {
   test.skip(browserName !== "chromium", "Pembatasan jaringan memakai protokol DevTools Chromium/Edge.");

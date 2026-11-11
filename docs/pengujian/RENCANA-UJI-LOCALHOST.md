@@ -7,6 +7,8 @@ Rencana pengujian menyeluruh untuk prototype Nadalaya, terdiri atas:
 
 Semua pengujian di dokumen ini dijalankan di **http://localhost:3000**, baik dengan `npm run dev` maupun `docker compose up --build`.
 
+Uji setelah deploy ke Netlify, termasuk uji yang ditunda di bawah, ada di [RENCANA-UJI-PRODUKSI.md](RENCANA-UJI-PRODUKSI.md).
+
 ## Persiapan
 
 | Kebutuhan | Keterangan |
@@ -348,6 +350,8 @@ Catatan: pembatas percobaan per IP (mis. 20 percobaan masuk per 15 menit) dapat 
 ## Ditunda sampai Deploy
 
 Uji berikut tidak dapat atau tidak bermakna dijalankan di localhost, dan dijalankan setelah aplikasi dihosting dengan HTTPS.
+
+Langkah ujinya ada di [RENCANA-UJI-PRODUKSI.md](RENCANA-UJI-PRODUKSI.md#3-uji-yang-ditunda-dari-localhost).
 
 | ID | Uji | Alasan ditunda | Status |
 |---|---|---|---|
