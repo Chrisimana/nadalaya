@@ -81,12 +81,12 @@ describe("alamat situs untuk tautan email", () => {
   });
 
   it("nilai diisi dipakai tanpa garis miring di akhir", () => {
-    expect(tentukanAlamatSitus("https://nadalaya.onrender.com/", true)).toBe("https://nadalaya.onrender.com");
+    expect(tentukanAlamatSitus("https://nadalaya-app.netlify.app/", true)).toBe("https://nadalaya-app.netlify.app");
     expect(tentukanAlamatSitus("http://localhost:3000", true)).toBe("http://localhost:3000");
   });
 
   it("nilai yang bukan URL http(s) ditolak", () => {
-    expect(() => tentukanAlamatSitus("nadalaya.onrender.com", true)).toThrow(/URL lengkap/);
+    expect(() => tentukanAlamatSitus("nadalaya-app.netlify.app", true)).toThrow(/URL lengkap/);
     expect(() => tentukanAlamatSitus("javascript:alert(1)", true)).toThrow(/http/);
   });
 });

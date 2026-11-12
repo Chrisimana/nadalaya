@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { HEADER_KEAMANAN } from "@/lib/headerKeamanan";
 import { envSupabase, OPSI_COOKIE } from "@/lib/supabase/env";
 
 // Next.js 16: middleware.ts berganti nama menjadi proxy.ts (fungsinya sama).
@@ -43,6 +44,7 @@ export async function proxy(request: NextRequest) {
     if (lanjut) alamat.searchParams.set("lanjut", jalur + request.nextUrl.search);
     const pengalihan = NextResponse.redirect(alamat);
     respons.cookies.getAll().forEach((c) => pengalihan.cookies.set(c));
+    HEADER_KEAMANAN.forEach(({ key, value }) => pengalihan.headers.set(key, value));
     return pengalihan;
   };
 

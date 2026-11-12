@@ -1,0 +1,19 @@
+# Hanya untuk header berkas statis di public/. Header halaman dan API diatur di next.config.ts,
+# tetapi Netlify tidak menerapkannya pada berkas statis yang disajikan langsung dari CDN.
+# Versi Node.js dibaca dari .nvmrc.
+
+[[headers]]
+  for = "/models/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'none'; frame-ancestors 'none'"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'none'; frame-ancestors 'none'"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"

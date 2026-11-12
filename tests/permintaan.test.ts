@@ -91,7 +91,7 @@ describe("Content-Type dan Origin (CSRF)", () => {
   });
 
   it("POST dari situs lain ditolak; situs sendiri, tanpa Origin, dan GET dilewatkan", async () => {
-    const situs = "https://nadalaya.onrender.com";
+    const situs = "https://nadalaya-app.netlify.app";
     expect((await galatDari(() => wajibAsalSama(dengan("POST", { origin: "https://evil.com" }), () => situs))).status).toBe(403);
     expect((await galatDari(() => wajibAsalSama(dengan("DELETE", { origin: "null" }), () => situs))).status).toBe(403);
     expect(() => wajibAsalSama(dengan("POST", { origin: situs }), () => situs)).not.toThrow();

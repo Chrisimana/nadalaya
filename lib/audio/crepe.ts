@@ -128,19 +128,31 @@ export function bungkusModel(tf: typeof import("@tensorflow/tfjs"), model: Layer
   };
 }
 
+let modelDiunduh: Promise<{ tf: typeof import("@tensorflow/tfjs"); model: LayersModel }> | null = null;
 let modelDimuat: Promise<ModelCrepe> | null = null;
+
+/** Mengunduh TensorFlow.js dan bobot model tanpa pemanasan; ringan bagi audio yang sedang diputar. */
+function unduhModel() {
+  modelDiunduh ??= (async () => {
+    const tf = await import("@tensorflow/tfjs");
+    try {
+      await tf.setBackend("webgl");
+    } catch {
+      await tf.setBackend("cpu");
+    }
+    await tf.ready();
+    return { tf, model: await tf.loadLayersModel(URL_MODEL) };
+  })().catch((err) => {
+    modelDiunduh = null;
+    throw err;
+  });
+  return modelDiunduh;
+}
 
 export function muatModelCrepe(): Promise<ModelCrepe> {
   modelDimuat ??= (async () => {
     try {
-      const tf = await import("@tensorflow/tfjs");
-      try {
-        await tf.setBackend("webgl");
-      } catch {
-        await tf.setBackend("cpu");
-      }
-      await tf.ready();
-      const model = await tf.loadLayersModel(URL_MODEL);
+      const { tf, model } = await unduhModel();
       // Pemanasan dengan bentuk batch yang sama agar shader WebGL terkompilasi sebelum analisis sebenarnya.
       const bungkus = bungkusModel(tf, model);
       await bungkus.prediksi(new Float32Array(UKURAN_BATCH * PANJANG_BINGKAI), UKURAN_BATCH);
@@ -152,6 +164,11 @@ export function muatModelCrepe(): Promise<ModelCrepe> {
     }
   })();
   return modelDimuat;
+}
+
+/** Mulai mengunduh model di latar belakang; galat ditangani lagi saat analisis. */
+export function praunduhModelCrepe() {
+  unduhModel().catch(() => {});
 }
 
 /** Memuat dan memanaskan model di latar belakang; galat ditangani lagi saat analisis. */

@@ -21,7 +21,7 @@ import {
   type MateriLengkap,
 } from "@/lib/types";
 import { durasiAcuan } from "@/lib/audio/analisis";
-import { pramuatModelCrepe } from "@/lib/audio/crepe";
+import { praunduhModelCrepe, pramuatModelCrepe } from "@/lib/audio/crepe";
 import { useAnalisis } from "@/lib/audio/useAnalisis";
 import { usePerekam } from "@/lib/audio/usePerekam";
 
@@ -197,7 +197,13 @@ function IsiLatihan({
     if (selesai) onSelesai();
   }, [selesai, onSelesai]);
 
-  // Model dimuat selama pengguna merekam, bukan saat acuan diputar, agar audio tidak tersendat.
+  // Model diunduh saat halaman dibuka; pemanasan (kompilasi shader yang berat) menunggu pengguna
+  // merekam, bukan saat acuan diputar, agar audio tidak tersendat.
+  useEffect(() => {
+    const t = setTimeout(praunduhModelCrepe, 1000);
+    return () => clearTimeout(t);
+  }, []);
+
   useEffect(() => {
     if (perekam.status === "merekam") pramuatModelCrepe();
   }, [perekam.status]);

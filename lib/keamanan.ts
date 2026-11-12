@@ -42,14 +42,14 @@ export const SITUS_PENGEMBANGAN = "http://localhost:3000";
 export function tentukanAlamatSitus(nilai: string | undefined, produksi: boolean): string {
   const isi = nilai?.trim();
   if (!isi) {
-    if (produksi) throw new Error("NEXT_PUBLIC_SITE_URL wajib diisi di produksi (mis. https://nadalaya.onrender.com).");
+    if (produksi) throw new Error("NEXT_PUBLIC_SITE_URL wajib diisi di produksi (mis. https://nadalaya-app.netlify.app).");
     return SITUS_PENGEMBANGAN;
   }
   let url: URL;
   try {
     url = new URL(isi);
   } catch {
-    throw new Error("NEXT_PUBLIC_SITE_URL harus berupa URL lengkap, mis. https://nadalaya.onrender.com.");
+    throw new Error("NEXT_PUBLIC_SITE_URL harus berupa URL lengkap, mis. https://nadalaya-app.netlify.app.");
   }
   if (url.protocol !== "https:" && url.protocol !== "http:") {
     throw new Error("NEXT_PUBLIC_SITE_URL harus diawali http:// atau https://.");

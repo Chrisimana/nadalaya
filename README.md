@@ -136,7 +136,7 @@ Variabel `NEXT_PUBLIC_*` dibaca dari `.env.local` saat build; bila `NEXT_PUBLIC_
 
 ## Deploy ke Netlify
 
-Netlify mendeteksi Next.js secara otomatis dan memakai versi Node.js dari `.nvmrc` (24.22.1), jadi tidak perlu berkas `netlify.toml`. Docker tetap dipakai untuk lingkungan lokal.
+Netlify mendeteksi Next.js secara otomatis dan memakai versi Node.js dari `.nvmrc` (24.22.1). Berkas `netlify.toml` hanya berisi header keamanan untuk berkas statis di `/models` dan `/fonts`, karena header dari `next.config.ts` tidak diterapkan Netlify pada berkas statis. Docker tetap dipakai untuk lingkungan lokal.
 
 1. Jalankan semua berkas SQL di langkah 3 di atas, termasuk `supabase/migrasi-05-pembatas.sql`. Server Netlify berjalan di banyak instance, jadi pembatas percobaan hanya efektif setelah migrasi ini dijalankan.
 2. Di Netlify, pilih **Add new project → Import an existing project**, lalu hubungkan repo ini. Biarkan perintah build (`npm run build`) dan folder publikasi sesuai deteksi otomatis Netlify.
