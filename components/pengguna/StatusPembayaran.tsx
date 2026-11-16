@@ -8,7 +8,7 @@ import {
   TimerOff,
   type LucideIcon,
 } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -51,6 +51,9 @@ const TAMPILAN: Record<
   },
 };
 
+const JEDA_PERIKSA_MS = 5000;
+const MAKS_PERIKSA = 24;
+
 function Baris({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5 py-3 sm:flex-row sm:justify-between sm:gap-6">
@@ -88,7 +91,7 @@ function RingkasanTransaksi({ orderId, transaksi }: { orderId: string; transaksi
       </dl>
       {!transaksi && (
         <p className="text-sm text-redup">
-          Rincian transaksi lainnya belum tersedia karena belum tersambung ke server.
+          Tidak ada transaksi dengan ID ini pada akun Anda.
         </p>
       )}
     </Card>
@@ -107,6 +110,23 @@ export function StatusPembayaran({
     [orderId],
   );
   const { keadaan, muatUlang } = useMuat(ambil);
+  const [terbaru, setTerbaru] = useState<Transaksi | null>(null);
+  const [sisaPeriksa, setSisaPeriksa] = useState(MAKS_PERIKSA);
+
+  const transaksi = terbaru ?? (keadaan.status === "siap" ? keadaan.data : null);
+  const menunggu = transaksi?.status === "tertunda";
+
+  // Selama tertunda, status diperiksa ulang tanpa menampilkan layar memuat.
+  useEffect(() => {
+    if (!orderId || !menunggu || sisaPeriksa <= 0) return;
+    const t = setTimeout(() => {
+      getTransaksi(orderId)
+        .then((x) => x && setTerbaru(x))
+        .catch(() => {})
+        .finally(() => setSisaPeriksa((n) => n - 1));
+    }, JEDA_PERIKSA_MS);
+    return () => clearTimeout(t);
+  }, [orderId, menunggu, sisaPeriksa, terbaru]);
 
   if (!orderId && !statusDariUrl) {
     return (
@@ -127,7 +147,7 @@ export function StatusPembayaran({
   }
 
   // Status dari server lebih diutamakan daripada parameter alamat.
-  const status = keadaan.data?.status ?? statusDariUrl;
+  const status = transaksi?.status ?? statusDariUrl;
   const tampilan = status ? TAMPILAN[status] : null;
   const gagal = status === "gagal" || status === "kedaluwarsa";
 
@@ -142,12 +162,24 @@ export function StatusPembayaran({
           <p className="max-w-md text-redup">{tampilan.isi}</p>
         </div>
       ) : (
-        <Alert varian="info" judul="Status pembayaran belum dapat dipastikan">
-          Status akan diperbarui otomatis setelah konfirmasi dari Midtrans diterima.
+        <Alert varian="info" judul="Transaksi tidak ditemukan">
+          Periksa kembali ID pesanan, atau buka halaman ini dari akun yang melakukan pembelian.
         </Alert>
       )}
 
-      {orderId && <RingkasanTransaksi orderId={orderId} transaksi={keadaan.data} />}
+      {menunggu && (
+        <p className="text-center text-sm text-redup" aria-live="polite">
+          {sisaPeriksa > 0 ? (
+            "Status diperiksa otomatis setiap beberapa detik."
+          ) : (
+            <Button varian="garis" ukuran="sm" onClick={() => setSisaPeriksa(MAKS_PERIKSA)}>
+              Periksa Lagi
+            </Button>
+          )}
+        </p>
+      )}
+
+      {orderId && <RingkasanTransaksi orderId={orderId} transaksi={transaksi} />}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
         <Button href="/langganan" varian={gagal ? "utama" : "garis"}>

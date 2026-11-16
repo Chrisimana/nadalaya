@@ -4,7 +4,7 @@ import type {
   StatusPaket,
   Transaksi,
 } from "@/lib/types";
-import { BelumTersambungError } from "./galat";
+import { GalatApi } from "./galat";
 import { minta } from "./klien";
 
 export type StatusPaketDanKuota = InfoLangganan & {
@@ -32,13 +32,15 @@ export async function getInfoLangganan(): Promise<InfoLangganan> {
 export async function buatPesanan(
   paket: KodePaketBerbayar,
 ): Promise<{ orderId: string; snapToken: string }> {
-  void paket;
-  // TODO: sambungkan ke Midtrans (API route POST /api/pembayaran).
-  throw new BelumTersambungError();
+  return minta<{ orderId: string; snapToken: string }>("/api/pembayaran", { method: "POST", body: { paket } });
 }
 
+/** Transaksi milik pengguna sendiri; null bila tidak ditemukan. */
 export async function getTransaksi(orderId: string): Promise<Transaksi | null> {
-  void orderId;
-  // TODO: sambungkan ke Supabase (tabel transaksi, dibatasi RLS milik pengguna)
-  return null;
+  try {
+    return (await minta<{ transaksi: Transaksi }>(`/api/pembayaran/${encodeURIComponent(orderId)}`)).transaksi;
+  } catch (err) {
+    if (err instanceof GalatApi && err.status === 404) return null;
+    throw err;
+  }
 }

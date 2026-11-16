@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-dalam%20pengembangan-orange" alt="Status: dalam pengembangan">
-  <img src="https://img.shields.io/badge/tes%20unit-138%20lolos-brightgreen?logo=vitest&logoColor=white" alt="Tes unit: 138 lolos">
+  <img src="https://img.shields.io/badge/tes%20unit-173%20lolos-brightgreen?logo=vitest&logoColor=white" alt="Tes unit: 173 lolos">
   <img src="https://img.shields.io/badge/tes%20e2e-17%20lolos-brightgreen" alt="Tes e2e: 17 lolos">
   <img src="https://img.shields.io/badge/audit%20keamanan-14%20diperbaiki-blue" alt="Audit keamanan: 14 diperbaiki">
   <img src="https://img.shields.io/badge/bahasa-Indonesia-red" alt="Bahasa: Indonesia">
@@ -67,20 +67,26 @@ Belum familier dengan istilah musik seperti tangga nada, interval, oktaf, atau c
    npm install
    ```
 
-2. Buat berkas `.env.local` di root proyek. Isi nilainya dari dashboard Supabase, menu **Project Settings → API Keys**:
+2. Buat berkas `.env.local` di root proyek. Isi nilai Supabase dari dashboard Supabase, menu **Project Settings → API Keys**, dan nilai Midtrans dari dashboard Midtrans, menu **Settings → Access Keys** (gunakan kunci Sandbox selama pengujian):
 
    ```env
    NEXT_PUBLIC_SUPABASE_URL=
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
    SUPABASE_SECRET_KEY=
    NEXT_PUBLIC_SITE_URL=http://localhost:3000
+   MIDTRANS_SERVER_KEY=
+   MIDTRANS_SIGNATURE_SECRET_KEY=
+   NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=
+   MIDTRANS_IS_PRODUCTION=false
    ```
 
-   `SUPABASE_SECRET_KEY` hanya dipakai di server. Jangan dibagikan dan jangan di-commit.
+   `SUPABASE_SECRET_KEY`, `MIDTRANS_SERVER_KEY`, dan `MIDTRANS_SIGNATURE_SECRET_KEY` hanya dipakai di server. Jangan dibagikan.
+
+   `MIDTRANS_SIGNATURE_SECRET_KEY` dipakai untuk memverifikasi notifikasi pembayaran. Sejak 28 Oktober 2026, Midtrans menandatangani notifikasi dengan Signature Secret Key, bukan Server Key. `MIDTRANS_IS_PRODUCTION=true` memakai server production Midtrans (`app.midtrans.com`, `api.midtrans.com`); selain itu sandbox (`app.sandbox.midtrans.com`, `api.sandbox.midtrans.com`).
 
    `NEXT_PUBLIC_SITE_URL` adalah alamat situs untuk tautan di email. Saat `npm run dev`, nilai bawaannya `http://localhost:3000`. Di produksi (`npm start`, Docker, Netlify) variabel ini **wajib** diisi; tanpa itu server menolak berjalan.
 
-3. Di Supabase **SQL Editor**, jalankan berurutan: `supabase/schema.sql`, `supabase/seed.sql`, `supabase/migrasi-01-uji-coba.sql`, `supabase/migrasi-02-keamanan-sesi.sql`, `supabase/migrasi-03-jadwal-dan-hak.sql`, `supabase/migrasi-04-bucket-midi.sql`, lalu `supabase/migrasi-05-pembatas.sql`. Migrasi 03 mengaktifkan ekstensi `pg_cron` dan menjadwalkan pembaruan paket kedaluwarsa setiap pukul 00.00 WIB. Migrasi 05 menyimpan catatan pembatas percobaan (masuk, daftar, lupa kata sandi, kirim ulang verifikasi, sesi analisis) di database agar berlaku di semua instance server, dan menghapus catatan lama setiap jam. Bila migrasi 05 belum dijalankan, aplikasi tetap berjalan dengan pembatas di memori dan mencatat peringatan di log.
+3. Di Supabase **SQL Editor**, jalankan berurutan: `supabase/schema.sql`, `supabase/seed.sql`, `supabase/migrasi-01-uji-coba.sql`, `supabase/migrasi-02-keamanan-sesi.sql`, `supabase/migrasi-03-jadwal-dan-hak.sql`, `supabase/migrasi-04-bucket-midi.sql`, `supabase/migrasi-05-pembatas.sql`, lalu `supabase/migrasi-06-pembayaran.sql`. Migrasi 03 mengaktifkan ekstensi `pg_cron` dan menjadwalkan pembaruan paket kedaluwarsa setiap pukul 00.00 WIB. Migrasi 05 menyimpan catatan pembatas percobaan (masuk, daftar, lupa kata sandi, kirim ulang verifikasi, sesi analisis) di database agar berlaku di semua instance server, dan menghapus catatan lama setiap jam. Bila migrasi 05 belum dijalankan, aplikasi tetap berjalan dengan pembatas di memori dan mencatat peringatan di log. Migrasi 06 menambahkan fungsi `proses_pembayaran` yang mengaktifkan atau memperpanjang Premium secara atomik setelah notifikasi Midtrans terverifikasi, serta menjadwalkan pesanan yang tidak dibayar dalam 25 jam menjadi kedaluwarsa. Tanpa migrasi 06, pembayaran tidak dapat mengaktifkan paket.
 
 4. Buka **Storage** dan pastikan ada bucket privat bernama `midi`. Bucket ini dibuat oleh `schema.sql`; jika belum ada, buat secara manual. Unggah kelima berkas dari `scripts/midi/` langsung ke bucket tersebut, bukan ke dalam folder.
 
@@ -134,11 +140,11 @@ Belum familier dengan istilah musik seperti tangga nada, interval, oktaf, atau c
 
 Variabel `NEXT_PUBLIC_*` dibaca dari `.env.local` saat build; bila `NEXT_PUBLIC_SITE_URL` kosong, Docker Compose memakai `http://localhost:3000`. Seluruh isi `.env.local` diberikan ke container saat berjalan dan tidak pernah masuk ke image.
 
-## Deploy ke Netlify
+## Deploy Netlify
 
 Netlify mendeteksi Next.js secara otomatis dan memakai versi Node.js dari `.nvmrc` (24.22.1). Berkas `netlify.toml` hanya berisi header keamanan untuk berkas statis di `/models` dan `/fonts`, karena header dari `next.config.ts` tidak diterapkan Netlify pada berkas statis. Docker tetap dipakai untuk lingkungan lokal.
 
-1. Jalankan semua berkas SQL di langkah 3 di atas, termasuk `supabase/migrasi-05-pembatas.sql`. Server Netlify berjalan di banyak instance, jadi pembatas percobaan hanya efektif setelah migrasi ini dijalankan.
+1. Jalankan semua berkas SQL di langkah 3 di atas, termasuk `supabase/migrasi-05-pembatas.sql` dan `supabase/migrasi-06-pembayaran.sql`. Server Netlify berjalan di banyak instance, jadi pembatas percobaan hanya efektif setelah migrasi 05 dijalankan.
 2. Di Netlify, pilih **Add new project → Import an existing project**, lalu hubungkan repo ini. Biarkan perintah build (`npm run build`) dan folder publikasi sesuai deteksi otomatis Netlify.
 3. Buka **Project configuration → Environment variables**, lalu isi:
 
@@ -146,21 +152,26 @@ Netlify mendeteksi Next.js secara otomatis dan memakai versi Node.js dari `.nvmr
    |---|---|---|
    | `NEXT_PUBLIC_SUPABASE_URL` | URL proyek Supabase | Ditanam ke kode saat build |
    | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key Supabase | Ditanam ke kode saat build |
-   | `NEXT_PUBLIC_SITE_URL` | Alamat situs, misalnya `https://nadalaya.netlify.app` | **Wajib**; dipakai untuk tautan email, pemeriksaan `Origin`, dan HSTS. Tanpa garis miring di akhir. |
+   | `NEXT_PUBLIC_SITE_URL` | Alamat situs, misalnya `https://nadalaya-app.netlify.app` | **Wajib**; dipakai untuk tautan email, pemeriksaan `Origin`, dan HSTS. Tanpa garis miring di akhir. |
    | `SUPABASE_SECRET_KEY` | Secret key Supabase | Hanya untuk server. Batasi cakupannya ke **Functions** dan jangan ditandai untuk build. |
+   | `MIDTRANS_SERVER_KEY` | Server Key Midtrans | Hanya untuk server (cakupan **Functions**). Dipakai untuk Snap API dan Get Status API. |
+   | `MIDTRANS_SIGNATURE_SECRET_KEY` | Signature Secret Key Midtrans | Hanya untuk server (cakupan **Functions**). Dipakai untuk memverifikasi notifikasi. |
+   | `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` | Client Key Midtrans | Ditanam ke kode saat build; dipakai `snap.js` |
+   | `MIDTRANS_IS_PRODUCTION` | `false` (sandbox) atau `true` | Dibaca saat build dan saat berjalan, jadi beri cakupan **Builds** dan **Functions** |
 
    Semua variabel harus diisi sebelum build pertama, karena nilai `NEXT_PUBLIC_*` ditanam saat build. Bila nilainya diubah, jalankan ulang deploy.
 4. Di Supabase, buka **Authentication → URL Configuration**:
-   - Site URL: alamat situs Netlify, misalnya `https://nadalaya.netlify.app`
-   - Redirect URL: `https://nadalaya.netlify.app/auth/konfirmasi`
+   - Site URL: alamat situs Netlify, misalnya `https://nadalaya-app.netlify.app`
+   - Redirect URL: `https://nadalaya-app.netlify.app/auth/konfirmasi`
 
    Biarkan juga alamat `http://localhost:3000` di daftar Redirect URL agar pengembangan lokal tetap berfungsi.
-5. Setelah deploy, periksa:
-   - Header keamanan muncul di beranda dan aset (`curl -I https://nadalaya.netlify.app/` dan `/models/crepe/model.json`): `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options`.
+5. Di dashboard Midtrans (sandbox atau production sesuai `MIDTRANS_IS_PRODUCTION`), buka **Settings → Payment → Notification URL**, lalu isi **Payment Notification URL** dengan `https://nadalaya-app.netlify.app/api/pembayaran/notifikasi`. Paket hanya aktif setelah notifikasi ini diterima dan diverifikasi.
+6. Setelah deploy, periksa:
+   - Header keamanan muncul di beranda dan aset (`curl -I https://nadalaya-app.netlify.app/` dan `/models/crepe/model.json`): `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options`.
    - Membuka `/dashboard` tanpa masuk dialihkan ke `/masuk`.
    - Analisis pertama berhasil (model CREPE dan font notasi termuat dari `/models` dan `/fonts`).
 
-> Deploy preview Netlify memakai alamat lain (`deploy-preview-…--nadalaya.netlify.app`). Pemeriksaan `Origin` menolak formulir dari alamat yang tidak sama dengan `NEXT_PUBLIC_SITE_URL`, jadi masuk dan daftar hanya berfungsi di alamat produksi.
+> Deploy preview Netlify memakai alamat lain (`deploy-preview-…--nadalaya-app.netlify.app`). Pemeriksaan `Origin` menolak formulir dari alamat yang tidak sama dengan `NEXT_PUBLIC_SITE_URL`, jadi masuk dan daftar hanya berfungsi di alamat produksi.
 
 ## Struktur Folder
 
@@ -208,9 +219,9 @@ Font notasi di `public/fonts/vexflow/` (Bravura dan Academico, © Steinberg Medi
 | 14 | Melihat Riwayat Latihan | Berfungsi |
 | 15 | Melihat Grafik Progres | Berfungsi |
 | 16 | Mengaktifkan Uji Coba Premium | Berfungsi |
-| 17 | Membeli Paket Langganan | Tampilan saja |
-| 18 | Memproses Pembayaran | Tampilan saja |
-| 19 | Mengaktifkan Langganan | Belum |
+| 17 | Membeli Paket Langganan | Berfungsi (Midtrans sandbox) |
+| 18 | Memproses Pembayaran | Berfungsi (Midtrans sandbox) |
+| 19 | Mengaktifkan Langganan | Berfungsi (Midtrans sandbox) |
 | 20 | Melihat Data Materi (admin) | Berfungsi |
 | 21 | Menambahkan Data Materi | Berfungsi |
 | 22 | Mengubah Data Materi | Berfungsi |
@@ -218,13 +229,11 @@ Font notasi di `public/fonts/vexflow/` (Bravura dan Academico, © Steinberg Medi
 | 24 | Melihat Data Pengguna | Berfungsi |
 | 25 | Menonaktifkan Akun Pengguna | Berfungsi |
 | 26 | Melihat Statistik Latihan | Berfungsi |
-| 27 | Melihat Laporan Transaksi | Berfungsi (menunggu data pembayaran) |
+| 27 | Melihat Laporan Transaksi | Berfungsi |
 
-**Ringkasan:** 24 dari 27 fitur berfungsi (**89%**), 2 fitur baru berupa tampilan (pembelian dan pembayaran), dan 1 fitur belum dikerjakan. Kesepuluh fitur esensial, uji coba Premium 7 hari, dan seluruh fitur admin sudah berfungsi; laporan transaksi akan terisi setelah pembayaran tersedia.
+**Ringkasan:** 27 dari 27 fitur berfungsi (**100%**). Pembayaran (pembelian, pemrosesan notifikasi, dan aktivasi langganan) memakai Midtrans Snap mode sandbox dan sudah diuji menyeluruh di sandbox; peralihan ke mode production menunggu akun Midtrans production.
 
 ## Rencana Berikutnya
 
-1. Pembayaran paket dengan Midtrans
+1. Beralih ke Midtrans mode production
 2. Penyempurnaan grafik progres
-3. SMTP email dengan alamat Nadalaya sendiri
-4. Deploy

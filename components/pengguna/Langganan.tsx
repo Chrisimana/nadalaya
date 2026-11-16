@@ -2,6 +2,7 @@
 
 import { Check, CreditCard, Crown, QrCode, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
 import { useState } from "react";
 import { KepalaAplikasi } from "@/components/pengguna/KepalaAplikasi";
 import { Alert } from "@/components/ui/Alert";
@@ -17,6 +18,16 @@ import { LABEL_PAKET, type KodePaketBerbayar } from "@/lib/types";
 import { useMuat } from "@/lib/useMuat";
 import { cn } from "@/lib/utils";
 import { bolehUjiCoba, ringkasPaket } from "@/lib/statusPaket";
+
+type OpsiSnap = { onSuccess: () => void; onPending: () => void; onError: () => void; onClose: () => void };
+
+declare global {
+  interface Window {
+    snap?: { pay: (token: string, opsi: OpsiSnap) => void };
+  }
+}
+
+export type KonfigurasiSnap = { url: string; clientKey: string };
 
 const PAKET_BERBAYAR = DAFTAR_PAKET.filter(
   (p): p is InfoPaket & { kode: KodePaketBerbayar } =>
@@ -78,7 +89,7 @@ function KartuBeli({
   );
 }
 
-export function Langganan() {
+export function Langganan({ snap }: { snap: KonfigurasiSnap }) {
   const router = useRouter();
   const { keadaan, muatUlang } = useMuat(getInfoLangganan);
   const [diproses, setDiproses] = useState<KodePaketBerbayar | null>(null);
@@ -92,9 +103,22 @@ export function Langganan() {
     setGalatServer(null);
     setDiproses(paket);
     try {
-      const { orderId } = await buatPesanan(paket);
-      // TODO: sambungkan ke Midtrans — buka pop-up Snap dengan snapToken
-      router.push(`/langganan/status?order_id=${encodeURIComponent(orderId)}`);
+      const { orderId, snapToken } = await buatPesanan(paket);
+      if (!window.snap) {
+        // Pesanan tetap tertunda dan kedaluwarsa otomatis.
+        setGalatServer({
+          untuk: paket,
+          galat: {
+            pesan: "Halaman pembayaran Midtrans belum dapat dimuat. Periksa koneksi Anda, muat ulang halaman, lalu coba lagi.",
+            belumTersambung: false,
+          },
+        });
+        setDiproses(null);
+        return;
+      }
+      // Status di halaman tujuan hanya informasi; paket diaktifkan oleh notifikasi Midtrans.
+      const keStatus = () => router.push(`/langganan/status?order_id=${encodeURIComponent(orderId)}`);
+      window.snap.pay(snapToken, { onSuccess: keStatus, onPending: keStatus, onError: keStatus, onClose: keStatus });
     } catch (err) {
       setGalatServer({ untuk: paket, galat: keGalatServer(err) });
       setDiproses(null);
@@ -105,6 +129,7 @@ export function Langganan() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-10 sm:px-6">
+      {snap.clientKey && <Script src={snap.url} data-client-key={snap.clientKey} strategy="afterInteractive" />}
       <KepalaAplikasi
         judul="Langganan"
         deskripsi="Lihat status paket Anda, aktifkan uji coba, atau beli paket Premium."

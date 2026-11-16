@@ -141,4 +141,5 @@ export const PEMBATAS = {
   kirimUlangEmail: new Pembatas("kirim-ulang-email", 3, JAM),
   kirimUlangIp: new Pembatas("kirim-ulang-ip", 10, JAM),
   sesiPengguna: new Pembatas("sesi-pengguna", 20, JAM),
+  pembayaranPengguna: new Pembatas("pembayaran-pengguna", 10, JAM),
 };

@@ -1,7 +1,5 @@
 -- Migrasi 05: pembatas percobaan bersama untuk server yang berjalan di banyak instance (Netlify).
--- Jalankan setelah migrasi-04-bucket-midi.sql (aman dijalankan ulang).
 
--- Kunci disimpan sebagai hash SHA-256 dari nama aturan dan IP/email, bukan teks aslinya.
 create table if not exists public.percobaan_pembatas (
   id bigint generated always as identity primary key,
   kunci text not null,

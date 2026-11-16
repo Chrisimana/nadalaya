@@ -11,10 +11,14 @@ export function jsonGalat(status: number, pesan: string, kode?: string, header?:
   return Response.json({ pesan, ...(kode ? { kode } : {}) }, { status, headers: header });
 }
 
-export function rute<A extends unknown[]>(handler: (...args: A) => Promise<Response>) {
+/** tanpaPemeriksaanAsal hanya untuk webhook dari layanan luar yang diverifikasi dengan tanda tangan. */
+export function rute<A extends unknown[]>(
+  handler: (...args: A) => Promise<Response>,
+  opsi: { tanpaPemeriksaanAsal?: boolean } = {},
+) {
   return async (...args: A): Promise<Response> => {
     try {
-      if (args[0] instanceof Request) wajibAsalSama(args[0], alamatSitus);
+      if (args[0] instanceof Request && !opsi.tanpaPemeriksaanAsal) wajibAsalSama(args[0], alamatSitus);
       return await handler(...args);
     } catch (err) {
       // Galat internal Next.js (mis. saat prerender) harus diteruskan.

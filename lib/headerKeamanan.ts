@@ -5,12 +5,16 @@ const produksi = process.env.NODE_ENV === "production";
 // HSTS dan upgrade-insecure-requests hanya untuk produksi HTTPS, bukan Docker di localhost.
 const https = produksi && (process.env.NEXT_PUBLIC_SITE_URL ?? "").startsWith("https://");
 const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+// Pop-up pembayaran Midtrans Snap (sandbox dan production): snap.js dan iframe-nya.
+// Berlaku di semua halaman karena navigasi sisi klien ke /langganan tidak memuat dokumen (dan CSP) baru.
+const midtrans = "https://app.sandbox.midtrans.com https://app.midtrans.com";
 
 const csp = [
   "default-src 'self'",
   // Skrip inline Next.js; PPR tidak mendukung CSP berbasis nonce.
   // 'wasm-unsafe-eval' hanya untuk WebAssembly (dicoba pustaka long milik TensorFlow.js), bukan eval JavaScript.
-  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:${produksi ? "" : " 'unsafe-eval'"}`,
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: ${midtrans}${produksi ? "" : " 'unsafe-eval'"}`,
+  `frame-src 'self' ${midtrans}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
