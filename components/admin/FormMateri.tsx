@@ -145,7 +145,14 @@ function UnggahMidi({
   );
 }
 
+// Halaman yang pernah dibuka tetap tersimpan (cacheComponents), jadi form dipasang ulang setelah
+// tersimpan agar isian dan status "Menyimpan…" tidak terbawa saat halaman dibuka lagi.
 export function FormMateri({ materi }: { materi?: MateriAdmin }) {
+  const [versi, setVersi] = useState(0);
+  return <IsiFormMateri key={versi} materi={materi} onTersimpan={() => setVersi((v) => v + 1)} />;
+}
+
+function IsiFormMateri({ materi, onTersimpan }: { materi?: MateriAdmin; onTersimpan: () => void }) {
   const router = useRouter();
   const mode = materi ? "ubah" : "tambah";
   const [judul, setJudul] = useState(materi?.judul ?? "");
@@ -182,6 +189,7 @@ export function FormMateri({ materi }: { materi?: MateriAdmin }) {
         materi?.id,
       );
       router.push(`/admin/materi?disimpan=${mode}`);
+      onTersimpan();
     } catch (err) {
       setGalatServer(keGalatServer(err));
       setMemuat(false);
