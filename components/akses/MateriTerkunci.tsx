@@ -8,7 +8,7 @@ import { useMuat } from "@/lib/useMuat";
 import { TombolUjiCoba } from "./TombolUjiCoba";
 
 const keuntungan = [
-  "Semua materi interval dan melodi",
+  "Semua materi: tangga nada lanjutan, interval, dan melodi",
   "Analisis tanpa batas setiap hari",
   "Grafik progres skor",
 ];
@@ -34,8 +34,8 @@ export function MateriTerkunci({ onUjiCobaAktif }: { onUjiCobaAktif?: () => void
         </h2>
         <p className="max-w-md text-sm leading-relaxed text-redup">
           {tampilkanUjiCoba
-            ? "Beralih ke Premium atau aktifkan uji coba gratis 7 hari untuk membuka materi ini beserta seluruh materi interval dan melodi."
-            : "Beralih ke Premium untuk membuka materi ini beserta seluruh materi interval dan melodi."}
+            ? "Beralih ke Premium atau aktifkan uji coba gratis 7 hari untuk membuka materi ini beserta seluruh materi tangga nada lanjutan, interval, dan melodi."
+            : "Beralih ke Premium untuk membuka materi ini beserta seluruh materi tangga nada lanjutan, interval, dan melodi."}
         </p>
       </div>
       <div className="flex flex-col items-center gap-6 px-6 py-8">

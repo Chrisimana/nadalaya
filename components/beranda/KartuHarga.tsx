@@ -79,7 +79,11 @@ export function KartuHarga({ paket }: { paket: InfoPaket }) {
         lebarPenuh
         className="mt-6"
       >
-        {paket.harga === 0 ? "Mulai Gratis" : `Pilih ${paket.nama}`}
+        {paket.kode === "uji_coba"
+          ? "Coba Premium 7 Hari"
+          : paket.harga === 0
+            ? "Mulai Gratis"
+            : `Pilih ${paket.nama}`}
       </Button>
     </article>
   );

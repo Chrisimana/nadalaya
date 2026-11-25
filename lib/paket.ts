@@ -33,8 +33,9 @@ export const DAFTAR_PAKET: InfoPaket[] = [
     fitur: [
       "Setara Premium selama 7 hari",
       "Analisis tanpa batas",
-      "Semua materi interval dan melodi",
-      "Riwayat latihan dan grafik progres",
+      "Semua materi: tangga nada lanjutan, interval, dan melodi",
+      "Riwayat latihan",
+      "Grafik progres skor",
     ],
     catatan: "Satu kali per akun",
   },
@@ -46,7 +47,7 @@ export const DAFTAR_PAKET: InfoPaket[] = [
     ringkasan: "Untuk latihan rutin setiap hari.",
     fitur: [
       "Analisis tanpa batas",
-      "Semua materi interval dan melodi",
+      "Semua materi: tangga nada lanjutan, interval, dan melodi",
       "Riwayat latihan",
       "Grafik progres skor",
     ],
@@ -61,7 +62,8 @@ export const DAFTAR_PAKET: InfoPaket[] = [
     fitur: [
       "Setara Premium selama 90 hari",
       "Analisis tanpa batas",
-      "Semua materi interval dan melodi",
+      "Semua materi: tangga nada lanjutan, interval, dan melodi",
+      "Riwayat latihan",
       "Grafik progres skor",
     ],
     catatan: "Lebih hemat Rp18.000 dibanding 3 bulan Premium",
@@ -83,6 +85,7 @@ export const PERBANDINGAN_HAK_AKSES: {
     nilai: ["3 kali", "Tanpa batas", "Tanpa batas", "Tanpa batas"],
   },
   { fitur: "Materi tangga nada dasar", nilai: [true, true, true, true] },
+  { fitur: "Materi tangga nada lanjutan", nilai: [false, true, true, true] },
   { fitur: "Materi interval dan melodi", nilai: [false, true, true, true] },
   { fitur: "Skor dan grafik nada tiap latihan", nilai: [true, true, true, true] },
   { fitur: "Riwayat latihan", nilai: [false, true, true, true] },
